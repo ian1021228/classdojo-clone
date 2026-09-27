@@ -703,7 +703,7 @@ class TeacherController {
     if (q && filteredStudents.length === 0) {
       html += `
         <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; background: #fffdf5; border: 2px dashed #fde68a; border-radius: 16px;">
-          <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
+          <div style="font-size: 2.2rem; margin-bottom: 8px; color: #f59e0b;"><i class="fa-solid fa-magnifying-glass"></i></div>
           <h4 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">查無符合「${escapeHTML(this.studentSearchQuery)}」的學生</h4>
           <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 16px;">請檢查姓名拼寫或座號，或點擊下方按鈕清除搜尋條件。</p>
           <button class="btn btn-secondary btn-sm" id="btn-reset-search-prompt" style="border-radius: var(--radius-full);"><i class="fa-solid fa-arrow-rotate-left"></i> 清除搜尋條件</button>
@@ -816,12 +816,12 @@ class TeacherController {
               </div>
             `).join('')}
           </div>
-          <button class="btn btn-outline-primary btn-sm" style="width: 100%;">⭐ 給小組反饋</button>
+          <button class="btn btn-outline-primary btn-sm" style="width: 100%;"><i class="fa-solid fa-star" style="color: #f59e0b;"></i> 給小組協作加分</button>
         </div>
       `;
     }).join('') + `
       <div class="add-student-card" id="card-create-group">
-        <div class="add-student-icon">👥</div>
+        <div class="add-student-icon" style="font-size: 1.5rem; color: #f59e0b;"><i class="fa-solid fa-users"></i></div>
         <strong style="font-size: 0.95rem; color: var(--text-main);">使用智慧分組機建立小組</strong>
       </div>
     `;
