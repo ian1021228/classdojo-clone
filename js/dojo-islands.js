@@ -46,6 +46,17 @@ export class DojoIslands {
       { id: 'sunflowers', name: '🌻 向日葵花圃', x: 580, y: 240, radius: 40, icon: '🌻' }
     ];
 
+    // Pollen gathering gamification
+    this.pollenCount = 0;
+    this.flowers = [
+      { x: 310, y: 190, icon: '🌻', name: '向日葵花蜜', collected: false, timer: 0 },
+      { x: 490, y: 190, icon: '🌸', name: '櫻花蜜露', collected: false, timer: 0 },
+      { x: 260, y: 310, icon: '🌻', name: '向日葵花蜜', collected: false, timer: 0 },
+      { x: 520, y: 320, icon: '🌸', name: '櫻花蜜露', collected: false, timer: 0 },
+      { x: 390, y: 360, icon: '🪻', name: '薰衣草蜜', collected: false, timer: 0 }
+    ];
+    this.floatingTexts = [];
+
     this.keys = {};
     this.running = false;
 
@@ -170,18 +181,48 @@ export class DojoIslands {
       }
     });
 
+    // Check flower pollen collecting
+    this.flowers.forEach(f => {
+      if (f.collected) {
+        f.timer--;
+        if (f.timer <= 0) f.collected = false;
+      } else {
+        const dist = Math.hypot(this.player.x - f.x, this.player.y - f.y);
+        if (dist < 32) {
+          f.collected = true;
+          f.timer = 240; // respawn in 4 seconds
+          this.pollenCount++;
+          if (window.dojoAudio && window.dojoAudio.playPollenChime) {
+            window.dojoAudio.playPollenChime();
+          } else if (window.dojoAudio) {
+            window.dojoAudio.playTick();
+          }
+          this.floatingTexts.push({ x: f.x, y: f.y - 12, text: `+1 🌸`, opacity: 1, vy: -1.2 });
+        }
+      }
+    });
+
     // Check interaction with hotspots
     this.hotspots.forEach(h => {
       const dist = Math.hypot(this.player.x - h.x, this.player.y - h.y);
       if (dist < h.radius) {
         if (h.id === 'fountain' && !h.collected) {
           h.collected = true;
-          if (window.dojoAudio) window.dojoAudio.playFanfare();
+          if (window.dojoAudio && window.dojoAudio.playHoneyDrop) window.dojoAudio.playHoneyDrop();
+          if (window.dojoAudio && window.dojoAudio.playFanfare) window.dojoAudio.playFanfare();
           if (window.dojoConfetti) window.dojoConfetti.burst(h.x, h.y);
+          this.floatingTexts.push({ x: h.x, y: h.y - 20, text: '🍯 喝到純甜金蜜泉！', opacity: 1, vy: -1.2 });
           if (this.options.onCollectGem) this.options.onCollectGem();
         }
       }
     });
+
+    // Update floating texts
+    this.floatingTexts.forEach(ft => {
+      ft.y += ft.vy;
+      ft.opacity -= 0.02;
+    });
+    this.floatingTexts = this.floatingTexts.filter(ft => ft.opacity > 0);
   }
 
   render() {
@@ -258,6 +299,29 @@ export class DojoIslands {
     this.renderTree(200, 360);
     this.renderTree(590, 350);
 
+    // 4.5. Render Pollen Gathering Flowers
+    this.flowers.forEach(f => {
+      if (!f.collected) {
+        const flowerBob = Math.sin(Date.now() / 250 + f.x) * 3;
+        this.ctx.font = '22px sans-serif';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(f.icon, f.x, f.y + flowerBob);
+
+        // Soft yellow pollen dust aura
+        this.ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
+        this.ctx.beginPath();
+        this.ctx.arc(f.x, f.y + flowerBob, 14, 0, Math.PI * 2);
+        this.ctx.fill();
+      } else {
+        // Sprout bud when collected
+        this.ctx.fillStyle = 'rgba(34, 197, 94, 0.5)';
+        this.ctx.beginPath();
+        this.ctx.arc(f.x, f.y, 5, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+    });
+
     // 5. Render Classmates
     this.classmates.forEach(c => {
       this.renderMonsterSprite(c.x, c.y, c.color, c.name, 0.75);
@@ -283,6 +347,34 @@ export class DojoIslands {
     // 6. Render Player
     const bounceOffset = Math.sin(this.player.bounce * 8) * 4;
     this.renderMonsterSprite(this.player.x, this.player.y + bounceOffset, this.player.color, `🌟 ${this.player.name}`, 0.95, true);
+
+    // 7. Render Floating Text Notifications
+    this.floatingTexts.forEach(ft => {
+      this.ctx.save();
+      this.ctx.globalAlpha = Math.max(0, ft.opacity);
+      this.ctx.font = 'bold 15px sans-serif';
+      this.ctx.fillStyle = '#b45309';
+      this.ctx.strokeStyle = '#ffffff';
+      this.ctx.lineWidth = 3;
+      this.ctx.strokeText(ft.text, ft.x, ft.y);
+      this.ctx.fillText(ft.text, ft.x, ft.y);
+      this.ctx.restore();
+    });
+
+    // 8. Render Top-Left Gamification HUD
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+    this.ctx.strokeStyle = '#fde68a';
+    this.ctx.lineWidth = 1.5;
+    this.ctx.beginPath();
+    this.ctx.roundRect(16, 16, 220, 36, 18);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    this.ctx.fillStyle = '#b45309';
+    this.ctx.font = 'bold 13px sans-serif';
+    this.ctx.textAlign = 'left';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(`🌸 今日採集花粉：${this.pollenCount} 朵`, 30, 34);
   }
 
   renderTree(x, y) {

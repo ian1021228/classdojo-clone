@@ -227,6 +227,18 @@ async function runTests() {
         await new Promise(r => setTimeout(r, 500));
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `04_parent_chat_${mode}.png`) });
         console.log(`    ✓ Parent chat message sent`);
+
+        // Test Certificate of Merit Modal
+        await page.evaluate(() => {
+          document.getElementById('btn-print-parent-report')?.click();
+        });
+        await new Promise(r => setTimeout(r, 500));
+        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `04_parent_certificate_${mode}.png`) });
+        console.log(`    ✓ Weekly Honey Certificate modal opened`);
+        await page.evaluate(() => {
+          document.getElementById('btn-close-cert')?.click();
+        });
+        await new Promise(r => setTimeout(r, 300));
       });
 
       console.log(`\n========================================`);

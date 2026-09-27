@@ -156,10 +156,61 @@ class DojoAudio {
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
+  // Liquid Honey Drop Sound (soft sweet droplet resonance)
+  playHoneyDrop() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    // Frequency sweeps up then settles like a water drop
+    osc.frequency.setValueAtTime(400, now);
+    osc.frequency.exponentialRampToValueAtTime(1100, now + 0.08);
+    osc.frequency.exponentialRampToValueAtTime(900, now + 0.18);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.28, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.28);
+  }
+
+  // Pollen collection chime
+  playPollenChime() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const notes = [659.25, 880.00, 1174.66]; // E5, A5, D6
+    const now = this.ctx.currentTime;
+
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const startTime = now + idx * 0.05;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(0.001, startTime);
+      gain.gain.linearRampToValueAtTime(0.18, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
       osc.start(startTime);
-      osc.stop(startTime + 0.18);
-    }
+      osc.stop(startTime + 0.35);
+    });
   }
 }
 
 window.dojoAudio = new DojoAudio();
+window.crewAudio = window.dojoAudio;

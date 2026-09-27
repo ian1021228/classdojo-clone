@@ -74,10 +74,74 @@ class ParentController {
       if (e.key === 'Enter') document.getElementById('btn-parent-send').click();
     });
 
-    // Print Report Button
+    // Open Certificate Modal
     document.getElementById('btn-print-parent-report')?.addEventListener('click', () => {
+      this.openCertificateModal();
+    });
+
+    document.getElementById('btn-modal-print-cert')?.addEventListener('click', () => {
       window.print();
     });
+
+    document.getElementById('btn-close-cert')?.addEventListener('click', () => {
+      document.getElementById('certificate-modal')?.classList.remove('open');
+    });
+  }
+
+  openCertificateModal() {
+    const child = this.getChild();
+    if (!child) return;
+
+    const modal = document.getElementById('certificate-modal');
+    const content = document.getElementById('certificate-content');
+    if (!modal || !content) return;
+
+    const avatarSvg = (child.isHatched && child.monster)
+      ? (window.monsterEngine ? window.monsterEngine.render(child.monster, 100) : '')
+      : (window.monsterEngine ? window.monsterEngine.renderEgg(child.name, 100) : '');
+
+    content.innerHTML = `
+      <div class="certificate-seal">
+        <span>CREW</span>
+        <span style="font-size: 1.1rem; line-height: 1;">👑</span>
+        <span style="font-size: 0.65rem;">蜂巢認證</span>
+      </div>
+
+      <div style="font-size: 2.2rem; margin-bottom: 4px;">🐝</div>
+      <h2 class="certificate-header-title">Crew 蜂巢榮譽學習證書</h2>
+      <div class="certificate-subtitle">Certificate of Outstanding Honeybee Achievement</div>
+
+      <div style="width: 100px; height: 100px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; background: #ffffff; border-radius: 50%; border: 2px solid #fde68a; box-shadow: 0 4px 12px rgba(180, 83, 9, 0.1);">
+        ${avatarSvg}
+      </div>
+
+      <p style="font-size: 1.1rem; color: #1e293b; line-height: 1.8; margin-bottom: 20px;">
+        茲證明向日葵班小蜂隊員 <strong style="font-size: 1.4rem; color: #b45309; text-decoration: underline; text-underline-offset: 4px;">${child.name}</strong>（座號 ${child.seatNumber}）<br>
+        於本階段蜂巢學習社群中積極進取、互助傳粉，成功釀造累積 <strong style="font-size: 1.35rem; color: #d97706;">${child.points} 滴純甜花蜜</strong>，<br>
+        展現卓越的學習熱忱與合作精神，特頒發此證書以資表彰與鼓勵！
+      </p>
+
+      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 28px; flex-wrap: wrap;">
+        <span style="background: #fef3c7; color: #b45309; font-weight: 800; font-size: 0.85rem; padding: 4px 14px; border-radius: var(--radius-full); border: 1px solid #fde68a;">🌻 勤奮採蜜達人</span>
+        <span style="background: #dcfce7; color: #166534; font-weight: 800; font-size: 0.85rem; padding: 4px 14px; border-radius: var(--radius-full); border: 1px solid #bbf7d0;">🌸 傳粉互助典範</span>
+        <span style="background: #e0f2fe; color: #0369a1; font-weight: 800; font-size: 0.85rem; padding: 4px 14px; border-radius: var(--radius-full); border: 1px solid #bae6fd;">🎯 專注飛行標竿</span>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 0 20px; color: #475569; font-size: 0.95rem; border-top: 1.5px dashed #fde68a; padding-top: 16px;">
+        <div style="text-align: left;">
+          <div>授證單位：青青草地實驗小學</div>
+          <div>班級：向日葵四年一班 (Crew Sunflowers)</div>
+        </div>
+        <div style="text-align: right;">
+          <div>蜂巢班導師：<strong style="color: #b45309; font-size: 1.1rem;">蜜糖導師 (Teacher Honey)</strong> ✍️</div>
+          <div style="color: #94a3b8; font-size: 0.85rem; margin-top: 2px;">頒發日期：${new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('open');
+    if (window.dojoAudio) window.dojoAudio.playFanfare();
+    if (window.dojoConfetti) window.dojoConfetti.burst();
   }
 
   getChild() {

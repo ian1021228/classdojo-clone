@@ -728,3 +728,84 @@
 .changelog-features-list li {
   margin-bottom: 6px;
 }
+
+/* ==========================================================================
+   Crew Weekly Honey Certificate of Merit (榮譽學習證書)
+   ========================================================================== */
+.certificate-frame {
+  background: #fffdf5;
+  border: 8px double #f59e0b;
+  border-radius: 20px;
+  padding: 36px 32px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(180, 83, 9, 0.12);
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.certificate-header-title {
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: #b45309;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.certificate-subtitle {
+  font-size: 1rem;
+  color: #78350f;
+  margin-bottom: 20px;
+}
+
+.certificate-seal {
+  position: absolute;
+  bottom: 24px;
+  right: 32px;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 2.5px dashed #d97706;
+  background: #fef3c7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #b45309;
+  transform: rotate(-10deg);
+  box-shadow: 0 2px 8px rgba(180, 83, 9, 0.15);
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .modal-backdrop.open {
+    background: transparent !important;
+    position: static !important;
+  }
+  .modal-backdrop.open .modal-card {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  .certificate-frame, .certificate-frame * {
+    visibility: visible !important;
+  }
+  .certificate-frame {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    box-shadow: none !important;
+    border: 6px double #d97706 !important;
+  }
+  .modal-header, .modal-footer, #btn-print-cert, #btn-close-cert {
+    display: none !important;
+  }
+}
