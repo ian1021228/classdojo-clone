@@ -57,6 +57,7 @@ async function runTests() {
 
       // 1. Desktop Test (1280x800)
       const desktopPage = await browser.newPage();
+      desktopPage.on('dialog', async d => { try { await d.dismiss(); } catch(e){} });
       await desktopPage.setViewport({ width: 1280, height: 800 });
       await desktopPage.goto(`http://localhost:${PORT}/${urlPath}`, { waitUntil: 'networkidle0' });
 
@@ -72,6 +73,7 @@ async function runTests() {
 
       // 2. Mobile Test (393x852 touch simulation - User Rule 2)
       const mobilePage = await browser.newPage();
+      mobilePage.on('dialog', async d => { try { await d.dismiss(); } catch(e){} });
       await mobilePage.setViewport({ width: 393, height: 852, isMobile: true, hasTouch: true });
       await mobilePage.goto(`http://localhost:${PORT}/${urlPath}`, { waitUntil: 'networkidle0' });
 
@@ -154,6 +156,27 @@ async function runTests() {
           await page.click('#btn-close-class-code');
           await new Promise(r => setTimeout(r, 300));
         }
+
+        // Test Sound Toggle
+        const soundToggle = await page.$('#nav-sound-toggle');
+        if (soundToggle) {
+          await page.evaluate(el => el.click(), soundToggle);
+          console.log(`    ✓ Toggled sound switch in ${mode}`);
+        }
+
+        // Test Noise Meter
+        if (mode === 'desktop') {
+          const dockNoise = await page.$('#dock-btn-noise');
+          if (dockNoise) {
+            await dockNoise.click();
+            await new Promise(r => setTimeout(r, 400));
+            const toggleMic = await page.$('#btn-toggle-mic');
+            if (toggleMic) await page.evaluate(el => el.click(), toggleMic);
+            await new Promise(r => setTimeout(r, 300));
+            await page.click('#btn-close-noise');
+            console.log(`    ✓ Noise meter & mic toggle verified`);
+          }
+        }
       });
 
       // Test 3: Student Page
@@ -170,6 +193,16 @@ async function runTests() {
         if (hasHatchBtn) {
           console.log(`    ✓ Hatched student monster egg`);
           await new Promise(r => setTimeout(r, 600));
+        }
+
+        // Test Student Class Code Modal
+        const hasStudentCodeBtn = await page.$('#btn-enter-class-code');
+        if (hasStudentCodeBtn) {
+          await page.click('#btn-enter-class-code');
+          await new Promise(r => setTimeout(r, 400));
+          await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_student_code_modal_${mode}.png`) });
+          await page.click('#btn-close-student-code');
+          await new Promise(r => setTimeout(r, 300));
         }
 
         // Change monster color & body shape

@@ -25,11 +25,17 @@
       </select>
     </div>
 
-    <div class="dojo-nav-links">
-      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;" id="teacher-profile-tag">👨‍🏫 林老師 (antigravity)</span>
-      <a href="student.html" class="btn btn-secondary btn-sm" title="切換學生視角"><i class="fa-solid fa-child"></i> 學生端</a>
-      <a href="parent.html" class="btn btn-secondary btn-sm" title="切換家長視角"><i class="fa-solid fa-house-chimney-user"></i> 家長端</a>
-      <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> 首頁</a>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button id="nav-sound-toggle" class="btn btn-secondary btn-sm" title="開關全域音效" style="padding: 6px 10px;">
+        <i class="fa-solid fa-volume-high" id="sound-toggle-icon"></i>
+      </button>
+
+      <div class="dojo-nav-links">
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;" id="teacher-profile-tag">👨‍🏫 林老師 (antigravity)</span>
+        <a href="student.html" class="btn btn-secondary btn-sm" title="切換學生視角"><i class="fa-solid fa-child"></i> 學生端</a>
+        <a href="parent.html" class="btn btn-secondary btn-sm" title="切換家長視角"><i class="fa-solid fa-house-chimney-user"></i> 家長端</a>
+        <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> 首頁</a>
+      </div>
     </div>
   </header>
 
@@ -87,8 +93,9 @@
           <strong style="color: #166534;">正在進行出勤標記：點擊學生卡片可快速切換出席狀態</strong>
         </div>
         <div style="display: flex; gap: 8px;">
-          <button class="btn btn-secondary btn-sm" id="btn-mark-all-present">全部設為出席</button>
-          <button class="btn btn-primary btn-sm" id="btn-finish-attendance">完成出勤標記</button>
+          <button class="btn btn-secondary btn-sm" id="btn-mark-all-present"><i class="fa-solid fa-check"></i> 全部設為出席</button>
+          <button class="btn btn-secondary btn-sm" id="btn-mark-all-absent" style="color: #dc2626;"><i class="fa-solid fa-xmark"></i> 全部設為缺席</button>
+          <button class="btn btn-primary btn-sm" id="btn-finish-attendance"><i class="fa-solid fa-floppy-disk"></i> 完成出勤標記</button>
         </div>
       </div>
 

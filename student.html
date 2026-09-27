@@ -25,12 +25,21 @@
       </a>
       <select id="student-picker-select" style="padding: 6px 14px; border-radius: var(--radius-full); border: 1.5px solid var(--border-light); font-weight: 700; background: #ffffff; color: var(--text-main); font-size: 0.9rem; cursor: pointer; outline: none;">
       </select>
+      <button class="btn btn-secondary btn-sm" id="btn-enter-class-code" style="padding: 5px 12px; border-radius: var(--radius-full); font-size: 0.85rem; border: 1px solid #fde68a;">
+        <i class="fa-solid fa-key"></i> 輸入班級代碼
+      </button>
     </div>
 
-    <div class="dojo-nav-links">
-      <a href="teacher.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chalkboard-user"></i> 切換教師端</a>
-      <a href="parent.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house-chimney-user"></i> 切換家長端</a>
-      <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> 首頁</a>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button id="nav-sound-toggle" class="btn btn-secondary btn-sm" title="開關全域音效" style="padding: 6px 10px;">
+        <i class="fa-solid fa-volume-high" id="sound-toggle-icon"></i>
+      </button>
+
+      <div class="dojo-nav-links">
+        <a href="teacher.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chalkboard-user"></i> 切換教師端</a>
+        <a href="parent.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house-chimney-user"></i> 切換家長端</a>
+        <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> 首頁</a>
+      </div>
     </div>
   </header>
 
@@ -248,6 +257,29 @@
       <span>手繪</span>
     </button>
   </nav>
+
+  <!-- Modal: Student Class Code Input Modal -->
+  <div class="modal-backdrop" id="student-code-modal">
+    <div class="modal-card" style="max-width: 440px; text-align: center;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">🔑</span>
+          <h3 class="modal-title">輸入班級 6 碼代碼</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-student-code">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 16px;">
+          請輸入導師在黑板或投影幕上公佈的 6 位大寫班級代碼（例如：<strong style="color: #b45309;">CREW88</strong>）：
+        </p>
+        <input type="text" id="input-student-class-code" placeholder="CREW88" maxlength="6" style="width: 180px; text-align: center; text-transform: uppercase; font-size: 1.8rem; font-weight: 900; letter-spacing: 4px; padding: 10px; border: 2px solid #f59e0b; border-radius: 12px; outline: none; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: center; gap: 10px;">
+          <button class="btn btn-secondary" id="btn-cancel-student-code">取消</button>
+          <button class="btn btn-primary" id="btn-submit-student-code">確認加入班級</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="js/audio.js"></script>

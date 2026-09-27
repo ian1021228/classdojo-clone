@@ -6,7 +6,23 @@
 class DojoAudio {
   constructor() {
     this.ctx = null;
-    this.enabled = true;
+    let saved = null;
+    try {
+      saved = localStorage.getItem('crew_sound_enabled');
+    } catch (e) {}
+    this.enabled = saved !== null ? saved === '1' : true;
+  }
+
+  toggleMute() {
+    this.enabled = !this.enabled;
+    try {
+      localStorage.setItem('crew_sound_enabled', this.enabled ? '1' : '0');
+    } catch (e) {}
+    return this.enabled;
+  }
+
+  isMuted() {
+    return !this.enabled;
   }
 
   init() {
@@ -214,3 +230,33 @@ class DojoAudio {
 
 window.dojoAudio = new DojoAudio();
 window.crewAudio = window.dojoAudio;
+
+window.setupSoundToggle = function(btnId = 'nav-sound-toggle', iconId = 'sound-toggle-icon') {
+  const btn = document.getElementById(btnId);
+  const icon = document.getElementById(iconId);
+  if (!btn) return;
+
+  const updateUI = () => {
+    const enabled = window.dojoAudio.enabled;
+    if (icon) {
+      icon.className = enabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+      icon.style.color = enabled ? '#10b981' : '#94a3b8';
+    }
+    btn.title = enabled ? '音效已開啟（點擊靜音）' : '音效已靜音（點擊開啟）';
+  };
+
+  updateUI();
+
+  btn.addEventListener('click', () => {
+    const newState = window.dojoAudio.toggleMute();
+    updateUI();
+    if (newState) {
+      window.dojoAudio.playTick();
+    }
+  });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.setupSoundToggle();
+});
+

@@ -27,9 +27,13 @@ class TeacherController {
     this.timerInterval = null;
     this.isTimerRunning = false;
 
-    // Noise meter simulation
+    // Noise meter simulation & mic
     this.noiseInterval = null;
     this.noiseSensitivity = 75;
+    this.isMicActive = false;
+    this.micStream = null;
+    this.micAudioCtx = null;
+    this.micAnimFrame = null;
 
     this.init();
   }
@@ -158,6 +162,14 @@ class TeacherController {
       const cls = store.getActiveClass();
       cls.students.forEach(s => s.attendance = 'present');
       store.save();
+      this.renderStudents();
+    });
+
+    document.getElementById('btn-mark-all-absent')?.addEventListener('click', () => {
+      const cls = store.getActiveClass();
+      cls.students.forEach(s => s.attendance = 'absent');
+      store.save();
+      this.renderStudents();
     });
 
     document.getElementById('btn-finish-attendance')?.addEventListener('click', () => {
@@ -338,6 +350,9 @@ class TeacherController {
       this.noiseSensitivity = parseInt(e.target.value, 10);
       document.getElementById('noise-threshold-val').textContent = `${this.noiseSensitivity}%`;
       document.getElementById('noise-threshold-line').style.left = `${this.noiseSensitivity}%`;
+    });
+    document.getElementById('btn-toggle-mic')?.addEventListener('click', () => {
+      this.toggleMicrophone();
     });
 
     // Add Student Modal Controls
@@ -861,27 +876,124 @@ class TeacherController {
     const bar = document.getElementById('noise-bar-fill');
     const emoji = document.getElementById('noise-emoji');
     const tag = document.getElementById('noise-status-tag');
+    if (this.noiseInterval) clearInterval(this.noiseInterval);
 
     this.noiseInterval = setInterval(() => {
+      if (this.isMicActive) return;
       // Simulate classroom natural murmur
       const level = Math.floor(20 + Math.random() * 65);
-      bar.style.width = `${level}%`;
+      if (bar) bar.style.width = `${level}%`;
 
       if (level > this.noiseSensitivity) {
-        emoji.textContent = '📢';
-        tag.textContent = '⚠️ 太吵了！請全班安靜！';
-        tag.className = 'noise-status-badge loud';
+        if (emoji) emoji.textContent = '📢';
+        if (tag) {
+          tag.textContent = '⚠️ 太吵了！請全班安靜！';
+          tag.className = 'noise-status-badge loud';
+        }
         if (window.dojoAudio) window.dojoAudio.playNeedsWork();
       } else {
-        emoji.textContent = '🤫';
-        tag.textContent = '課堂環境非常安靜';
-        tag.className = 'noise-status-badge quiet';
+        if (emoji) emoji.textContent = '🤫';
+        if (tag) {
+          tag.textContent = '課堂環境非常安靜';
+          tag.className = 'noise-status-badge quiet';
+        }
       }
     }, 800);
   }
 
+  async toggleMicrophone() {
+    const btn = document.getElementById('btn-toggle-mic');
+    if (this.isMicActive) {
+      this.stopMicrophone();
+      if (btn) btn.innerHTML = '🎙️ 啟用麥克風即時收音';
+      this.startNoiseMeterSimulation();
+      return;
+    }
+
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const tag = document.getElementById('noise-status-tag');
+        if (tag) tag.textContent = '💡 瀏覽器環境未支援音訊輸入，已保持智慧模擬';
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.micStream = stream;
+      this.isMicActive = true;
+      if (this.noiseInterval) clearInterval(this.noiseInterval);
+      if (btn) btn.innerHTML = '🛑 關閉麥克風（切換回模擬）';
+
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.micAudioCtx = new AudioCtx();
+      const source = this.micAudioCtx.createMediaStreamSource(stream);
+      const analyser = this.micAudioCtx.createAnalyser();
+      analyser.fftSize = 128;
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const bar = document.getElementById('noise-bar-fill');
+      const emoji = document.getElementById('noise-emoji');
+      const tag = document.getElementById('noise-status-tag');
+
+      const updateVolume = () => {
+        if (!this.isMicActive) return;
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const avg = sum / dataArray.length;
+        const level = Math.min(100, Math.round((avg / 64) * 100));
+        if (bar) bar.style.width = `${level}%`;
+
+        if (level > this.noiseSensitivity) {
+          if (emoji) emoji.textContent = '📢';
+          if (tag) {
+            tag.textContent = '⚠️ 偵測到音量過高！請保持安靜！';
+            tag.className = 'noise-status-badge loud';
+          }
+          if (window.dojoAudio) window.dojoAudio.playNeedsWork();
+        } else {
+          if (emoji) emoji.textContent = '🤫';
+          if (tag) {
+            tag.textContent = '🎙️ 麥克風即時收音中：環境良好';
+            tag.className = 'noise-status-badge quiet';
+          }
+        }
+        this.micAnimFrame = requestAnimationFrame(updateVolume);
+      };
+      updateVolume();
+    } catch (err) {
+      console.warn('Microphone access warning:', err);
+      const tag = document.getElementById('noise-status-tag');
+      if (tag) tag.textContent = '💡 麥克風未授權，已保持智慧模擬模式';
+      this.isMicActive = false;
+      if (btn) btn.innerHTML = '🎙️ 啟用麥克風即時收音';
+      this.startNoiseMeterSimulation();
+    }
+  }
+
+  stopMicrophone() {
+    this.isMicActive = false;
+    if (this.micAnimFrame) {
+      cancelAnimationFrame(this.micAnimFrame);
+      this.micAnimFrame = null;
+    }
+    if (this.micStream) {
+      this.micStream.getTracks().forEach(track => track.stop());
+      this.micStream = null;
+    }
+    if (this.micAudioCtx) {
+      try { this.micAudioCtx.close(); } catch (e) {}
+      this.micAudioCtx = null;
+    }
+  }
+
   stopNoiseMeter() {
     clearInterval(this.noiseInterval);
+    this.stopMicrophone();
+    const btn = document.getElementById('btn-toggle-mic');
+    if (btn) btn.innerHTML = '🎙️ 啟用麥克風即時收音';
   }
 
   // Class Story View

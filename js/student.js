@@ -100,6 +100,42 @@ class StudentController {
     document.getElementById('mob-stu-rewards')?.addEventListener('click', () => this.switchTab('rewards'));
     document.getElementById('mob-stu-portfolio')?.addEventListener('click', () => this.switchTab('portfolio'));
 
+    // Student Class Code Modal Controls
+    const codeModal = document.getElementById('student-code-modal');
+    const codeInput = document.getElementById('input-student-class-code');
+    document.getElementById('btn-enter-class-code')?.addEventListener('click', () => {
+      if (codeInput) codeInput.value = '';
+      if (codeModal) codeModal.classList.add('open');
+    });
+
+    const closeCodeModal = () => {
+      if (codeModal) codeModal.classList.remove('open');
+    };
+    document.getElementById('btn-close-student-code')?.addEventListener('click', closeCodeModal);
+    document.getElementById('btn-cancel-student-code')?.addEventListener('click', closeCodeModal);
+
+    document.getElementById('btn-submit-student-code')?.addEventListener('click', () => {
+      const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+      const matched = store.state.classes.find(c => c.code === code);
+      if (matched) {
+        store.setActiveClass(matched.id);
+        this.activeClass = store.getActiveClass();
+        this.currentStudentId = this.activeClass.students[0]?.id || 'stu_1';
+        closeCodeModal();
+        if (window.dojoAudio) window.dojoAudio.playFanfare();
+        if (window.dojoConfetti) window.dojoConfetti.burst();
+        alert(`🎉 成功進入「${matched.name}」！趕快自訂你的小蜜蜂吧！`);
+        this.loadCurrentStudent();
+        this.renderAll();
+      } else {
+        alert('⚠️ 查無此班級代碼！請確認代碼是否正確（例如 CREW88）。');
+      }
+    });
+
+    codeInput?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('btn-submit-student-code')?.click();
+    });
+
     // Save Bee Button
     document.getElementById('btn-save-monster')?.addEventListener('click', () => {
       const cls = store.getActiveClass();

@@ -27,10 +27,16 @@
       </select>
     </div>
 
-    <div class="dojo-nav-links">
-      <a href="teacher.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chalkboard-user"></i> 切換教師端</a>
-      <a href="student.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-wand-magic-sparkles"></i> 切換學生端</a>
-      <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> 首頁</a>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button id="nav-sound-toggle" class="btn btn-secondary btn-sm" title="開關全域音效" style="padding: 6px 10px;">
+        <i class="fa-solid fa-volume-high" id="sound-toggle-icon"></i>
+      </button>
+
+      <div class="dojo-nav-links">
+        <a href="teacher.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chalkboard-user"></i> 切換教師端</a>
+        <a href="student.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-wand-magic-sparkles"></i> 切換學生端</a>
+        <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> 首頁</a>
+      </div>
     </div>
   </header>
 
