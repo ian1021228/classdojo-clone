@@ -5,9 +5,20 @@
 
 export const CHANGELOG_DATA = [
   {
-    version: "v2.5.0 (最新發布)",
+    version: "v2.6.0 (crew-v1.0 最新發布)",
     date: "2026-09-27",
     isLatest: true,
+    title: "按鈕名稱全面直覺清晰化、GitHub 專案更名為 crew-v1.0 與對話歷程專案歸檔",
+    features: [
+      "🏷️【操作按鈕直覺易懂】全面去除牽強命名，回歸教育現場清晰中文：全班加分、隨機分組、多選學生、學生出勤、思考配對分享、課堂任務指示板、獎勵兌換與造型工坊，操作零門檻。",
+      "📦【GitHub 倉庫更名為 crew-v1.0】遠端倉庫正式更名為 crew-v1.0，自動構建與 GitHub Pages 部署保持全綠通過。",
+      "💬【專案對話歷程完整歸檔】完整對話記錄與開發里程碑導出至 chat_history/ 目錄，並綁定 Antigravity 2.0 crew 工作區。"
+    ]
+  },
+  {
+    version: "v2.5.0",
+    date: "2026-09-27",
+    isLatest: false,
     title: "Buzz-Pair-Share 思考配對嗡嗡討論板、蜂巢任務指示板與工具箱深度投影化",
     features: [
       "💡【Buzz-Pair-Share 思考配對嗡嗡討論板】大螢幕電子白板專用討論引導，內建豐富思考題庫、一鍵隨機換題與自訂題目，搭配 1 分鐘同儕嗡嗡討論計時器與花粉金鐘提醒。",

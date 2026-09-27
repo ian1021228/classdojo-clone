@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Crew 教師端 - 蜂巢課堂管理</title>
+  <title>Crew 教師端 - 班級課堂管理</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dojo-ui.css">
@@ -42,15 +42,15 @@
   <!-- Secondary Tab Navigation Bar -->
   <div class="dojo-tabs-bar">
     <div class="tabs-container">
-      <button class="tab-btn active" id="tab-btn-classroom"><i class="fa-solid fa-chalkboard-user"></i> 蜂巢課堂</button>
-      <button class="tab-btn" id="tab-btn-story"><i class="fa-solid fa-camera"></i> 蜂巢日誌</button>
-      <button class="tab-btn" id="tab-btn-messages"><i class="fa-solid fa-comment-dots"></i> 親師蜂信</button>
-      <button class="tab-btn" id="tab-btn-calendar"><i class="fa-solid fa-calendar-days"></i> 蜂巢行事曆</button>
-      <button class="tab-btn" id="tab-btn-islands"><i class="fa-solid fa-sun"></i> 百花花園探險</button>
-      <button class="tab-btn" id="tab-btn-portfolios"><i class="fa-solid fa-seedling"></i> 小蜜蜂作品集</button>
+      <button class="tab-btn active" id="tab-btn-classroom"><i class="fa-solid fa-chalkboard-user"></i> 班級課堂</button>
+      <button class="tab-btn" id="tab-btn-story"><i class="fa-solid fa-camera"></i> 班級日誌</button>
+      <button class="tab-btn" id="tab-btn-messages"><i class="fa-solid fa-comment-dots"></i> 親師訊息</button>
+      <button class="tab-btn" id="tab-btn-calendar"><i class="fa-solid fa-calendar-days"></i> 班級行事曆</button>
+      <button class="tab-btn" id="tab-btn-islands"><i class="fa-solid fa-sun"></i> 花園探險</button>
+      <button class="tab-btn" id="tab-btn-portfolios"><i class="fa-solid fa-seedling"></i> 學生作品集</button>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
-      <button id="btn-export-report" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chart-pie"></i> 匯出採蜜報表</button>
+      <button id="btn-export-report" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chart-pie"></i> 匯出班級報表</button>
     </div>
   </div>
 
@@ -81,7 +81,7 @@
             <button class="switch-opt" id="btn-switch-groups">小組</button>
           </div>
           <button id="btn-give-whole-class" class="btn btn-primary btn-sm">
-            <i class="fa-solid fa-jar"></i> 採集全班花蜜
+            <i class="fa-solid fa-users"></i> 全班加分
           </button>
         </div>
       </div>
@@ -138,7 +138,7 @@
           <div class="compose-bar">
             <div style="display: flex; gap: 10px; align-items: center;">
               <button class="btn btn-secondary btn-sm" id="btn-add-sample-img"><i class="fa-solid fa-camera"></i> 活動照片</button>
-              <button class="btn btn-secondary btn-sm" id="btn-toggle-poll-box"><i class="fa-solid fa-square-poll-vertical"></i> 附帶蜂巢投票</button>
+              <button class="btn btn-secondary btn-sm" id="btn-toggle-poll-box"><i class="fa-solid fa-square-poll-vertical"></i> 發起投票</button>
             </div>
             <button class="btn btn-primary btn-sm" id="btn-publish-story">發布貼文</button>
           </div>
@@ -268,13 +268,13 @@
   <!-- ========================================================================== -->
   <footer class="dojo-floating-dock" style="background: rgba(255, 255, 255, 0.96); border: 1.5px solid #fde68a; box-shadow: 0 10px 30px rgba(180, 83, 9, 0.15);">
     <button class="dock-btn" id="dock-btn-toolkit"><i class="fa-solid fa-toolbox" style="color: #f59e0b;"></i> 工具箱</button>
-    <button class="dock-btn" id="dock-btn-attendance"><i class="fa-solid fa-clipboard-check"></i> 出勤</button>
-    <button class="dock-btn" id="dock-btn-multiple"><i class="fa-solid fa-square-check"></i> 多選小蜂</button>
+    <button class="dock-btn" id="dock-btn-attendance"><i class="fa-solid fa-clipboard-check"></i> 學生出勤</button>
+    <button class="dock-btn" id="dock-btn-multiple"><i class="fa-solid fa-square-check"></i> 多選學生</button>
     <button class="dock-btn" id="dock-btn-random"><i class="fa-solid fa-dice"></i> 隨機抽籤</button>
     <button class="dock-btn" id="dock-btn-timer"><i class="fa-solid fa-stopwatch"></i> 計時器</button>
-    <button class="dock-btn" id="dock-btn-groups-maker"><i class="fa-solid fa-shuffle"></i> 蜂群分組</button>
+    <button class="dock-btn" id="dock-btn-groups-maker"><i class="fa-solid fa-shuffle"></i> 隨機分組</button>
     <button class="dock-btn" id="dock-btn-noise"><i class="fa-solid fa-volume-high"></i> 噪音計</button>
-    <button class="dock-btn" id="dock-btn-bigideas"><i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> 蜂巢講堂</button>
+    <button class="dock-btn" id="dock-btn-bigideas"><i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> 心智成長短片</button>
   </footer>
 
   <!-- Mobile Bottom Navigation Bar (393x852) -->
@@ -376,7 +376,7 @@
           </div>
           <div class="skill-btn" id="tk-card-directions">
             <span style="font-size: 2.5rem;">📋</span>
-            <strong class="skill-label">蜂巢任務指示板</strong>
+            <strong class="skill-label">課堂任務指示板</strong>
             <small style="color: var(--text-muted);">大螢幕逐步任務指引與勾選</small>
           </div>
           <div class="skill-btn" id="tk-card-music">
@@ -615,7 +615,7 @@
       <div class="modal-header">
         <div class="modal-title-group">
           <span style="font-size: 1.5rem;">🎟️</span>
-          <h3 class="modal-title">學生小蜂登入代碼與 QR 徽章卡</h3>
+          <h3 class="modal-title">學生快速登入代碼與 QR 卡</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-class-code">&times;</button>
       </div>
@@ -695,7 +695,7 @@
                 <th style="padding: 10px 14px;">座號</th>
                 <th style="padding: 10px 14px;">小蜜蜂</th>
                 <th style="padding: 10px 14px;">學生姓名</th>
-                <th style="padding: 10px 14px;">累積花蜜</th>
+                <th style="padding: 10px 14px;">累積點數</th>
                 <th style="padding: 10px 14px;">成長等級</th>
                 <th style="padding: 10px 14px;">今日出勤</th>
                 <th style="padding: 10px 14px;">家長代表</th>
@@ -710,13 +710,13 @@
     </div>
   </div>
 
-  <!-- Modal 11: Think-Pair-Share (Buzz-Pair-Share) -->
+  <!-- Modal 11: Think-Pair-Share -->
   <div class="modal-backdrop" id="thinkpair-modal">
     <div class="modal-card" style="max-width: 680px; text-align: center;">
       <div class="modal-header">
         <div class="modal-title-group">
           <span style="font-size: 1.6rem;">💡</span>
-          <h3 class="modal-title">Buzz-Pair-Share 思考配對嗡嗡討論</h3>
+          <h3 class="modal-title">思考配對分享 (Think-Pair-Share)</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-thinkpair">&times;</button>
       </div>
@@ -738,7 +738,7 @@
         <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
           <div style="font-size: 2.8rem; font-weight: 900; color: #d97706; font-family: monospace;" id="thinkpair-timer-display">01:00</div>
           <div style="display: flex; gap: 8px;">
-            <button class="btn btn-primary btn-md" id="btn-thinkpair-timer-toggle"><i class="fa-solid fa-play"></i> 開始 1 分鐘嗡嗡討論</button>
+            <button class="btn btn-primary btn-md" id="btn-thinkpair-timer-toggle"><i class="fa-solid fa-play"></i> 開始 1 分鐘討論計時</button>
             <button class="btn btn-secondary btn-md" id="btn-thinkpair-timer-reset"><i class="fa-solid fa-rotate-left"></i> 重設</button>
           </div>
         </div>
@@ -752,7 +752,7 @@
       <div class="modal-header">
         <div class="modal-title-group">
           <span style="font-size: 1.6rem;">📋</span>
-          <h3 class="modal-title">今日蜂巢任務指示板 (Hive Directions)</h3>
+          <h3 class="modal-title">課堂任務指示板 (Directions)</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-directions">&times;</button>
       </div>
@@ -760,13 +760,13 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
           <div>
             <h4 id="directions-title" style="font-size: 1.25rem; font-weight: 900; color: #1e293b;">🧪 自然科學探究任務</h4>
-            <span style="font-size: 0.85rem; color: #64748b;">請小蜂隊員按照以下步驟完成任務：</span>
+            <span style="font-size: 0.85rem; color: #64748b;">請小組成員按照以下步驟完成任務：</span>
           </div>
           <div style="display: flex; gap: 8px;">
             <select id="directions-preset-select" style="padding: 6px 12px; border-radius: 8px; border: 1.5px solid #fde68a; font-size: 0.85rem; font-weight: 700; background: #fffdf5; outline: none; cursor: pointer;">
               <option value="science">🧪 實驗探究任務</option>
               <option value="reading">📖 晨讀專注任務</option>
-              <option value="clean">🧹 課後蜂巢打掃整理</option>
+              <option value="clean">🧹 課後教室打掃整理</option>
             </select>
           </div>
         </div>
@@ -778,6 +778,118 @@
         <div style="display: flex; gap: 8px;">
           <input type="text" id="input-new-step" placeholder="新增自訂步驟（例如：4. 將作品拍照上傳至作品集）" style="flex: 1; padding: 8px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-size: 0.9rem; outline: none;">
           <button class="btn btn-secondary btn-sm" id="btn-add-step"><i class="fa-solid fa-plus"></i> 新增步驟</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 13: Student Portfolio Review & Flower Award Modal -->
+  <div class="modal-backdrop" id="portfolio-review-modal">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.6rem;">🌸</span>
+          <h3 class="modal-title">小蜜蜂作品批閱與小紅花評語</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-portfolio-review">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <!-- Student Info Header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1.5px solid #fde68a;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div id="review-student-avatar" style="width: 44px; height: 44px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 1.5px solid #fde68a;">🐝</div>
+            <div>
+              <h4 id="review-student-name" style="font-size: 1.15rem; font-weight: 800; color: #1e293b;">學生姓名</h4>
+              <span id="review-submission-time" style="font-size: 0.8rem; color: #64748b;">提交於 2026-09-27</span>
+            </div>
+          </div>
+          <span id="review-status-badge" style="font-size: 0.85rem; font-weight: 800; padding: 4px 12px; border-radius: 9999px; background: #fef3c7; color: #92400e;">⏳ 待審核</span>
+        </div>
+
+        <!-- Artwork & Caption -->
+        <div style="background: #fffdf5; border: 2px solid #fde68a; border-radius: 14px; padding: 16px; margin-bottom: 20px; text-align: center;">
+          <img id="review-drawing-img" src="" alt="學生手繪作品" style="max-height: 240px; max-width: 100%; object-fit: contain; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 12px;">
+          <div style="background: #ffffff; padding: 10px 14px; border-radius: 8px; border: 1px dashed #fde68a; text-align: left;">
+            <strong style="font-size: 0.85rem; color: #b45309;"><i class="fa-solid fa-quote-left"></i> 學生創作心得：</strong>
+            <p id="review-student-caption" style="font-size: 0.95rem; color: #1e293b; margin-top: 4px; line-height: 1.5;"></p>
+          </div>
+        </div>
+
+        <!-- Review Feedback Section -->
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 800; color: #1e293b; margin-bottom: 8px; font-size: 0.95rem;">
+            🌺 選擇給予的小紅花與獎章：
+          </label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;" id="flower-sticker-picker">
+            <button class="preset-chip active-flower" data-sticker="🌸 構思精巧花" style="padding: 6px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; border: 1.5px solid #f59e0b; background: #fef3c7;">🌸 構思精巧花</button>
+            <button class="preset-chip" data-sticker="🌻 色彩斑斕花" style="padding: 6px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; border: 1.5px solid #e2e8f0; background: #ffffff;">🌻 色彩斑斕花</button>
+            <button class="preset-chip" data-sticker="🌺 堅持不懈花" style="padding: 6px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; border: 1.5px solid #e2e8f0; background: #ffffff;">🌺 堅持不懈花</button>
+            <button class="preset-chip" data-sticker="🌼 創意無限花" style="padding: 6px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; border: 1.5px solid #e2e8f0; background: #ffffff;">🌼 創意無限花</button>
+          </div>
+
+          <label style="display: block; font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 0.95rem;">
+            💬 導師專屬溫暖評語：
+          </label>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+            <button class="btn btn-secondary btn-sm preset-comment-btn" data-comment="筆觸生動細膩，色彩搭配非常和諧，給小蜜蜂大大的讚！">✨ 筆觸生動</button>
+            <button class="btn btn-secondary btn-sm preset-comment-btn" data-comment="創意十足，非常有個人特色與想像力！">🌟 創意十足</button>
+            <button class="btn btn-secondary btn-sm preset-comment-btn" data-comment="細節刻劃很認真，看得到用心付出的滿滿成果！">💪 用心認真</button>
+          </div>
+          <textarea id="review-teacher-comment" rows="2" placeholder="輸入鼓勵評語，讓孩子感受滿滿的學習熱忱..." style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 10px; font-family: inherit; font-size: 0.9rem; outline: none; box-sizing: border-box;"></textarea>
+
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+            <input type="checkbox" id="review-publish-to-story" checked style="width: 18px; height: 18px; accent-color: #f59e0b; cursor: pointer;">
+            <label for="review-publish-to-story" style="font-size: 0.9rem; font-weight: 700; color: #1e293b; cursor: pointer;">
+              同步發布至蜂巢日誌 (Hive Class Story)，讓全班與家長一起讚賞 🎉
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-md" id="btn-review-return" style="color: #b45309; border-color: #fde68a;">
+            <i class="fa-solid fa-rotate-left"></i> 退回建議微調
+          </button>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-secondary btn-md" id="btn-cancel-review">取消</button>
+            <button class="btn btn-primary btn-md" id="btn-confirm-approve">
+              <i class="fa-solid fa-award"></i> 核准通過並獎勵 +2 蜂蜜
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 14: Create New Activity Modal -->
+  <div class="modal-backdrop" id="add-activity-modal">
+    <div class="modal-card" style="max-width: 540px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">📝</span>
+          <h3 class="modal-title">發布新課堂作業活動</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-add-activity">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display: block; font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 0.9rem;">活動作業標題：</label>
+          <input type="text" id="input-act-title" placeholder="例如：百花花園手繪創作 - 想像中的蜜蜂夥伴" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box;">
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display: block; font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 0.9rem;">任務指引與說明：</label>
+          <textarea id="input-act-desc" rows="3" placeholder="例如：請在手繪板畫出守護向日葵的花園小蜜蜂，並寫下一句創作心得！" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-size: 0.9rem; outline: none; box-sizing: border-box;"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label style="display: block; font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 0.9rem;">作業提交形式：</label>
+          <select id="select-act-type" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-size: 0.9rem; background: #ffffff; outline: none; box-sizing: border-box;">
+            <option value="drawing">🎨 手繪畫作與心得（支援畫布創作）</option>
+            <option value="text">✍️ 課堂文字心得與觀察日記</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-secondary" id="btn-cancel-add-activity">取消</button>
+          <button class="btn btn-primary" id="btn-submit-add-activity">確認發布作業</button>
         </div>
       </div>
     </div>

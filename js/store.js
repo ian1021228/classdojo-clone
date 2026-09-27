@@ -668,14 +668,64 @@ class DojoStore {
   }
 
   // Approve portfolio submission
-  approvePortfolioSubmission(activityId, submissionId) {
+  approvePortfolioSubmission(activityId, submissionId, feedback = '', flowerSticker = '🌸 構思精巧花', publishToStory = true) {
     const act = this.state.portfolios.find(a => a.id === activityId);
-    if (!act) return;
+    if (!act) return null;
     const sub = act.submissions.find(s => s.id === submissionId);
-    if (sub) {
-      sub.status = 'approved';
-      this.save();
+    if (!sub) return null;
+
+    sub.status = 'approved';
+    sub.teacherFeedback = feedback;
+    sub.flowerSticker = flowerSticker;
+    sub.reviewedAt = Date.now();
+
+    // Award +2 Honey Points to the student
+    const skill = {
+      name: `學習歷程作品 (${flowerSticker.split(' ')[0]})`,
+      points: 2,
+      icon: '🎨',
+      note: feedback || `在「${act.title}」完成優秀作品`
+    };
+    this.awardStudentPoint(act.classId, sub.studentId, skill);
+
+    // If requested, publish as a Story Post
+    if (publishToStory) {
+      const content = `🐝 小蜜蜂【${sub.studentName}】在作業「${act.title}」中完成了精彩手繪創作！\n「${sub.caption}」\n${flowerSticker} 導師評語：${feedback || '構思生動，筆觸用心！'}`;
+      this.addStoryPost(act.classId, '林老師', content, sub.drawingData);
+      sub.isPublishedToStory = true;
     }
+
+    this.save();
+    return sub;
+  }
+
+  // Return portfolio submission for revision
+  returnPortfolioSubmission(activityId, submissionId, revisionNote = '') {
+    const act = this.state.portfolios.find(a => a.id === activityId);
+    if (!act) return null;
+    const sub = act.submissions.find(s => s.id === submissionId);
+    if (!sub) return null;
+
+    sub.status = 'needs_revision';
+    sub.revisionNote = revisionNote || '作品很有創意！建議可以再豐富小蜜蜂的花朵背景喔～';
+    sub.reviewedAt = Date.now();
+    this.save();
+    return sub;
+  }
+
+  // Add new portfolio activity
+  addPortfolioActivity(classId, title, description, type = 'drawing') {
+    const newAct = {
+      id: `act_${Date.now()}`,
+      classId,
+      title,
+      description,
+      type,
+      submissions: []
+    };
+    this.state.portfolios.unshift(newAct);
+    this.save();
+    return newAct;
   }
 
   // Reset to demo data
