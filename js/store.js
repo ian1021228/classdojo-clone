@@ -6,39 +6,38 @@
 
 import { dataEngine } from './firebase-config.js';
 
-// Pre-seeded Rich Demo Data
+// Pre-seeded Rich Demo Data for Crew Beehive Classroom
 const INITIAL_DATA = {
   activeClassId: 'cls_demo_class',
   currentUser: {
     role: 'teacher', // 'teacher' | 'student' | 'parent'
     username: 'antigravity',
-    displayName: '王 老師 (Daniel Christian Academy)',
+    displayName: '林老師 (青青草地小學 ‧ 向日葵蜂巢班)',
     activeStudentId: 'stu_demo_1'
   },
   classes: [
     {
       id: 'cls_demo_class',
-      name: 'Demo Class',
-      school: 'Daniel Christian Academy',
-      grade: '示範班級',
-      icon: '📙',
-      code: 'DEMO88',
-      totalPoints: 5,
+      name: '向日葵四年一班 (Crew Sunflowers)',
+      school: '青青草地實驗小學',
+      grade: '四年級蜂巢班',
+      icon: '🌻',
+      code: 'CREW88',
+      totalPoints: 18,
       skills: {
         positive: [
-          { id: 'pos_help', name: 'Helping others', points: 1, icon: '🤝' },
-          { id: 'pos_ontask', name: 'On task', points: 1, icon: '🎯' },
-          { id: 'pos_part', name: 'Participating', points: 1, icon: '🙋' },
-          { id: 'pos_persist', name: 'Persistence', points: 1, icon: '🧗' },
-          { id: 'pos_team', name: 'Teamwork', points: 1, icon: '🧩' },
-          { id: 'pos_hard', name: 'Working hard', points: 1, icon: '⭐' }
+          { id: 'pos_honey', name: '🐝 勤奮採蜜 (Hardworking)', points: 1, icon: '🐝' },
+          { id: 'pos_pollen', name: '🌸 傳粉互助 (Helping others)', points: 1, icon: '🌸' },
+          { id: 'pos_focus', name: '🎯 專注飛行 (Deep focus)', points: 1, icon: '🎯' },
+          { id: 'pos_sharing', name: '🍯 釀蜜分享 (Kind sharing)', points: 1, icon: '🍯' },
+          { id: 'pos_wisdom', name: '💡 蜂巢巧思 (Creativity)', points: 1, icon: '💡' },
+          { id: 'pos_leader', name: '👑 蜂巢小隊長 (Crew leader)', points: 2, icon: '👑' }
         ],
         needsWork: [
-          { id: 'neg_offtask', name: 'Off task', points: -1, icon: '⏳' },
-          { id: 'neg_talk', name: 'Talking out of turn', points: -1, icon: '🗣️' },
-          { id: 'neg_disrespect', name: 'Disrespect', points: -1, icon: '🙅' },
-          { id: 'neg_nohw', name: 'No homework', points: -1, icon: '📝' },
-          { id: 'neg_unprepared', name: 'Unprepared', points: -1, icon: '🎒' }
+          { id: 'neg_distracted', name: '💨 飛行走神 (Distracted)', points: -1, icon: '💨' },
+          { id: 'neg_unprepared', name: '🥀 忘帶採蜜工具 (Unprepared)', points: -1, icon: '🥀' },
+          { id: 'neg_buzz', name: '🐝💥 推擠喧嘩 (Disruptive buzz)', points: -1, icon: '⚠️' },
+          { id: 'neg_late', name: '⏳ 晚進蜂巢 (Tardy)', points: -1, icon: '⏳' }
         ]
       },
       students: [
@@ -46,66 +45,77 @@ const INITIAL_DATA = {
           id: 'stu_demo_1',
           name: 'Beyoncé',
           seatNumber: 1,
-          points: 1,
-          isHatched: false,
-          seed: 'Beyoncé_Egg1',
+          points: 5,
+          isHatched: true,
+          monster: { colorIdx: 0, bodyShape: 'pear', accessory: 'horns' },
           attendance: 'present',
           parentName: 'Beyoncé 家長',
           parentCode: 'P-BEY01',
-          history: [{ id: 'hd1', skillName: 'Helping others', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '主動熱心助人' }]
+          history: [
+            { id: 'hd1', skillName: '🐝 勤奮採蜜', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '主動帶領小組整理觀察植物' },
+            { id: 'hd1_2', skillName: '👑 蜂巢小隊長', points: 2, type: 'pos', timestamp: Date.now() - 7200000, note: '協助整隊排隊有禮貌' }
+          ]
         },
         {
           id: 'stu_demo_2',
           name: 'Denzel',
           seatNumber: 2,
-          points: 1,
-          isHatched: false,
-          seed: 'Denzel_Egg2',
+          points: 4,
+          isHatched: true,
+          monster: { colorIdx: 1, bodyShape: 'round', accessory: 'bow' },
           attendance: 'present',
           parentName: 'Denzel 家長',
           parentCode: 'P-DEN02',
-          history: [{ id: 'hd2', skillName: 'On task', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '專注課堂學習' }]
+          history: [
+            { id: 'hd2', skillName: '🎯 專注飛行', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '課堂數學解題全神貫注' }
+          ]
         },
         {
           id: 'stu_demo_3',
           name: 'Jennifer',
           seatNumber: 3,
-          points: 1,
-          isHatched: false,
-          seed: 'Jennifer_Egg3',
+          points: 3,
+          isHatched: true,
+          monster: { colorIdx: 4, bodyShape: 'blob', accessory: 'party_hat' },
           attendance: 'present',
           parentName: 'Jennifer 家長',
           parentCode: 'P-JEN03',
-          history: [{ id: 'hd3', skillName: 'Participating', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '積極發言回答' }]
+          history: [
+            { id: 'hd3', skillName: '🌸 傳粉互助', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '熱心教導隔壁同學折紙飛機' }
+          ]
         },
         {
           id: 'stu_demo_4',
           name: 'Justin',
           seatNumber: 4,
-          points: 1,
-          isHatched: false,
-          seed: 'Justin_Egg4',
+          points: 3,
+          isHatched: true,
+          monster: { colorIdx: 2, bodyShape: 'tall', accessory: 'antenna' },
           attendance: 'present',
           parentName: 'Justin 家長',
           parentCode: 'P-JUS04',
-          history: [{ id: 'hd4', skillName: 'Persistence', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '堅持解題挑戰' }]
+          history: [
+            { id: 'hd4', skillName: '🍯 釀蜜分享', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '主動分享彩色畫筆' }
+          ]
         },
         {
           id: 'stu_demo_5',
           name: 'Leonardo',
           seatNumber: 5,
-          points: 1,
-          isHatched: false,
-          seed: 'Leonardo_Egg5',
+          points: 3,
+          isHatched: true,
+          monster: { colorIdx: 3, bodyShape: 'fluffy', accessory: 'glasses' },
           attendance: 'present',
           parentName: 'Leonardo 家長',
           parentCode: 'P-LEO05',
-          history: [{ id: 'hd5', skillName: 'Working hard', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '課堂認真努力' }]
+          history: [
+            { id: 'hd5', skillName: '💡 蜂巢巧思', points: 1, type: 'pos', timestamp: Date.now() - 3600000, note: '提出浮力實驗的新測試點子' }
+          ]
         }
       ],
       groups: [
-        { id: 'grp_demo_1', name: '⭐ Star Group', studentIds: ['stu_demo_1', 'stu_demo_2'], points: 2 },
-        { id: 'grp_demo_2', name: '🚀 Rocket Group', studentIds: ['stu_demo_3', 'stu_demo_4', 'stu_demo_5'], points: 3 }
+        { id: 'grp_demo_1', name: '🌻 向日葵偵查小隊', studentIds: ['stu_demo_1', 'stu_demo_2'], points: 9 },
+        { id: 'grp_demo_2', name: '🍯 金蜜釀造小隊', studentIds: ['stu_demo_3', 'stu_demo_4', 'stu_demo_5'], points: 9 }
       ]
     },
     {
@@ -298,66 +308,66 @@ const INITIAL_DATA = {
     {
       id: 'post_1',
       author: '林老師 (Teacher Lin)',
-      classId: 'cls_dojo_1',
+      classId: 'cls_demo_class',
       timestamp: Date.now() - 7200000,
-      content: '🌟 今天的自然科學實驗課，大家熱烈討論了浮力原理，每位同學都積極動手實作小船，在水盆測試中互助合作，全班氣氛超棒！為大家的探究精神喝采！👏🚢✨',
+      content: '🌻 今天的自然科學探究課，向日葵蜂巢小隊完成了水火箭壓力觀測與植物授粉觀察！小蜜蜂們分工合作採集數據，互相支援記錄，全班氛圍超級棒！為大家的認真精神喝采！👏🍯✨',
       image: '',
-      likes: 12,
+      likes: 15,
       liked: false,
       comments: [
-        { id: 'c1', author: '王媽媽', text: '小明回家後還在水槽做測試，太有熱情了！謝謝老師引導 ❤️', time: '1 小時前' },
-        { id: 'c2', author: '陳爸爸', text: '看到孩子們開心的笑容真棒，謝謝老師！', time: '30 分鐘前' }
+        { id: 'c1', author: 'Beyoncé 家長', text: 'Beyoncé 回家後興奮地跟我們分享水火箭原理，太有熱情了！謝謝老師用心引導 ❤️', time: '1 小時前' },
+        { id: 'c2', author: 'Denzel 家長', text: '看到孩子們自信開心的笑容真棒，謝謝老師！', time: '30 分鐘前' }
       ]
     },
     {
       id: 'post_2',
       author: '林老師 (Teacher Lin)',
-      classId: 'cls_dojo_1',
+      classId: 'cls_demo_class',
       timestamp: Date.now() - 86400000,
-      content: '📢【週五戶外教學提醒】親愛的家長您好，本週五為天文科學館參訪日，請孩子穿著運動服裝、攜帶水壺與輕便背包，期待和大家一起探索浩瀚星空！🔭🌌',
+      content: '📢【週五百花生態園戶外探險提醒】親愛的家長您好，本週五為生態植物拓印與野餐日，請小蜜蜂們穿著舒適運動服裝、攜帶個人水壺與輕便背包，期待和大家在大自然中盡情觀察與寫生！🌸🌿',
       image: '',
-      likes: 18,
+      likes: 22,
       liked: true,
       comments: [
-        { id: 'c3', author: '周媽媽', text: '收到通知，當天會幫芷瑄準備溫開水！', time: '昨天' }
+        { id: 'c3', author: 'Jennifer 家長', text: '收到通知！當天會幫孩子準備遮陽帽與溫水！', time: '昨天' }
       ]
     }
   ],
   messages: {
-    'stu_1': [
-      { id: 'm1', sender: 'teacher', text: '王媽媽您好！小明今天在課堂上表現非常出色，主動幫同學講解題目，特別頒發了 2 點 Dojo 點數鼓勵喔！', timestamp: Date.now() - 18000000 },
-      { id: 'm2', sender: 'parent', text: '謝謝林老師的用心鼓勵！小明回到家一直好開心地展示他的怪獸勳章，我們會繼續支持他！', timestamp: Date.now() - 14400000 },
-      { id: 'm3', sender: 'teacher', text: '不客氣！小明的善良與耐心是全班的榜樣，有任何事情隨時和我聯絡喔！😊', timestamp: Date.now() - 10800000 }
+    'stu_demo_1': [
+      { id: 'm1', sender: 'teacher', text: 'Beyoncé 家長您好！Beyoncé 今天在課堂上表現非常出色，主動幫小組整理觀察植物，特別頒發了 2 滴蜜糖點數鼓勵喔！', timestamp: Date.now() - 18000000 },
+      { id: 'm2', sender: 'parent', text: '謝謝林老師的用心鼓勵！Beyoncé 回到家一直好開心地展示她的小蜜蜂皇冠勳章，我們會繼續支持她！', timestamp: Date.now() - 14400000 },
+      { id: 'm3', sender: 'teacher', text: '不客氣！Beyoncé 的善良與熱心是全班小蜂隊員的榜樣，有任何事情隨時和我聯絡喔！😊', timestamp: Date.now() - 10800000 }
     ],
-    'stu_2': [
-      { id: 'm4', sender: 'teacher', text: '陳爸爸您好，Emma 今天美術創作非常有創意，作品已經收錄在學習歷程檔案中！', timestamp: Date.now() - 36000000 },
+    'stu_demo_2': [
+      { id: 'm4', sender: 'teacher', text: 'Denzel 家長您好，Denzel 今天在數學專注飛行解題很棒，作品已經收錄在蜂巢作品檔案中！', timestamp: Date.now() - 36000000 },
       { id: 'm5', sender: 'parent', text: '太好了，我們剛剛在手機端看到作品了，畫得真生動！謝謝老師！', timestamp: Date.now() - 28800000 }
     ]
   },
   portfolios: [
     {
       id: 'act_1',
-      classId: 'cls_dojo_1',
-      title: '週末怪獸好朋友手繪創作',
-      description: '用畫板繪製出你心目中的怪獸好朋友，並為他取一個響亮的名字！',
+      classId: 'cls_demo_class',
+      title: '🌻 向日葵花園小蜜蜂手繪創作',
+      description: '用手繪板繪製出你在花園中採集蜜糖的好夥伴，並為他取一個響亮的名字！',
       submissions: [
         {
           id: 'sub_1',
-          studentId: 'stu_1',
-          studentName: '王小明 (Leo)',
+          studentId: 'stu_demo_1',
+          studentName: 'Beyoncé',
           type: 'drawing',
-          drawingData: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23f0fdf4"/><circle cx="150" cy="100" r="50" fill="%2300d27a"/><circle cx="135" cy="90" r="10" fill="%23fff"/><circle cx="165" cy="90" r="10" fill="%23fff"/><circle cx="137" cy="90" r="5" fill="%232b3b48"/><circle cx="167" cy="90" r="5" fill="%232b3b48"/><path d="M 135 115 Q 150 135 165 115" stroke="%232b3b48" stroke-width="4" fill="none"/></svg>',
-          caption: '這是我設計的綠波波怪獸，他有一雙超大眼睛，最喜歡吃巧克力餅乾！🍪',
+          drawingData: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fffdf5"/><circle cx="150" cy="100" r="50" fill="%23f59e0b"/><circle cx="135" cy="90" r="10" fill="%23fff"/><circle cx="165" cy="90" r="10" fill="%23fff"/><circle cx="137" cy="90" r="5" fill="%231e293b"/><circle cx="167" cy="90" r="5" fill="%231e293b"/><path d="M 135 115 Q 150 135 165 115" stroke="%231e293b" stroke-width="4" fill="none"/></svg>',
+          caption: '這是我設計的向日葵小蜜蜂，它有黃金條紋和亮晶晶的翅膀，最喜歡採集香甜的向日葵花蜜！🌻',
           status: 'approved',
           timestamp: Date.now() - 43200000
         },
         {
           id: 'sub_2',
-          studentId: 'stu_2',
-          studentName: '陳小華 (Emma)',
+          studentId: 'stu_demo_2',
+          studentName: 'Denzel',
           type: 'drawing',
-          drawingData: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fdf2f8"/><circle cx="150" cy="100" r="55" fill="%23ff006e"/><circle cx="150" cy="85" r="12" fill="%23fff"/><circle cx="152" cy="85" r="6" fill="%232b3b48"/><path d="M 135 115 Q 150 130 165 115" stroke="%232b3b48" stroke-width="4" fill="none"/></svg>',
-          caption: '粉紅獨眼小精靈，她的頭頂會發光指引夜路！✨',
+          drawingData: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fefce8"/><circle cx="150" cy="100" r="55" fill="%23eab308"/><circle cx="150" cy="85" r="12" fill="%23fff"/><circle cx="152" cy="85" r="6" fill="%231e293b"/><path d="M 135 115 Q 150 130 165 115" stroke="%231e293b" stroke-width="4" fill="none"/></svg>',
+          caption: '飛行小蜂隊長，頭頂戴著向日葵徽章，守護著花園裡的花朵！✨',
           status: 'pending',
           timestamp: Date.now() - 7200000
         }

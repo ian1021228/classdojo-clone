@@ -98,7 +98,7 @@ async function runTests() {
         console.log(`    ✓ Changelog rendered: ${hasChangelog}`);
 
         // Open quick login modal
-        await page.click('#btn-quick-login');
+        await page.click('#btn-hero-demo');
         await new Promise(r => setTimeout(r, 400));
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `01_login_modal_${mode}.png`) });
 
@@ -170,8 +170,19 @@ async function runTests() {
           if (pill) pill.click();
         });
 
+        // Test Rewards Store
+        await page.evaluate(() => {
+          document.getElementById('tab-student-rewards')?.click();
+        });
         await new Promise(r => setTimeout(r, 400));
-        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_monster_customized_${mode}.png`) });
+        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_rewards_store_${mode}.png`) });
+
+        // Test The Meadow Canvas
+        await page.evaluate(() => {
+          document.getElementById('tab-student-islands')?.click();
+        });
+        await new Promise(r => setTimeout(r, 600));
+        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_the_meadow_${mode}.png`) });
 
         // Switch to Drawing tab
         await page.evaluate((m) => {

@@ -1,35 +1,49 @@
 /* ==========================================================================
-   ClassDojo UI Design System & Global Styles
+   Crew Design System & Global Styles (Bee & Honeycomb Theme)
    ========================================================================== */
 
 :root {
-  --dojo-primary: #00af66;
-  --dojo-primary-hover: #009657;
-  --dojo-primary-light: #e6f9f0;
-  --dojo-secondary: #00d27a;
-  --dojo-blue: #3a86ff;
-  --dojo-blue-light: #ebf3ff;
-  --dojo-purple: #8338ec;
-  --dojo-purple-light: #f3ebff;
-  --dojo-yellow: #ffbe0b;
-  --dojo-orange: #fb5607;
-  --dojo-red: #ff4d6d;
-  --dojo-red-light: #fff0f3;
-
-  --text-main: #2b3b48;
-  --text-muted: #6c7c8c;
-  --text-light: #9aa7b2;
+  --crew-honey: #f59e0b;
+  --crew-honey-hover: #d97706;
+  --crew-honey-light: #fef3c7;
+  --crew-honey-dark: #b45309;
+  --crew-honey-border: #fde68a;
   
-  --bg-page: #f4f7f9;
-  --bg-card: #ffffff;
-  --bg-hover: #f8fafc;
-  --border-light: #e2e8f0;
-  --border-card: #e5ebf0;
+  --crew-meadow: #10b981;
+  --crew-meadow-light: #d1fae5;
+  --crew-sky: #0ea5e9;
+  --crew-sky-light: #e0f2fe;
+  --crew-purple: #8b5cf6;
+  --crew-pink: #ec4899;
 
-  --shadow-sm: 0 2px 4px rgba(43, 59, 72, 0.04);
-  --shadow-md: 0 4px 12px rgba(43, 59, 72, 0.08);
-  --shadow-lg: 0 10px 25px -5px rgba(43, 59, 72, 0.12);
-  --shadow-hover: 0 8px 20px rgba(0, 175, 102, 0.15);
+  /* Backward compatible bindings mapped to warm Honeybee palette */
+  --dojo-primary: #f59e0b;
+  --dojo-primary-hover: #d97706;
+  --dojo-primary-light: #fef3c7;
+  --dojo-secondary: #eab308;
+  --dojo-blue: #0ea5e9;
+  --dojo-blue-light: #e0f2fe;
+  --dojo-purple: #8b5cf6;
+  --dojo-purple-light: #ede9fe;
+  --dojo-yellow: #facc15;
+  --dojo-orange: #f97316;
+  --dojo-red: #ef4444;
+  --dojo-red-light: #fee2e2;
+
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  
+  --bg-page: #faf8f2;
+  --bg-card: #ffffff;
+  --bg-hover: #fefce8;
+  --border-light: #fde68a;
+  --border-card: #fef08a;
+
+  --shadow-sm: 0 2px 4px rgba(180, 83, 9, 0.04);
+  --shadow-md: 0 4px 14px rgba(180, 83, 9, 0.08);
+  --shadow-lg: 0 10px 25px -5px rgba(180, 83, 9, 0.12);
+  --shadow-hover: 0 8px 22px rgba(245, 158, 11, 0.2);
 
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -335,69 +349,73 @@ button {
 }
 
 .student-card {
-  width: 112px;
-  min-height: 152px;
+  width: 118px;
+  min-height: 156px;
   background: #ffffff;
-  border-radius: 16px;
-  border: 1.5px solid transparent;
+  border-radius: 18px;
+  border: 1.5px solid #fde68a;
   padding: 8px 6px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 6px rgba(180, 83, 9, 0.05);
   cursor: pointer;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, border-color 0.18s ease;
   user-select: none;
 }
 
 .student-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  border-color: #cbd5e1;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(245, 158, 11, 0.16);
+  border-color: #f59e0b;
 }
 
 .student-card.selected {
-  border-color: #3b82f6;
-  background-color: #eff6ff;
-  box-shadow: 0 0 0 2px #3b82f6;
+  border-color: #f59e0b;
+  background-color: #fffbeb;
+  box-shadow: 0 0 0 2.5px #f59e0b;
 }
 
 .student-card.whole-class-card {
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff, #fefce8);
+  border-color: #fde047;
 }
 
-/* Points Badge matching real ClassDojo rgb(21, 128, 61) */
+/* Honey Drop Points Badge */
 .points-badge {
   position: absolute;
   top: 4px;
   right: 6px;
-  width: 28px;
+  min-width: 28px;
   height: 28px;
-  border-radius: 999px;
-  background: #15803d;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #ffffff;
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 800;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  z-index: 5;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+  border: 1.5px solid #ffffff;
 }
 
 .points-badge.negative {
-  background: #dc2626;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
 }
 
 .points-badge.zero {
   background: #94a3b8;
 }
 
-/* Monster Container */
+/* Bee Avatar Container */
 .monster-avatar-wrap {
-  width: 86px;
-  height: 82px;
+  width: 90px;
+  height: 86px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -406,26 +424,46 @@ button {
   position: relative;
 }
 
+.monster-avatar-wrap img,
 .monster-avatar-wrap svg {
   max-width: 100%;
   max-height: 100%;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.05));
+  filter: drop-shadow(0 3px 6px rgba(180, 83, 9, 0.12));
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.student-card:hover .monster-avatar-wrap img,
 .student-card:hover .monster-avatar-wrap svg {
-  transform: scale(1.06);
+  transform: scale(1.08) translateY(-2px);
+}
+
+@keyframes beeBob {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(1.5deg); }
+}
+
+.crew-bee-bobbing {
+  animation: beeBob 2.6s ease-in-out infinite;
+}
+
+@keyframes eggPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.crew-egg-pulse {
+  animation: eggPulse 2.2s ease-in-out infinite;
 }
 
 .student-name {
   font-size: 13px;
   font-weight: 700;
-  color: #171717;
+  color: #1e293b;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100px;
+  max-width: 104px;
   line-height: 1.2;
 }
 
@@ -447,18 +485,18 @@ button {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.att-present { background: #15803d; }
-.att-absent { background: #dc2626; }
+.att-present { background: #10b981; }
+.att-absent { background: #ef4444; }
 .att-tardy { background: #f59e0b; }
 .att-left { background: #ea580c; }
 
-/* Add Student Card matching ClassDojo lavender #f7f4ff */
+/* Add Student Card - Honeycomb style */
 .add-student-card {
-  width: 112px;
-  height: 152px;
-  background: #f7f4ff;
-  border: 1.5px solid transparent;
-  border-radius: 24px;
+  width: 118px;
+  min-height: 156px;
+  background: #fffdf5;
+  border: 2px dashed #fcd34d;
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -470,16 +508,17 @@ button {
 }
 
 .add-student-card:hover {
-  background: #ede9fe;
+  background: #fef9c3;
+  border-color: #f59e0b;
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.16);
 }
 
 .add-student-icon {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #7c3aed;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -487,11 +526,12 @@ button {
   color: #ffffff;
   margin-bottom: 8px;
   line-height: 1;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);
 }
 
 .add-student-card strong {
   font-size: 13px;
-  color: #6d28d9;
+  color: #b45309;
   font-weight: 700;
 }
 
@@ -740,8 +780,24 @@ button {
     height: 56px;
   }
 
+  .dojo-navbar .dojo-nav-links {
+    display: none; /* Mobile uses bottom bar */
+  }
+
   .dojo-brand span {
     font-size: 1.1rem;
+  }
+
+  .hero-section {
+    padding: 32px 16px 20px;
+  }
+
+  .hero-section h1 {
+    font-size: 1.8rem !important;
+  }
+
+  .hero-section p {
+    font-size: 0.95rem !important;
   }
 
   .classroom-header {

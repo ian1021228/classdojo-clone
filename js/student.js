@@ -1,31 +1,35 @@
 /**
- * ClassDojo Student Portal Controller
- * Implements monster avatar customizer, egg hatching, points summary, HTML5 drawing pad, and portfolio submissions.
+ * Crew Student Portal Controller
+ * Implements Honeybee avatar customizer, honeycomb cell hatching, honey points ledger,
+ * Honey Rewards Store redemption, The Meadow 2D canvas exploration, HTML5 drawing pad, and Hive stories.
  */
 
 import { store } from './store.js';
+import { rewardStore } from './rewards-store.js';
+import { DojoIslands } from './dojo-islands.js';
 
 class StudentController {
   constructor() {
     this.activeClass = store.getActiveClass();
     this.currentStudentId = this.activeClass.students[0]?.id || 'stu_1';
-    this.currentTab = 'monster'; // 'monster' | 'points' | 'portfolio' | 'story'
+    this.currentTab = 'monster'; // 'monster' | 'points' | 'rewards' | 'islands' | 'portfolio' | 'story'
 
-    // Monster customizer active traits
+    // Bee customizer active traits
     this.traits = {
       colorIdx: 0,
       bodyShape: 'round',
-      eyeStyle: 'two_big',
-      mouthStyle: 'smile',
-      accessory: 'party_hat'
+      accessory: 'none'
     };
 
     // Drawing Pad State
     this.isDrawing = false;
-    this.drawColor = '#00d27a';
+    this.drawColor = '#f59e0b';
     this.brushSize = 7;
     this.canvas = null;
     this.ctx = null;
+
+    // Islands Engine instance
+    this.islandsInstance = null;
 
     this.init();
   }
@@ -49,11 +53,15 @@ class StudentController {
     this.studentSelect = document.getElementById('student-picker-select');
     this.tabMonster = document.getElementById('tab-student-monster');
     this.tabPoints = document.getElementById('tab-student-points');
+    this.tabRewards = document.getElementById('tab-student-rewards');
+    this.tabIslands = document.getElementById('tab-student-islands');
     this.tabPortfolio = document.getElementById('tab-student-portfolio');
     this.tabStory = document.getElementById('tab-student-story');
 
     this.viewMonster = document.getElementById('view-student-monster');
     this.viewPoints = document.getElementById('view-student-points');
+    this.viewRewards = document.getElementById('view-student-rewards');
+    this.viewIslands = document.getElementById('view-student-islands');
     this.viewPortfolio = document.getElementById('view-student-portfolio');
     this.viewStory = document.getElementById('view-student-story');
 
@@ -70,31 +78,35 @@ class StudentController {
 
   bindEvents() {
     // Student switcher dropdown
-    this.studentSelect.addEventListener('change', (e) => {
-      this.currentStudentId = e.target.value;
-      this.loadCurrentStudent();
-      this.renderAll();
-    });
+    if (this.studentSelect) {
+      this.studentSelect.addEventListener('change', (e) => {
+        this.currentStudentId = e.target.value;
+        this.loadCurrentStudent();
+        this.renderAll();
+      });
+    }
 
     // Navigation Tabs
-    this.tabMonster.addEventListener('click', () => this.switchTab('monster'));
-    this.tabPoints.addEventListener('click', () => this.switchTab('points'));
-    this.tabPortfolio.addEventListener('click', () => this.switchTab('portfolio'));
-    this.tabStory.addEventListener('click', () => this.switchTab('story'));
+    this.tabMonster?.addEventListener('click', () => this.switchTab('monster'));
+    this.tabPoints?.addEventListener('click', () => this.switchTab('points'));
+    this.tabRewards?.addEventListener('click', () => this.switchTab('rewards'));
+    this.tabIslands?.addEventListener('click', () => this.switchTab('islands'));
+    this.tabPortfolio?.addEventListener('click', () => this.switchTab('portfolio'));
+    this.tabStory?.addEventListener('click', () => this.switchTab('story'));
 
     // Mobile nav items
     document.getElementById('mob-stu-monster')?.addEventListener('click', () => this.switchTab('monster'));
     document.getElementById('mob-stu-points')?.addEventListener('click', () => this.switchTab('points'));
+    document.getElementById('mob-stu-rewards')?.addEventListener('click', () => this.switchTab('rewards'));
     document.getElementById('mob-stu-portfolio')?.addEventListener('click', () => this.switchTab('portfolio'));
-    document.getElementById('mob-stu-story')?.addEventListener('click', () => this.switchTab('story'));
 
-    // Save Monster Button
+    // Save Bee Button
     document.getElementById('btn-save-monster')?.addEventListener('click', () => {
       const cls = store.getActiveClass();
       store.updateStudentMonster(cls.id, this.currentStudentId, this.traits);
       if (window.dojoAudio) window.dojoAudio.playPositive();
       if (window.dojoConfetti) window.dojoConfetti.burst();
-      alert('🎉 專屬怪獸頭像已成功儲存！班導師與全班同學都能看見你的新造型！');
+      alert('🎉 專屬小蜜蜂造型已成功儲存！蜂巢班導師與小蜂隊友都能看見你的全新風采！');
     });
 
     // Drawing Pad Events
@@ -103,7 +115,7 @@ class StudentController {
     // Submit Drawing Button
     document.getElementById('btn-submit-drawing')?.addEventListener('click', () => {
       const captionInput = document.getElementById('drawing-caption');
-      const caption = captionInput.value.trim() || '我的怪獸好朋友手繪創作';
+      const caption = captionInput.value.trim() || '我的小蜜蜂課堂創作';
       const dataUrl = this.canvas.toDataURL('image/png');
 
       const s = this.getStudent();
@@ -114,7 +126,7 @@ class StudentController {
         this.clearCanvas();
         if (window.dojoAudio) window.dojoAudio.playPositive();
         if (window.dojoConfetti) window.dojoConfetti.burst();
-        alert('🚀 手繪作品已送出！請等待老師審核通過並頒發點數！');
+        alert('🚀 小蜜蜂創作已送出！等待蜜糖導師審核通過並頒發花蜜點數！');
         this.renderPortfolioSubmissions();
       }
     });
@@ -130,47 +142,55 @@ class StudentController {
   loadCurrentStudent() {
     const s = this.getStudent();
     if (!s) return;
-    this.previewNameTag.textContent = s.name;
+    if (this.previewNameTag) this.previewNameTag.textContent = s.name;
 
     if (s.isHatched && s.monster) {
       this.traits = JSON.parse(JSON.stringify(s.monster));
     } else {
-      // Default initial traits
       this.traits = {
-        colorIdx: Math.floor(Math.random() * 8),
+        colorIdx: 0,
         bodyShape: 'round',
-        eyeStyle: 'two_big',
-        mouthStyle: 'smile',
-        accessory: 'horns'
+        accessory: 'none'
       };
     }
   }
 
   switchTab(tabName) {
     this.currentTab = tabName;
-    [this.tabMonster, this.tabPoints, this.tabPortfolio, this.tabStory].forEach(t => t.classList.remove('active'));
-    [this.viewMonster, this.viewPoints, this.viewPortfolio, this.viewStory].forEach(v => v.style.display = 'none');
+    const tabs = [this.tabMonster, this.tabPoints, this.tabRewards, this.tabIslands, this.tabPortfolio, this.tabStory];
+    const views = [this.viewMonster, this.viewPoints, this.viewRewards, this.viewIslands, this.viewPortfolio, this.viewStory];
+
+    tabs.forEach(t => t?.classList.remove('active'));
+    views.forEach(v => { if (v) v.style.display = 'none'; });
 
     document.querySelectorAll('.mobile-bottom-bar .mobile-nav-item').forEach(m => m.classList.remove('active'));
 
     if (tabName === 'monster') {
-      this.tabMonster.classList.add('active');
+      this.tabMonster?.classList.add('active');
       document.getElementById('mob-stu-monster')?.classList.add('active');
-      this.viewMonster.style.display = 'block';
+      if (this.viewMonster) this.viewMonster.style.display = 'block';
     } else if (tabName === 'points') {
-      this.tabPoints.classList.add('active');
+      this.tabPoints?.classList.add('active');
       document.getElementById('mob-stu-points')?.classList.add('active');
-      this.viewPoints.style.display = 'block';
+      if (this.viewPoints) this.viewPoints.style.display = 'block';
       this.renderPointsTab();
+    } else if (tabName === 'rewards') {
+      this.tabRewards?.classList.add('active');
+      document.getElementById('mob-stu-rewards')?.classList.add('active');
+      if (this.viewRewards) this.viewRewards.style.display = 'block';
+      this.renderRewardsStore();
+    } else if (tabName === 'islands') {
+      this.tabIslands?.classList.add('active');
+      if (this.viewIslands) this.viewIslands.style.display = 'block';
+      this.renderStudentIslands();
     } else if (tabName === 'portfolio') {
-      this.tabPortfolio.classList.add('active');
+      this.tabPortfolio?.classList.add('active');
       document.getElementById('mob-stu-portfolio')?.classList.add('active');
-      this.viewPortfolio.style.display = 'block';
+      if (this.viewPortfolio) this.viewPortfolio.style.display = 'block';
       this.renderPortfolioSubmissions();
     } else if (tabName === 'story') {
-      this.tabStory.classList.add('active');
-      document.getElementById('mob-stu-story')?.classList.add('active');
-      this.viewStory.style.display = 'block';
+      this.tabStory?.classList.add('active');
+      if (this.viewStory) this.viewStory.style.display = 'block';
       this.renderStoriesTab();
     }
   }
@@ -179,45 +199,52 @@ class StudentController {
     this.renderStudentDropdown();
     this.renderPreview();
     if (this.currentTab === 'points') this.renderPointsTab();
+    if (this.currentTab === 'rewards') this.renderRewardsStore();
+    if (this.currentTab === 'islands') this.renderStudentIslands();
     if (this.currentTab === 'portfolio') this.renderPortfolioSubmissions();
     if (this.currentTab === 'story') this.renderStoriesTab();
   }
 
   renderStudentDropdown() {
+    if (!this.studentSelect) return;
     this.studentSelect.innerHTML = this.activeClass.students.map(s => `
       <option value="${s.id}" ${s.id === this.currentStudentId ? 'selected' : ''}>
-        ${s.isHatched ? '👾' : '🥚'} ${s.name} (${s.points} 點)
+        ${s.isHatched ? '🐝' : '🍯'} ${s.name} (${s.points} 滴花蜜)
       </option>
     `).join('');
   }
 
   renderPreview() {
     const s = this.getStudent();
-    if (!s) return;
+    if (!s || !this.livePreviewWrap) return;
 
     if (!s.isHatched) {
-      // Unhatched egg mode
+      // Unhatched Honeycomb cell mode
       this.livePreviewWrap.innerHTML = window.monsterEngine ? window.monsterEngine.renderEgg(s.name, 160) : '';
-      this.hatchActionWrap.innerHTML = `
-        <button class="btn btn-primary btn-lg" id="btn-hatch-egg" style="background: linear-gradient(135deg, #00af66 0%, #3a86ff 100%);">
-          🐣 立即孵化我的專屬怪獸！
-        </button>
-      `;
+      if (this.hatchActionWrap) {
+        this.hatchActionWrap.innerHTML = `
+          <button class="btn btn-primary btn-lg" id="btn-hatch-egg" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+            🐝 破繭而出！啟動我的專屬小蜜蜂！
+          </button>
+        `;
 
-      document.getElementById('btn-hatch-egg')?.addEventListener('click', () => {
-        store.updateStudentMonster(this.activeClass.id, s.id, this.traits);
-        if (window.dojoAudio) window.dojoAudio.playFanfare();
-        if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 80);
-        this.renderAll();
-      });
+        document.getElementById('btn-hatch-egg')?.addEventListener('click', () => {
+          store.updateStudentMonster(this.activeClass.id, s.id, this.traits);
+          if (window.dojoAudio) window.dojoAudio.playFanfare();
+          if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 80);
+          this.renderAll();
+        });
+      }
     } else {
-      // Hatched monster mode
+      // Hatched Bee mode
       this.livePreviewWrap.innerHTML = window.monsterEngine ? window.monsterEngine.render(this.traits, 160) : '';
-      this.hatchActionWrap.innerHTML = `
-        <span style="background: #e6f9f0; color: #00af66; font-weight: 700; padding: 6px 16px; border-radius: var(--radius-full); font-size: 0.9rem;">
-          ✨ 已孵化成功
-        </span>
-      `;
+      if (this.hatchActionWrap) {
+        this.hatchActionWrap.innerHTML = `
+          <span style="background: #fef3c7; color: #b45309; font-weight: 700; padding: 6px 16px; border-radius: var(--radius-full); font-size: 0.9rem; border: 1px solid #fde68a;">
+            ✨ 已完成破繭採蜜中
+          </span>
+        `;
+      }
     }
   }
 
@@ -227,35 +254,43 @@ class StudentController {
 
     // 1. Swatches
     const swatchesWrap = document.getElementById('swatches-container');
-    swatchesWrap.innerHTML = me.colors.map((c, idx) => `
-      <button class="color-swatch-btn ${idx === this.traits.colorIdx ? 'selected' : ''}" data-color-idx="${idx}" style="background: ${c.main};" title="${c.name}"></button>
-    `).join('');
+    if (swatchesWrap) {
+      swatchesWrap.innerHTML = me.colors.map((c, idx) => `
+        <button class="color-swatch-btn ${idx === this.traits.colorIdx ? 'selected' : ''}" data-color-idx="${idx}" style="background: ${c.main};" title="${c.name}"></button>
+      `).join('');
 
-    swatchesWrap.querySelectorAll('.color-swatch-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        swatchesWrap.querySelectorAll('.color-swatch-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        this.traits.colorIdx = parseInt(btn.dataset.colorIdx, 10);
-        this.traits.color = me.colors[this.traits.colorIdx];
-        if (window.dojoAudio) window.dojoAudio.playTick();
-        this.renderPreview();
+      swatchesWrap.querySelectorAll('.color-swatch-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          swatchesWrap.querySelectorAll('.color-swatch-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          this.traits.colorIdx = parseInt(btn.dataset.colorIdx, 10);
+          this.traits.color = me.colors[this.traits.colorIdx];
+          if (window.dojoAudio) window.dojoAudio.playTick();
+          this.renderPreview();
+        });
       });
-    });
+    }
 
-    // 2. Body Shapes
-    const bodyLabels = { round: '圓滾滾', pear: '水滴梨形', tall: '高個子', blob: '果凍波波', fluffy: '毛茸茸' };
+    // 2. Body Shapes / Archetypes
+    const bodyLabels = {
+      round: '🐝 圓滾萌蜂',
+      pear: '🐝 水滴勤蜂',
+      tall: '🐝 靈動長蜂',
+      blob: '🐝 胖嘟工蜂',
+      fluffy: '🐝 蓬鬆絨蜂'
+    };
     this.setupTraitPills('body-shapes-container', me.bodyShapes, bodyLabels, 'bodyShape');
 
-    // 3. Eye Styles
-    const eyeLabels = { two_big: '雙圓大眼', cyclops: '俏皮獨眼', three_eyes: '三眼神童', sleepy: '瞇瞇眼', happy: '微笑眼' };
-    this.setupTraitPills('eye-styles-container', me.eyeStyles, eyeLabels, 'eyeStyle');
-
-    // 4. Mouth Styles
-    const mouthLabels = { smile: '大微笑', grin_teeth: '露出皓齒', tongue: '吐舌搞怪', cute_open: '圓圓驚訝', vampire: '小尖牙' };
-    this.setupTraitPills('mouth-styles-container', me.mouthStyles, mouthLabels, 'mouthStyle');
-
-    // 5. Accessories
-    const accLabels = { none: '無配件', horns: '小惡魔角', antenna: '外星觸角', ears: '兔兔大耳', party_hat: '派對帽', glasses: '斯文眼鏡', bow: '粉紅蝴蝶結' };
+    // 3. Accessories
+    const accLabels = {
+      none: '悠閒自然',
+      crown: '👑 蜂王皇冠',
+      honey_pot: '🍯 金蜜罐',
+      sunflower: '🌻 陽光向日葵',
+      blossom: '🌸 櫻花初綻',
+      goggles: '🥽 飛行風鏡',
+      sparkles: '✨ 璀璨蜂芒'
+    };
     this.setupTraitPills('accessories-container', me.accessories, accLabels, 'accessory');
   }
 
@@ -285,34 +320,105 @@ class StudentController {
     const s = this.getStudent();
     if (!s) return;
 
-    document.getElementById('student-total-points-badge').textContent = s.points;
-    document.getElementById('student-points-title').textContent = `${s.name} (座號 ${s.seatNumber})`;
+    const badge = document.getElementById('student-total-points-badge');
+    if (badge) badge.textContent = s.points;
+
+    const title = document.getElementById('student-points-title');
+    if (title) title.textContent = `${s.name} (座號 ${s.seatNumber})`;
 
     const timelineWrap = document.getElementById('student-feedback-timeline');
+    if (!timelineWrap) return;
+
     if (!s.history || s.history.length === 0) {
       timelineWrap.innerHTML = `
         <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-          <span style="font-size: 2.5rem; display: block; margin-bottom: 8px;">🌱</span>
-          新學期剛開始！積極在課堂上發言與互助，累積你的第一枚怪獸點數吧！
+          <span style="font-size: 2.5rem; display: block; margin-bottom: 8px;">🌻</span>
+          新學期剛開始！積極在蜂巢課堂發言、團隊合作與互助，累積你的第一滴金蜜點數吧！
         </div>
       `;
       return;
     }
 
     timelineWrap.innerHTML = s.history.map(item => `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f8fafc; border-radius: 12px; border-left: 4px solid ${item.points >= 0 ? '#00d27a' : '#ff4d6d'};">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fffdf5; border-radius: 12px; border-left: 4px solid ${item.points >= 0 ? '#f59e0b' : '#ef4444'}; border: 1px solid #fde68a;">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 1.5rem;">${item.icon || (item.points >= 0 ? '⭐' : '⏳')}</span>
+          <span style="font-size: 1.5rem;">${item.icon || (item.points >= 0 ? '🍯' : '💨')}</span>
           <div>
-            <strong style="font-size: 0.95rem; color: var(--text-main); display: block;">${item.skillName}</strong>
-            <small style="color: var(--text-muted);">${item.note || '課堂優異表現肯定'}</small>
+            <strong style="font-size: 0.95rem; color: #1e293b; display: block;">${item.skillName}</strong>
+            <small style="color: #64748b;">${item.note || '蜂巢課堂優良表現'}</small>
           </div>
         </div>
-        <div style="font-weight: 800; font-size: 1.1rem; color: ${item.points >= 0 ? 'var(--dojo-primary)' : 'var(--dojo-red)'};">
-          ${item.points >= 0 ? '+' + item.points : item.points} 點
+        <div style="font-weight: 800; font-size: 1.1rem; color: ${item.points >= 0 ? '#d97706' : '#ef4444'};">
+          ${item.points >= 0 ? '+' + item.points : item.points} 滴花蜜
         </div>
       </div>
     `).join('');
+  }
+
+  // Render Rewards Store Tab
+  renderRewardsStore() {
+    const grid = document.getElementById('student-rewards-grid');
+    if (!grid) return;
+
+    const s = this.getStudent();
+    if (!s) return;
+
+    const rewards = rewardStore.getRewards();
+    grid.innerHTML = rewards.map(r => {
+      const canAfford = s.points >= r.points;
+      return `
+        <div style="background: #ffffff; border: 1.5px solid ${canAfford ? '#fde68a' : '#e2e8f0'}; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='none'">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+              <span style="font-size: 2.2rem;">${r.icon}</span>
+              <span style="font-size: 0.9rem; font-weight: 800; background: ${canAfford ? '#fef3c7' : '#f1f5f9'}; color: ${canAfford ? '#b45309' : '#64748b'}; padding: 4px 12px; border-radius: var(--radius-full); border: 1px solid ${canAfford ? '#fde68a' : '#cbd5e1'};">
+                🍯 ${r.points} 滴花蜜
+              </span>
+            </div>
+            <h4 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">${r.title}</h4>
+            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 16px;">${r.desc}</p>
+          </div>
+          <button class="btn btn-sm ${canAfford ? 'btn-primary' : 'btn-secondary'}" data-redeem-id="${r.id}" ${canAfford ? '' : 'disabled'} style="width: 100%; border-radius: 10px; font-weight: 700; ${canAfford ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : 'opacity: 0.6; cursor: not-allowed;'}">
+            ${canAfford ? '✨ 立即兌換特權' : `尚缺 ${r.points - s.points} 滴`}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('[data-redeem-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const rid = btn.dataset.redeemId;
+        const res = rewardStore.redeem(this.currentStudentId, rid);
+        if (res.success) {
+          if (window.dojoAudio) window.dojoAudio.playFanfare();
+          if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 70);
+          alert(`🎉 恭喜兌換成功！已使用 ${res.redemption.pointsSpent} 滴花蜜兌換「${res.redemption.rewardTitle}」，導師已收到通知！`);
+          this.renderAll();
+        } else {
+          alert(`⚠️ ${res.message}`);
+        }
+      });
+    });
+  }
+
+  // Render The Meadow Canvas
+  renderStudentIslands() {
+    const s = this.getStudent();
+    if (!this.islandsInstance) {
+      this.islandsInstance = new DojoIslands('student-islands-canvas', {
+        playerName: s ? s.name : '小蜂隊員',
+        playerColor: '#f59e0b',
+        playerShape: this.traits.bodyShape || 'round',
+        playerAccessory: this.traits.accessory || 'none',
+        width: 800,
+        height: 500
+      });
+      this.islandsInstance.start();
+    } else if (s) {
+      this.islandsInstance.player.name = s.name;
+      this.islandsInstance.player.bodyShape = this.traits.bodyShape || 'round';
+      this.islandsInstance.player.accessory = this.traits.accessory || 'none';
+    }
   }
 
   // HTML5 Drawing Pad Initialization
@@ -407,46 +513,46 @@ class StudentController {
     const mySubs = act?.submissions.filter(sub => sub.studentId === s.id) || [];
 
     if (mySubs.length === 0) {
-      container.innerHTML = `<p style="color: var(--text-muted); grid-column: 1 / -1; padding: 20px 0;">尚未有提交的作品，趕緊在上方手繪板畫出你的第一份作品吧！</p>`;
+      container.innerHTML = `<p style="color: var(--text-muted); grid-column: 1 / -1; padding: 20px 0;">尚未有提交的手繪歷程，趕緊在上方手繪板畫出你的第一份作品吧！</p>`;
       return;
     }
 
     container.innerHTML = mySubs.map(sub => `
-      <div style="border: 1px solid var(--border-light); border-radius: 12px; padding: 12px; background: #fafbfc;">
+      <div style="border: 1px solid #fde68a; border-radius: 12px; padding: 12px; background: #fffdf5;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="font-weight: 700; font-size: 0.85rem;">${new Date(sub.timestamp).toLocaleDateString()}</span>
+          <span style="font-weight: 700; font-size: 0.85rem; color: #1e293b;">${new Date(sub.timestamp).toLocaleDateString()}</span>
           <span style="font-size: 0.8rem; font-weight: 800; padding: 2px 8px; border-radius: var(--radius-full); ${sub.status === 'approved' ? 'background: #dcfce7; color: #166534;' : 'background: #fef3c7; color: #92400e;'}">
-            ${sub.status === 'approved' ? '✅ 老師已審核' : '⏳ 審核中'}
+            ${sub.status === 'approved' ? '✅ 導師已核准' : '⏳ 審核中'}
           </span>
         </div>
-        <div style="background: white; border-radius: 8px; overflow: hidden; margin-bottom: 8px; text-align: center;">
+        <div style="background: white; border-radius: 8px; overflow: hidden; margin-bottom: 8px; text-align: center; border: 1px solid #fde68a;">
           <img src="${sub.drawingData}" alt="學生手繪作品" style="max-width: 100%; height: 130px; object-fit: contain;">
         </div>
-        <p style="font-size: 0.85rem; color: var(--text-main);">${sub.caption}</p>
+        <p style="font-size: 0.85rem; color: #1e293b;">${sub.caption}</p>
       </div>
     `).join('');
   }
 
-  // Render Class Story Feed
+  // Render Hive Story Feed
   renderStoriesTab() {
     const list = document.getElementById('student-story-posts');
     if (!list) return;
 
     const posts = store.state.stories.filter(p => p.classId === this.activeClass.id);
     list.innerHTML = posts.map(post => `
-      <div class="post-card">
+      <div class="post-card" style="border: 1.5px solid #fde68a; background: #ffffff;">
         <div class="post-header">
-          <div class="post-avatar">👨‍🏫</div>
+          <div class="post-avatar" style="background: #fef3c7; border: 1.5px solid #fde68a; font-size: 1.3rem;">🐝</div>
           <div class="post-meta">
             <h4>${post.author}</h4>
-            <span>課堂公開故事</span>
+            <span style="color: #64748b;">蜂巢課堂公告</span>
           </div>
         </div>
-        <div class="post-content">${post.content}</div>
+        <div class="post-content" style="color: #334155; line-height: 1.6;">${post.content}</div>
         <div class="post-footer">
           <button class="like-btn ${post.liked ? 'liked' : ''}" data-student-like="${post.id}">
             <span>${post.liked ? '❤️' : '🤍'}</span>
-            <span>${post.likes} 個愛心</span>
+            <span>${post.likes} 個愛心點讚</span>
           </button>
         </div>
       </div>

@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ClassDojo - 教師課堂管理</title>
+  <title>Crew 教師端 - 蜂巢課堂管理</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dojo-ui.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%2300d27a%22/><circle cx=%2238%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2262%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2240%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><circle cx=%2264%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><path d=%22M 36 60 Q 50 72 64 60%22 stroke=%22%232b3b48%22 stroke-width=%224%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>">
+  <link rel="icon" href="assets/svg/bee-twemoji.svg">
 </head>
 <body>
 
@@ -14,8 +15,10 @@
   <header class="dojo-navbar">
     <div style="display: flex; align-items: center; gap: 16px;">
       <a href="index.html" class="dojo-brand">
-        <div class="dojo-logo-icon">👾</div>
-        <span>ClassDojo</span>
+        <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: #fef3c7; border-radius: 12px; border: 1.5px solid #fde68a;">
+          <img src="assets/svg/bee-twemoji.svg" alt="Crew Bee" style="width: 26px; height: 26px;">
+        </div>
+        <span style="font-weight: 900; font-size: 1.35rem; color: #1e293b;">Crew</span>
       </a>
       <!-- Class Selector Dropdown -->
       <select id="class-select" style="padding: 6px 14px; border-radius: var(--radius-full); border: 1.5px solid var(--border-light); font-weight: 700; background: #ffffff; color: var(--text-main); font-size: 0.9rem; cursor: pointer; outline: none;">
@@ -24,22 +27,24 @@
 
     <div class="dojo-nav-links">
       <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;" id="teacher-profile-tag">👨‍🏫 林老師 (antigravity)</span>
-      <a href="student.html" class="btn btn-secondary btn-sm" title="切換學生視角">👾 學生端</a>
-      <a href="parent.html" class="btn btn-secondary btn-sm" title="切換家長視角">👨‍👩‍👧 家長端</a>
-      <a href="index.html" class="btn btn-secondary btn-sm">🏠 首頁</a>
+      <a href="student.html" class="btn btn-secondary btn-sm" title="切換學生視角"><i class="fa-solid fa-child"></i> 學生端</a>
+      <a href="parent.html" class="btn btn-secondary btn-sm" title="切換家長視角"><i class="fa-solid fa-house-chimney-user"></i> 家長端</a>
+      <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> 首頁</a>
     </div>
   </header>
 
   <!-- Secondary Tab Navigation Bar -->
   <div class="dojo-tabs-bar">
     <div class="tabs-container">
-      <button class="tab-btn active" id="tab-btn-classroom">🏫 課堂</button>
-      <button class="tab-btn" id="tab-btn-story">📸 課堂故事</button>
-      <button class="tab-btn" id="tab-btn-messages">💬 聊天訊息</button>
-      <button class="tab-btn" id="tab-btn-portfolios">📁 學習歷程檔案</button>
+      <button class="tab-btn active" id="tab-btn-classroom"><i class="fa-solid fa-chalkboard-user"></i> 蜂巢課堂</button>
+      <button class="tab-btn" id="tab-btn-story"><i class="fa-solid fa-camera"></i> 蜂巢日誌</button>
+      <button class="tab-btn" id="tab-btn-messages"><i class="fa-solid fa-comment-dots"></i> 親師蜂信</button>
+      <button class="tab-btn" id="tab-btn-calendar"><i class="fa-solid fa-calendar-days"></i> 蜂巢行事曆</button>
+      <button class="tab-btn" id="tab-btn-islands"><i class="fa-solid fa-sun"></i> 百花花園探險</button>
+      <button class="tab-btn" id="tab-btn-portfolios"><i class="fa-solid fa-seedling"></i> 小蜜蜂作品集</button>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
-      <button id="btn-export-report" class="btn btn-secondary btn-sm">📊 匯出評量報表</button>
+      <button id="btn-export-report" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chart-pie"></i> 匯出採蜜報表</button>
     </div>
   </div>
 
@@ -65,7 +70,7 @@
             <button class="switch-opt" id="btn-switch-groups">小組</button>
           </div>
           <button id="btn-give-whole-class" class="btn btn-primary btn-sm">
-            <span>⭐ 給全班反饋</span>
+            <i class="fa-solid fa-jar"></i> 採集全班花蜜
           </button>
         </div>
       </div>
@@ -191,19 +196,64 @@
         </div>
       </div>
     </section>
+
+    <!-- ========================================== -->
+    <!-- View 5: Class Calendar & Events            -->
+    <!-- ========================================== -->
+    <section id="view-calendar" style="display: none;">
+      <div style="max-width: 960px; margin: 24px auto 100px; padding: 0 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-size: 1.6rem; font-weight: 800;">📅 班級行事曆與重大活動</h2>
+            <p style="color: var(--text-muted);">發布戶外教學、科學競賽、同樂會與家長座談日</p>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-add-calendar-event">+ 發布新活動</button>
+        </div>
+
+        <div id="calendar-events-list" style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- View 6: Crew Bee Meadow (The Meadow)       -->
+    <!-- ========================================== -->
+    <section id="view-islands" style="display: none;">
+      <div style="max-width: 960px; margin: 20px auto 100px; padding: 0 16px; text-align: center;">
+        <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); border: 1.5px solid #fde68a;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div style="text-align: left;">
+              <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b;"><i class="fa-solid fa-sun" style="color: #f59e0b;"></i> 百花花園小蜂探險 (The Meadow)</h2>
+              <p style="color: #64748b; font-size: 0.9rem;">操控小蜜蜂在向日葵與百花草地漫步、參觀蜂巢金蜜泉、採集花粉與全班小蜂互動！</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <span style="font-size: 0.85rem; font-weight: 700; background: #fef3c7; color: #b45309; padding: 6px 14px; border-radius: var(--radius-full); border: 1px solid #fde68a;">
+                🎮 操作：鍵盤 WASD / 方向鍵，或滑鼠/觸控直接點擊
+              </span>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: center; overflow: hidden; border-radius: 16px; box-shadow: 0 4px 20px rgba(180, 83, 9, 0.12); border: 1.5px solid #fde68a;">
+            <canvas id="islands-canvas" style="max-width: 100%; height: auto; cursor: pointer;"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- ========================================================================== -->
-  <!-- ClassDojo Floating Toolkit Dock                                           -->
+  <!-- Crew Floating Toolkit Dock                                                -->
   <!-- ========================================================================== -->
-  <footer class="dojo-floating-dock">
-    <button class="dock-btn" id="dock-btn-toolkit"><span class="dock-btn-icon">🧰</span>工具包</button>
-    <button class="dock-btn" id="dock-btn-attendance"><span class="dock-btn-icon">📋</span>出勤</button>
-    <button class="dock-btn" id="dock-btn-multiple"><span class="dock-btn-icon">☑️</span>多選學生</button>
-    <button class="dock-btn" id="dock-btn-random"><span class="dock-btn-icon">🔀</span>隨機抽籤</button>
-    <button class="dock-btn" id="dock-btn-timer"><span class="dock-btn-icon">⏱️</span>計時器</button>
-    <button class="dock-btn" id="dock-btn-groups-maker"><span class="dock-btn-icon">👥</span>分組機</button>
-    <button class="dock-btn" id="dock-btn-noise"><span class="dock-btn-icon">🎙️</span>噪音計</button>
+  <footer class="dojo-floating-dock" style="background: rgba(255, 255, 255, 0.96); border: 1.5px solid #fde68a; box-shadow: 0 10px 30px rgba(180, 83, 9, 0.15);">
+    <button class="dock-btn" id="dock-btn-toolkit"><i class="fa-solid fa-toolbox" style="color: #f59e0b;"></i> 工具箱</button>
+    <button class="dock-btn" id="dock-btn-attendance"><i class="fa-solid fa-clipboard-check"></i> 出勤</button>
+    <button class="dock-btn" id="dock-btn-multiple"><i class="fa-solid fa-square-check"></i> 多選小蜂</button>
+    <button class="dock-btn" id="dock-btn-random"><i class="fa-solid fa-dice"></i> 隨機抽籤</button>
+    <button class="dock-btn" id="dock-btn-timer"><i class="fa-solid fa-stopwatch"></i> 計時器</button>
+    <button class="dock-btn" id="dock-btn-groups-maker"><i class="fa-solid fa-shuffle"></i> 蜂群分組</button>
+    <button class="dock-btn" id="dock-btn-noise"><i class="fa-solid fa-volume-high"></i> 噪音計</button>
+    <button class="dock-btn" id="dock-btn-bigideas"><i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> 蜂巢講堂</button>
   </footer>
 
   <!-- Mobile Bottom Navigation Bar (393x852) -->
@@ -465,6 +515,70 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btn-cancel-add-student">取消</button>
         <button class="btn btn-primary" id="btn-submit-add-student">確認添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Big Ideas Theater Modal -->
+  <div class="modal-backdrop" id="bigideas-modal">
+    <div class="modal-card" style="max-width: 640px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.6rem;">💡</span>
+          <div>
+            <h3 class="modal-title">Big Ideas 成長心態動畫影院</h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Mojo & Katie 陪伴孩子建立勇氣、正念與「還沒 (Yet)」的智慧</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-bigideas">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="bigideas-content-wrap">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 9: Add Calendar Event Modal -->
+  <div class="modal-backdrop" id="add-event-modal">
+    <div class="modal-card" style="max-width: 460px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">📅</span>
+          <h3 class="modal-title">發布新活動與行程</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-add-event">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; display: block; margin-bottom: 4px;">活動名稱</label>
+            <input type="text" id="event-input-title" placeholder="例如：萬聖節造型同樂會" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border-light); border-radius: 8px;">
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+              <label style="font-size: 0.9rem; font-weight: 700; display: block; margin-bottom: 4px;">活動日期</label>
+              <input type="date" id="event-input-date" value="2026-10-31" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border-light); border-radius: 8px;">
+            </div>
+            <div style="flex: 1;">
+              <label style="font-size: 0.9rem; font-weight: 700; display: block; margin-bottom: 4px;">時間</label>
+              <input type="text" id="event-input-time" value="10:00 - 12:00" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border-light); border-radius: 8px;">
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; display: block; margin-bottom: 4px;">活動地點</label>
+            <input type="text" id="event-input-location" value="教室 / 大操場" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border-light); border-radius: 8px;">
+          </div>
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; display: block; margin-bottom: 4px;">詳細說明</label>
+            <textarea id="event-input-desc" rows="3" style="width: 100%; padding: 8px 12px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: inherit;">請穿著舒適運動服，歡迎家長一同參與！</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-add-event">取消</button>
+        <button class="btn btn-primary" id="btn-submit-add-event">確認發布活動</button>
       </div>
     </div>
   </div>

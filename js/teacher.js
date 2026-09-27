@@ -1,13 +1,12 @@
-/**
- * ClassDojo Teacher Dashboard Controller
- * Implements classroom management, monster cards, points awarding, toolkit, stories, chat, and portfolios.
- */
-
 import { store } from './store.js';
+import { calendarManager } from './events-calendar.js';
+import { DojoIslands } from './dojo-islands.js';
+import { bigIdeasManager } from './big-ideas.js';
+import { rewardStore } from './rewards-store.js';
 
 class TeacherController {
   constructor() {
-    this.currentView = 'classroom'; // 'classroom' | 'story' | 'messages' | 'portfolios'
+    this.currentView = 'classroom'; // 'classroom' | 'story' | 'messages' | 'calendar' | 'islands' | 'portfolios'
     this.classroomMode = 'students'; // 'students' | 'groups'
     this.isAttendanceMode = false;
     this.isMultipleMode = false;
@@ -17,7 +16,10 @@ class TeacherController {
     this.awardTarget = { type: 'student', id: null, name: '' };
     
     // Active chat parent
-    this.activeChatStudentId = 'stu_1';
+    this.activeChatStudentId = 'stu_demo_1';
+
+    // Dojo Islands instance
+    this.islandsEngine = null;
 
     // Timer state
     this.timerDuration = 60;
@@ -48,12 +50,16 @@ class TeacherController {
     this.tabClassroom = document.getElementById('tab-btn-classroom');
     this.tabStory = document.getElementById('tab-btn-story');
     this.tabMessages = document.getElementById('tab-btn-messages');
+    this.tabCalendar = document.getElementById('tab-btn-calendar');
+    this.tabIslands = document.getElementById('tab-btn-islands');
     this.tabPortfolios = document.getElementById('tab-btn-portfolios');
 
     // Views
     this.viewClassroom = document.getElementById('view-classroom');
     this.viewStory = document.getElementById('view-story');
     this.viewMessages = document.getElementById('view-messages');
+    this.viewCalendar = document.getElementById('view-calendar');
+    this.viewIslands = document.getElementById('view-islands');
     this.viewPortfolios = document.getElementById('view-portfolios');
 
     // Classroom headers
@@ -80,14 +86,28 @@ class TeacherController {
     this.groupsModal = document.getElementById('groups-modal');
     this.noiseModal = document.getElementById('noise-modal');
     this.addStudentModal = document.getElementById('add-student-modal');
+    this.bigIdeasModal = document.getElementById('bigideas-modal');
+    this.addEventModal = document.getElementById('add-event-modal');
   }
 
   bindEvents() {
     // Navigation Tabs
-    this.tabClassroom.addEventListener('click', () => this.switchView('classroom'));
-    this.tabStory.addEventListener('click', () => this.switchView('story'));
-    this.tabMessages.addEventListener('click', () => this.switchView('messages'));
-    this.tabPortfolios.addEventListener('click', () => this.switchView('portfolios'));
+    this.tabClassroom?.addEventListener('click', () => this.switchView('classroom'));
+    this.tabStory?.addEventListener('click', () => this.switchView('story'));
+    this.tabMessages?.addEventListener('click', () => this.switchView('messages'));
+    this.tabCalendar?.addEventListener('click', () => this.switchView('calendar'));
+    this.tabIslands?.addEventListener('click', () => this.switchView('islands'));
+    this.tabPortfolios?.addEventListener('click', () => this.switchView('portfolios'));
+
+    // Calendar Modal Controls
+    document.getElementById('btn-add-calendar-event')?.addEventListener('click', () => this.openModal(this.addEventModal));
+    document.getElementById('btn-close-add-event')?.addEventListener('click', () => this.closeModal(this.addEventModal));
+    document.getElementById('btn-cancel-add-event')?.addEventListener('click', () => this.closeModal(this.addEventModal));
+    document.getElementById('btn-submit-add-event')?.addEventListener('click', () => this.submitAddEvent());
+
+    // Big Ideas Modal Controls
+    document.getElementById('dock-btn-bigideas')?.addEventListener('click', () => this.openBigIdeasModal());
+    document.getElementById('btn-close-bigideas')?.addEventListener('click', () => this.closeModal(this.bigIdeasModal));
 
     // Mobile nav bar items
     document.getElementById('mob-nav-classroom')?.addEventListener('click', () => this.switchView('classroom'));
@@ -375,24 +395,34 @@ class TeacherController {
   // View Switcher
   switchView(viewName) {
     this.currentView = viewName;
-    [this.tabClassroom, this.tabStory, this.tabMessages, this.tabPortfolios].forEach(tab => tab.classList.remove('active'));
-    [this.viewClassroom, this.viewStory, this.viewMessages, this.viewPortfolios].forEach(view => view.style.display = 'none');
+    [this.tabClassroom, this.tabStory, this.tabMessages, this.tabCalendar, this.tabIslands, this.tabPortfolios]
+      .filter(Boolean).forEach(tab => tab.classList.remove('active'));
+    [this.viewClassroom, this.viewStory, this.viewMessages, this.viewCalendar, this.viewIslands, this.viewPortfolios]
+      .filter(Boolean).forEach(view => view.style.display = 'none');
 
     if (viewName === 'classroom') {
-      this.tabClassroom.classList.add('active');
-      this.viewClassroom.style.display = 'block';
+      this.tabClassroom?.classList.add('active');
+      if (this.viewClassroom) this.viewClassroom.style.display = 'block';
       this.renderStudents();
     } else if (viewName === 'story') {
-      this.tabStory.classList.add('active');
-      this.viewStory.style.display = 'block';
+      this.tabStory?.classList.add('active');
+      if (this.viewStory) this.viewStory.style.display = 'block';
       this.renderStories();
     } else if (viewName === 'messages') {
-      this.tabMessages.classList.add('active');
-      this.viewMessages.style.display = 'block';
+      this.tabMessages?.classList.add('active');
+      if (this.viewMessages) this.viewMessages.style.display = 'block';
       this.renderMessages();
+    } else if (viewName === 'calendar') {
+      this.tabCalendar?.classList.add('active');
+      if (this.viewCalendar) this.viewCalendar.style.display = 'block';
+      this.renderCalendar();
+    } else if (viewName === 'islands') {
+      this.tabIslands?.classList.add('active');
+      if (this.viewIslands) this.viewIslands.style.display = 'block';
+      this.renderDojoIslands();
     } else if (viewName === 'portfolios') {
-      this.tabPortfolios.classList.add('active');
-      this.viewPortfolios.style.display = 'block';
+      this.tabPortfolios?.classList.add('active');
+      if (this.viewPortfolios) this.viewPortfolios.style.display = 'block';
       this.renderPortfolios();
     }
   }
@@ -407,6 +437,10 @@ class TeacherController {
       this.renderStories();
     } else if (this.currentView === 'messages') {
       this.renderMessages();
+    } else if (this.currentView === 'calendar') {
+      this.renderCalendar();
+    } else if (this.currentView === 'islands') {
+      this.renderDojoIslands();
     } else if (this.currentView === 'portfolios') {
       this.renderPortfolios();
     }
@@ -985,6 +1019,165 @@ class TeacherController {
         this.renderPortfolios();
       });
     });
+  }
+
+  // Calendar View & Event RSVPs
+  renderCalendar() {
+    const container = document.getElementById('calendar-events-list');
+    if (!container) return;
+    const events = calendarManager.getEvents();
+
+    container.innerHTML = events.map(evt => `
+      <div style="background: #ffffff; border: 1.5px solid #fde68a; border-radius: 16px; padding: 20px; box-shadow: 0 4px 14px rgba(180, 83, 9, 0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; gap: 18px; align-items: center;">
+          <div style="width: 64px; height: 64px; border-radius: 16px; background: #fef3c7; border: 1.5px solid #fde68a; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 900;">
+            <span style="font-size: 0.75rem; color: #b45309; text-transform: uppercase;">${evt.date.slice(5, 7)}月</span>
+            <span style="font-size: 1.4rem; color: #1e293b; line-height: 1;">${evt.date.slice(8, 10)}</span>
+          </div>
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 4px;">${evt.title}</h3>
+            <div style="display: flex; gap: 12px; font-size: 0.85rem; color: #64748b; margin-bottom: 6px; flex-wrap: wrap;">
+              <span><i class="fa-solid fa-clock"></i> ${evt.time}</span>
+              <span><i class="fa-solid fa-location-dot"></i> ${evt.location}</span>
+            </div>
+            <p style="font-size: 0.9rem; color: #334155; line-height: 1.5;">${evt.description}</p>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+          <span style="font-size: 0.85rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 4px 12px; border-radius: 9999px; border: 1px solid #fde68a;">
+            <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> ${evt.rsvpCount} 位家長已回覆參加
+          </span>
+          <button class="btn ${evt.isRSVPed ? 'btn-secondary' : 'btn-primary'} btn-sm btn-rsvp-toggle" data-event-id="${evt.id}">
+            ${evt.isRSVPed ? '已回覆參加 (點擊取消)' : '確認出席 (RSVP)'}
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.btn-rsvp-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        calendarManager.toggleRSVP(btn.dataset.eventId);
+        if (window.dojoAudio) window.dojoAudio.playPositive();
+        this.renderCalendar();
+      });
+    });
+  }
+
+  submitAddEvent() {
+    const title = document.getElementById('event-input-title').value.trim();
+    const date = document.getElementById('event-input-date').value;
+    const time = document.getElementById('event-input-time').value.trim();
+    const location = document.getElementById('event-input-location').value.trim();
+    const desc = document.getElementById('event-input-desc').value.trim();
+
+    if (!title || !date) {
+      alert('請填寫活動名稱與活動日期！');
+      return;
+    }
+
+    calendarManager.addEvent(title, date, time, location, desc);
+    this.closeModal(this.addEventModal);
+    if (window.dojoAudio) window.dojoAudio.playPositive();
+    if (window.dojoConfetti) window.dojoConfetti.burst();
+    this.renderCalendar();
+  }
+
+  // The Meadow (Islands) Canvas Interactive View
+  renderDojoIslands() {
+    const canvas = document.getElementById('islands-canvas');
+    if (!canvas) return;
+    if (!this.islandsEngine) {
+      this.islandsEngine = new DojoIslands('islands-canvas', {
+        playerName: '林老師 (蜂巢導師)',
+        playerColor: '#f59e0b',
+        playerShape: 'pear',
+        playerAccessory: 'horns',
+        onCollectGem: () => {
+          alert('🍯 恭喜林老師在金蜜泉採集到特級金色蜜糖！全班小蜜蜂士氣大振！');
+        }
+      });
+      this.islandsEngine.start();
+    }
+  }
+
+  // Big Ideas Video Theater Modal
+  openBigIdeasModal() {
+    const container = document.getElementById('bigideas-content-wrap');
+    if (!container) return;
+
+    const episodes = bigIdeasManager.getEpisodes();
+    const active = bigIdeasManager.activeEpisode || episodes[0];
+
+    container.innerHTML = `
+      <!-- Episode Pills -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
+        ${episodes.map(ep => `
+          <button class="btn ${ep.id === active.id ? 'btn-primary' : 'btn-secondary'} btn-sm btn-select-ep" data-ep-id="${ep.id}">
+            ${ep.icon} ${ep.title.slice(0, 14)}...
+          </button>
+        `).join('')}
+      </div>
+
+      <!-- Animated Video Theater Screen -->
+      <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 16px; padding: 24px; color: #ffffff; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); text-align: center; position: relative; overflow: hidden; border: 1.5px solid #fde68a;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <span style="font-size: 0.85rem; font-weight: 700; color: #fbbf24; background: rgba(251, 191, 36, 0.15); padding: 4px 12px; border-radius: 9999px;">
+            ${active.series}
+          </span>
+          <span style="font-size: 0.8rem; color: #94a3b8;"><i class="fa-solid fa-clock"></i> ${active.duration}</span>
+        </div>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin: 18px 0;">
+          <div class="crew-bee-bobbing" style="width: 72px; height: 72px;">
+            <img src="assets/svg/bee-twemoji.svg" alt="Bumble" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div style="font-size: 2.2rem; color: #fbbf24;">✨</div>
+          <div class="crew-bee-bobbing" style="width: 68px; height: 68px; animation-delay: 0.5s;">
+            <img src="assets/svg/bee-noto.svg" alt="Sunny" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+        </div>
+
+        <h3 style="font-size: 1.3rem; font-weight: 900; color: #ffffff; margin-bottom: 8px;">${active.title}</h3>
+        <p style="font-size: 0.95rem; color: #e2e8f0; line-height: 1.6; max-width: 520px; margin: 0 auto 16px;">${active.summary}</p>
+
+        <!-- Golden Takeaway Box -->
+        <div style="background: rgba(254, 243, 199, 0.12); border: 1px dashed #fde68a; border-radius: 12px; padding: 12px 18px; margin: 0 auto 16px; max-width: 480px;">
+          <strong style="color: #fbbf24; font-size: 1.05rem;">🌟 本集成長金句：</strong>
+          <p style="color: #fef3c7; font-weight: 700; margin-top: 4px; font-size: 0.95rem;">${active.keyTakeaway}</p>
+        </div>
+
+        <button class="btn btn-primary btn-sm" id="btn-play-bigideas-sim" style="box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);">
+          <i class="fa-solid fa-circle-play"></i> 播放動畫短片音效
+        </button>
+      </div>
+
+      <!-- Discussion Questions Section -->
+      <div style="background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 14px; padding: 18px;">
+        <h4 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-comments" style="color: #f59e0b;"></i> 課堂引導討論題：
+        </h4>
+        <ul style="padding-left: 20px; color: #475569; font-size: 0.9rem; line-height: 1.7;">
+          ${active.questions.map(q => `<li style="margin-bottom: 6px;">${q}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+
+    // Bind episode selector buttons
+    container.querySelectorAll('.btn-select-ep').forEach(btn => {
+      btn.addEventListener('click', () => {
+        bigIdeasManager.activeEpisode = bigIdeasManager.getEpisode(btn.dataset.epId);
+        if (window.dojoAudio) window.dojoAudio.playTick();
+        this.openBigIdeasModal();
+      });
+    });
+
+    document.getElementById('btn-play-bigideas-sim')?.addEventListener('click', () => {
+      if (window.dojoAudio) window.dojoAudio.playFanfare();
+      if (window.dojoConfetti) window.dojoConfetti.burst();
+      alert('🎬【動畫短片播放中】Bumble 與 Sunny 正帶領全班小蜜蜂探索「還沒」的力量！');
+    });
+
+    this.openModal(this.bigIdeasModal);
   }
 
   // Modal helpers

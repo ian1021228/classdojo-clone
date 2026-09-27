@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ClassDojo - 學生怪獸工坊</title>
+  <title>Crew 學生端 - 我的小蜜蜂工坊</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dojo-ui.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%233a86ff%22/><circle cx=%2238%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2262%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2240%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><circle cx=%2264%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><path d=%22M 36 60 Q 50 72 64 60%22 stroke=%22%232b3b48%22 stroke-width=%224%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>">
+  <link rel="icon" href="assets/svg/bee-twemoji.svg">
 </head>
 <body>
 
@@ -14,53 +15,60 @@
   <header class="dojo-navbar">
     <div style="display: flex; align-items: center; gap: 16px;">
       <a href="index.html" class="dojo-brand">
-        <div class="dojo-logo-icon" style="background: var(--dojo-blue);">👾</div>
-        <span>ClassDojo 學生端</span>
+        <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: #fef3c7; border-radius: 12px; border: 1.5px solid #fde68a;">
+          <img src="assets/svg/bee-twemoji.svg" alt="Crew Bee" style="width: 26px; height: 26px;">
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span style="font-weight: 900; font-size: 1.35rem; color: #1e293b;">Crew</span>
+          <span style="font-size: 0.8rem; font-weight: 700; color: #b45309;">學生端</span>
+        </div>
       </a>
       <select id="student-picker-select" style="padding: 6px 14px; border-radius: var(--radius-full); border: 1.5px solid var(--border-light); font-weight: 700; background: #ffffff; color: var(--text-main); font-size: 0.9rem; cursor: pointer; outline: none;">
       </select>
     </div>
 
     <div class="dojo-nav-links">
-      <a href="teacher.html" class="btn btn-secondary btn-sm">👨‍🏫 切換教師端</a>
-      <a href="parent.html" class="btn btn-secondary btn-sm">👨‍👩‍👧 切換家長端</a>
-      <a href="index.html" class="btn btn-secondary btn-sm">🏠 首頁</a>
+      <a href="teacher.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chalkboard-user"></i> 切換教師端</a>
+      <a href="parent.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house-chimney-user"></i> 切換家長端</a>
+      <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> 首頁</a>
     </div>
   </header>
 
   <!-- Secondary Tab Navigation Bar -->
   <div class="dojo-tabs-bar">
     <div class="tabs-container">
-      <button class="tab-btn active" id="tab-student-monster">🎨 我的怪獸工坊</button>
-      <button class="tab-btn" id="tab-student-points">⭐ 我的成長點數</button>
-      <button class="tab-btn" id="tab-student-portfolio">✏️ 課堂歷程與手繪作業</button>
-      <button class="tab-btn" id="tab-student-story">📸 班級動態牆</button>
+      <button class="tab-btn active" id="tab-student-monster"><i class="fa-solid fa-wand-magic-sparkles"></i> 小蜜蜂工坊</button>
+      <button class="tab-btn" id="tab-student-points"><i class="fa-solid fa-jar"></i> 我的花蜜點數</button>
+      <button class="tab-btn" id="tab-student-rewards"><i class="fa-solid fa-gift"></i> 蜜糖市集特權</button>
+      <button class="tab-btn" id="tab-student-islands"><i class="fa-solid fa-sun"></i> 百花花園探險</button>
+      <button class="tab-btn" id="tab-student-portfolio"><i class="fa-solid fa-palette"></i> 課堂歷程手繪</button>
+      <button class="tab-btn" id="tab-student-story"><i class="fa-solid fa-camera"></i> 蜂巢日誌</button>
     </div>
   </div>
 
   <!-- Main Container -->
   <main style="max-width: 1100px; margin: 24px auto 100px; padding: 0 20px; width: 100%;">
     <!-- ========================================== -->
-    <!-- Tab 1: Monster Customizer Workshop         -->
+    <!-- Tab 1: Bee Customizer Workshop             -->
     <!-- ========================================== -->
     <section id="view-student-monster">
-      <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
+      <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm); border: 1.5px solid #fde68a;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
           <div>
-            <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">👾 自訂專屬怪獸頭像</h2>
-            <p style="color: var(--text-muted);">選擇你喜愛的身型、表情、繽紛色彩與頭飾配件，讓全班看到最有創意的你！</p>
+            <h2 style="font-size: 1.8rem; font-weight: 800; color: #1e293b;">🐝 自訂專屬小蜜蜂造型</h2>
+            <p style="color: #64748b;">選擇你喜愛的小蜜蜂身形姿態、蜜源光澤與皇冠頭飾，讓全班看到最耀眼的小蜂隊員！</p>
           </div>
           <div id="hatch-action-wrap"></div>
         </div>
 
         <div class="customizer-layout">
           <!-- Preview Box -->
-          <div class="customizer-preview-box">
-            <div id="monster-live-preview" style="width: 200px; height: 170px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"></div>
-            <strong id="preview-student-name" style="font-size: 1.3rem; font-weight: 800; color: var(--text-main);">王小明 (Leo)</strong>
-            <span style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;">三年甲班 • 快樂冒險家</span>
-            <button class="btn btn-primary btn-lg" id="btn-save-monster" style="width: 100%; margin-top: 24px;">
-              💾 儲存並更新怪獸
+          <div class="customizer-preview-box" style="border: 1.5px solid #fde68a; background: #fffdf5;">
+            <div id="monster-live-preview" style="width: 200px; height: 180px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"></div>
+            <strong id="preview-student-name" style="font-size: 1.35rem; font-weight: 900; color: #1e293b;">Beyoncé</strong>
+            <span style="font-size: 0.9rem; color: #b45309; margin-top: 4px; font-weight: 700;">向日葵四年一班 ‧ 蜂巢小隊</span>
+            <button class="btn btn-primary btn-lg" id="btn-save-monster" style="width: 100%; margin-top: 24px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
+              <i class="fa-solid fa-floppy-disk"></i> 儲存並更新小蜜蜂
             </button>
           </div>
 
@@ -68,31 +76,19 @@
           <div class="customizer-options-box">
             <!-- 1. Color Palette -->
             <div>
-              <div class="option-group-title">🎨 怪獸色彩 (Colors)</div>
+              <div class="option-group-title">🎨 花蜜色彩與光澤 (Honey Colors)</div>
               <div class="color-swatches" id="swatches-container"></div>
             </div>
 
-            <!-- 2. Body Shape -->
+            <!-- 2. Body Shape / Archetype -->
             <div>
-              <div class="option-group-title">🥔 身形構造 (Body Shapes)</div>
+              <div class="option-group-title">🐝 蜜蜂姿態身型 (Bee Archetypes)</div>
               <div class="trait-pills" id="body-shapes-container"></div>
             </div>
 
-            <!-- 3. Eye Styles -->
+            <!-- 3. Accessories -->
             <div>
-              <div class="option-group-title">👀 眼睛神韻 (Eyes)</div>
-              <div class="trait-pills" id="eye-styles-container"></div>
-            </div>
-
-            <!-- 4. Mouth Styles -->
-            <div>
-              <div class="option-group-title">👄 嘴型表情 (Mouth)</div>
-              <div class="trait-pills" id="mouth-styles-container"></div>
-            </div>
-
-            <!-- 5. Accessories -->
-            <div>
-              <div class="option-group-title">🎀 特色頭飾配件 (Accessories)</div>
+              <div class="option-group-title">👑 榮譽頭飾與配件 (Accessories)</div>
               <div class="trait-pills" id="accessories-container"></div>
             </div>
           </div>
@@ -106,18 +102,18 @@
     <section id="view-student-points" style="display: none;">
       <div style="display: flex; gap: 24px; flex-wrap: wrap;">
         <!-- Left: Points Card -->
-        <div style="flex: 1; min-width: 280px; background: #ffffff; border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); text-align: center;">
-          <div style="font-size: 1rem; font-weight: 700; color: var(--text-muted); margin-bottom: 12px;">我的累積點數</div>
-          <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--dojo-primary); color: white; font-size: 2.8rem; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 6px 18px rgba(0, 175, 102, 0.35);" id="student-total-points-badge">
-            12
+        <div style="flex: 1; min-width: 280px; background: #ffffff; border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm); border: 1.5px solid #fde68a; text-align: center;">
+          <div style="font-size: 1rem; font-weight: 700; color: #64748b; margin-bottom: 12px;">我的累積採蜜點數</div>
+          <div style="width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; font-size: 3rem; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); border: 3px solid #ffffff;" id="student-total-points-badge">
+            5
           </div>
-          <h3 id="student-points-title" style="font-size: 1.3rem; font-weight: 800;">王小明 (Leo)</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 6px;">本週課堂表現非常優異，繼續保持！</p>
+          <h3 id="student-points-title" style="font-size: 1.35rem; font-weight: 800; color: #1e293b;">Beyoncé</h3>
+          <p style="color: #64748b; font-size: 0.9rem; margin-top: 6px;">勤勞認真，持續採集知識的花蜜！</p>
         </div>
 
         <!-- Right: Feedback History Timeline -->
-        <div style="flex: 2; min-width: 340px; background: #ffffff; border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
-          <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 20px;">📜 最近獲得的課堂反饋與肯定</h3>
+        <div style="flex: 2; min-width: 340px; background: #ffffff; border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm); border: 1.5px solid #fde68a;">
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px;"><i class="fa-solid fa-clock-rotate-left" style="color: #f59e0b;"></i> 最近獲得的蜂巢肯定與花蜜紀錄</h3>
           <div id="student-feedback-timeline" style="display: flex; flex-direction: column; gap: 14px;">
             <!-- Injected dynamically -->
           </div>
@@ -126,39 +122,78 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- Tab 3: Portfolio Activities & Drawing Pad  -->
+    <!-- Tab 3: Rewards Store (Privileges Market)   -->
+    <!-- ========================================== -->
+    <section id="view-student-rewards" style="display: none;">
+      <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm); border: 1.5px solid #fde68a;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-size: 1.8rem; font-weight: 800; color: #1e293b;"><i class="fa-solid fa-gift" style="color: #f59e0b;"></i> 蜜糖市集 ‧ 班級特權兌換小舖</h2>
+            <p style="color: #64748b;">用努力累積的花蜜點數，兌換一日小蜂隊長、挑選陽光座位或與導師共享蜜茶時光！</p>
+          </div>
+        </div>
+
+        <div id="student-rewards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 4: The Meadow (Islands Canvas)         -->
+    <!-- ========================================== -->
+    <section id="view-student-islands" style="display: none;">
+      <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm); border: 1.5px solid #fde68a; text-align: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <div style="text-align: left;">
+            <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b;"><i class="fa-solid fa-sun" style="color: #f59e0b;"></i> 百花花園小蜂探險 (The Meadow)</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">操控你的小蜜蜂在向日葵與百花草地漫步、參觀蜂巢金蜜泉、採集花粉與同學打招呼！</p>
+          </div>
+          <span style="font-size: 0.85rem; font-weight: 700; background: #fef3c7; color: #b45309; padding: 6px 14px; border-radius: var(--radius-full); border: 1px solid #fde68a;">
+            🎮 鍵盤 WASD / 方向鍵，或直接點擊畫面
+          </span>
+        </div>
+
+        <div style="display: flex; justify-content: center; overflow: hidden; border-radius: 16px; box-shadow: 0 4px 20px rgba(180, 83, 9, 0.12); border: 1.5px solid #fde68a;">
+          <canvas id="student-islands-canvas" width="800" height="500" style="max-width: 100%; height: auto; cursor: pointer;"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 5: Portfolio Activities & Drawing Pad  -->
     <!-- ========================================== -->
     <section id="view-student-portfolio" style="display: none;">
       <div style="display: flex; flex-direction: column; gap: 24px;">
         <!-- Drawing Board Box -->
-        <div class="drawing-board-wrap">
+        <div class="drawing-board-wrap" style="border: 1.5px solid #fde68a;">
           <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px;">
             <div>
-              <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main);">🎨 繪製我的作品：怪獸好朋友手繪創作</h3>
-              <p style="color: var(--text-muted); font-size: 0.85rem;">使用手繪板揮灑色彩，完成後可立即提交給老師審核！</p>
+              <h3 style="font-size: 1.3rem; font-weight: 800; color: #1e293b;"><i class="fa-solid fa-palette" style="color: #f59e0b;"></i> 繪製我的作品：向日葵花園小蜜蜂創作</h3>
+              <p style="color: #64748b; font-size: 0.85rem;">使用手繪板揮灑色彩，完成後可立即提交給老師審核！</p>
             </div>
             <div style="display: flex; gap: 8px;">
-              <button class="btn btn-secondary btn-sm" id="btn-clear-canvas">🧹 清除重畫</button>
+              <button class="btn btn-secondary btn-sm" id="btn-clear-canvas"><i class="fa-solid fa-eraser"></i> 清除重畫</button>
             </div>
           </div>
 
           <!-- HTML5 Canvas Element -->
-          <canvas id="drawing-canvas" class="canvas-element" width="560" height="320" style="max-width: 100%;"></canvas>
+          <canvas id="drawing-canvas" class="canvas-element" width="560" height="320" style="max-width: 100%; border-radius: 12px; border: 1.5px solid #fde68a;"></canvas>
 
           <!-- Drawing Toolbar -->
-          <div class="drawing-toolbar">
+          <div class="drawing-toolbar" style="background: #fffdf5; border: 1px solid #fde68a;">
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 0.85rem; font-weight: 700;">顏色：</span>
-              <button class="color-swatch-btn selected" data-draw-color="#00d27a" style="background: #00d27a; width: 28px; height: 28px;"></button>
-              <button class="color-swatch-btn" data-draw-color="#3a86ff" style="background: #3a86ff; width: 28px; height: 28px;"></button>
-              <button class="color-swatch-btn" data-draw-color="#ff006e" style="background: #ff006e; width: 28px; height: 28px;"></button>
-              <button class="color-swatch-btn" data-draw-color="#fb5607" style="background: #fb5607; width: 28px; height: 28px;"></button>
-              <button class="color-swatch-btn" data-draw-color="#ffbe0b" style="background: #ffbe0b; width: 28px; height: 28px;"></button>
-              <button class="color-swatch-btn" data-draw-color="#2b3b48" style="background: #2b3b48; width: 28px; height: 28px;"></button>
+              <span style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">顏色：</span>
+              <button class="color-swatch-btn selected" data-draw-color="#f59e0b" style="background: #f59e0b; width: 28px; height: 28px;"></button>
+              <button class="color-swatch-btn" data-draw-color="#10b981" style="background: #10b981; width: 28px; height: 28px;"></button>
+              <button class="color-swatch-btn" data-draw-color="#0ea5e9" style="background: #0ea5e9; width: 28px; height: 28px;"></button>
+              <button class="color-swatch-btn" data-draw-color="#ec4899" style="background: #ec4899; width: 28px; height: 28px;"></button>
+              <button class="color-swatch-btn" data-draw-color="#eab308" style="background: #eab308; width: 28px; height: 28px;"></button>
+              <button class="color-swatch-btn" data-draw-color="#1e293b" style="background: #1e293b; width: 28px; height: 28px;"></button>
             </div>
 
             <div style="display: flex; align-items: center; gap: 6px; margin-left: 12px;">
-              <span style="font-size: 0.85rem; font-weight: 700;">筆觸：</span>
+              <span style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">筆觸：</span>
               <button class="btn btn-secondary btn-sm" data-brush-size="3">細</button>
               <button class="btn btn-secondary btn-sm" data-brush-size="7">中</button>
               <button class="btn btn-secondary btn-sm" data-brush-size="14">粗</button>
@@ -167,14 +202,14 @@
 
           <!-- Submission Inputs -->
           <div style="width: 100%; margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
-            <input type="text" id="drawing-caption" placeholder="為你的作品寫下一段說明或感想..." style="flex: 1; min-width: 240px; padding: 10px 16px; border: 1.5px solid var(--border-light); border-radius: var(--radius-full); outline: none;">
-            <button class="btn btn-primary" id="btn-submit-drawing">🚀 提交作品給老師</button>
+            <input type="text" id="drawing-caption" placeholder="為你的作品寫下一段說明或感想..." style="flex: 1; min-width: 240px; padding: 10px 16px; border: 1.5px solid #fde68a; border-radius: var(--radius-full); outline: none;">
+            <button class="btn btn-primary" id="btn-submit-drawing"><i class="fa-solid fa-paper-plane"></i> 提交作品給老師</button>
           </div>
         </div>
 
         <!-- Submitted History -->
-        <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border-light);">
-          <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px;">📁 我已繳交的歷程作品</h3>
+        <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 24px; border: 1.5px solid #fde68a;">
+          <h3 style="font-size: 1.2rem; font-weight: 800; color: #1e293b; margin-bottom: 16px;">📁 我已繳交的歷程作品</h3>
           <div id="my-submissions-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
             <!-- Injected dynamically -->
           </div>
@@ -183,7 +218,7 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- Tab 4: Class Story Feed                   -->
+    <!-- Tab 6: Class Story Feed                   -->
     <!-- ========================================== -->
     <section id="view-student-story" style="display: none;">
       <div class="story-feed-wrap" style="max-width: 680px; margin: 0 auto;">
@@ -197,20 +232,20 @@
   <!-- Mobile Bottom Navigation Bar (393x852) -->
   <nav class="mobile-bottom-bar">
     <button class="mobile-nav-item active" id="mob-stu-monster">
-      <span class="mobile-nav-icon">🎨</span>
-      <span>怪獸</span>
+      <span class="mobile-nav-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+      <span>工坊</span>
     </button>
     <button class="mobile-nav-item" id="mob-stu-points">
-      <span class="mobile-nav-icon">⭐</span>
+      <span class="mobile-nav-icon"><i class="fa-solid fa-jar"></i></span>
       <span>點數</span>
     </button>
-    <button class="mobile-nav-item" id="mob-stu-portfolio">
-      <span class="mobile-nav-icon">✏️</span>
-      <span>手繪</span>
+    <button class="mobile-nav-item" id="mob-stu-rewards">
+      <span class="mobile-nav-icon"><i class="fa-solid fa-gift"></i></span>
+      <span>市集</span>
     </button>
-    <button class="mobile-nav-item" id="mob-stu-story">
-      <span class="mobile-nav-icon">📸</span>
-      <span>故事</span>
+    <button class="mobile-nav-item" id="mob-stu-portfolio">
+      <span class="mobile-nav-icon"><i class="fa-solid fa-palette"></i></span>
+      <span>手繪</span>
     </button>
   </nav>
 
