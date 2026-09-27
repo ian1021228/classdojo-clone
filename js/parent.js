@@ -3,7 +3,7 @@
  * Implements child progress reporting, teacher messaging chat, and class story viewing.
  */
 
-import { store } from './store.js';
+import { store, escapeHTML, maskSensitiveCode } from './store.js';
 
 class ParentController {
   constructor() {
@@ -60,7 +60,7 @@ class ParentController {
     document.getElementById('mob-par-story')?.addEventListener('click', () => this.switchTab('story'));
 
     // Chat Sending
-    document.getElementById('btn-parent-send')?.addEventListener('click', () => {
+    const sendChat = () => {
       const input = document.getElementById('parent-chat-input');
       const text = input.value.trim();
       if (!text) return;
@@ -68,10 +68,15 @@ class ParentController {
       input.value = '';
       if (window.dojoAudio) window.dojoAudio.playTick();
       this.renderChat();
-    });
+    };
 
-    document.getElementById('parent-chat-input')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') document.getElementById('btn-parent-send').click();
+    document.getElementById('btn-parent-send')?.addEventListener('click', sendChat);
+
+    document.getElementById('parent-chat-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
     });
 
     // Open Certificate Modal
@@ -83,8 +88,20 @@ class ParentController {
       window.print();
     });
 
+    const certModal = document.getElementById('certificate-modal');
     document.getElementById('btn-close-cert')?.addEventListener('click', () => {
-      document.getElementById('certificate-modal')?.classList.remove('open');
+      certModal?.classList.remove('open');
+    });
+
+    // Global Esc key & backdrop click for modals
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        certModal?.classList.remove('open');
+      }
+    });
+
+    certModal?.addEventListener('click', (e) => {
+      if (e.target === certModal) certModal.classList.remove('open');
     });
   }
 
@@ -116,7 +133,7 @@ class ParentController {
       </div>
 
       <p style="font-size: 1.1rem; color: #1e293b; line-height: 1.8; margin-bottom: 20px;">
-        茲證明向日葵班小蜂隊員 <strong style="font-size: 1.4rem; color: #b45309; text-decoration: underline; text-underline-offset: 4px;">${child.name}</strong>（座號 ${child.seatNumber}）<br>
+        茲證明向日葵班小蜂隊員 <strong style="font-size: 1.4rem; color: #b45309; text-decoration: underline; text-underline-offset: 4px;">${escapeHTML(child.name)}</strong>（座號 ${child.seatNumber}）<br>
         於本階段蜂巢學習社群中積極進取、互助傳粉，成功釀造累積 <strong style="font-size: 1.35rem; color: #d97706;">${child.points} 滴純甜花蜜</strong>，<br>
         展現卓越的學習熱忱與合作精神，特頒發此證書以資表彰與鼓勵！
       </p>
@@ -187,7 +204,7 @@ class ParentController {
     if (!this.childSelect) return;
     this.childSelect.innerHTML = this.activeClass.students.map(s => `
       <option value="${s.id}" ${s.id === this.currentChildId ? 'selected' : ''}>
-        🐝 孩子：${s.name} (${s.points} 滴花蜜)
+        🐝 孩子：${escapeHTML(s.name)} (${s.points} 滴花蜜)
       </option>
     `).join('');
   }
@@ -244,8 +261,8 @@ class ParentController {
         <div style="display: flex; align-items: center; gap: 14px;">
           <span style="font-size: 1.6rem;">${item.icon || (item.points >= 0 ? '🍯' : '💨')}</span>
           <div>
-            <strong style="font-size: 1rem; color: #1e293b; display: block;">${item.skillName}</strong>
-            <small style="color: #64748b;">${item.note || '課堂認真表現，獲得導師肯定'}</small>
+            <strong style="font-size: 1rem; color: #1e293b; display: block;">${escapeHTML(item.skillName)}</strong>
+            <small style="color: #64748b;">${escapeHTML(item.note || '課堂認真表現，獲得導師肯定')}</small>
           </div>
         </div>
         <div style="text-align: right;">
@@ -265,7 +282,7 @@ class ParentController {
 
     container.innerHTML = msgs.map(m => `
       <div class="chat-bubble ${m.sender}">
-        <div>${m.text}</div>
+        <div>${escapeHTML(m.text).replace(/\n/g, '<br>')}</div>
         <small style="display: block; font-size: 0.75rem; opacity: 0.8; margin-top: 4px; text-align: ${m.sender === 'parent' ? 'right' : 'left'};">
           ${new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </small>
@@ -285,16 +302,16 @@ class ParentController {
         <div class="post-header">
           <div class="post-avatar" style="background: #fef3c7; border: 1.5px solid #fde68a; font-size: 1.3rem;">🍯</div>
           <div class="post-meta">
-            <h4>${post.author}</h4>
+            <h4>${escapeHTML(post.author)}</h4>
             <span style="color: #64748b;">蜂巢課堂公告</span>
           </div>
         </div>
-        <div class="post-content" style="color: #334155; line-height: 1.6;">${post.content}</div>
+        <div class="post-content" style="color: #334155; line-height: 1.6;">${escapeHTML(post.content).replace(/\n/g, '<br>')}</div>
         ${post.poll ? `
           <div class="hive-poll-box" style="margin: 14px 0; padding: 14px 16px; background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 12px;">
             <div style="font-weight: 800; font-size: 0.95rem; color: #78350f; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
               <span>📊</span>
-              <span>${post.poll.question}</span>
+              <span>${escapeHTML(post.poll.question)}</span>
             </div>
             <div class="poll-options-list" style="display: flex; flex-direction: column; gap: 8px;">
               ${post.poll.options.map(opt => {
@@ -306,7 +323,7 @@ class ParentController {
                     <div class="poll-bar-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: ${pct}%; background: ${isSelected ? '#fde68a' : '#fef3c7'}; z-index: 1; transition: width 0.4s ease; opacity: 0.6;"></div>
                     <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center;">
                       <span style="font-size: 0.9rem; font-weight: ${isSelected ? '800' : '600'}; color: #1e293b;">
-                        ${isSelected ? '✅ ' : '⚪ '}${opt.text}
+                        ${isSelected ? '✅ ' : '⚪ '}${escapeHTML(opt.text)}
                       </span>
                       <span style="font-size: 0.85rem; font-weight: 700; color: #b45309;">
                         ${pct}% (${opt.votes || 0} 票)
@@ -330,8 +347,8 @@ class ParentController {
         <div class="comments-list">
           ${post.comments.map(c => `
             <div class="comment-bubble">
-              <span class="comment-author">${c.author}:</span>
-              <span>${c.text}</span>
+              <span class="comment-author">${escapeHTML(c.author)}:</span>
+              <span>${escapeHTML(c.text)}</span>
             </div>
           `).join('')}
           <div style="display: flex; gap: 8px; margin-top: 10px;">
@@ -361,16 +378,29 @@ class ParentController {
       });
     });
 
+    const submitCommentForPost = (pid) => {
+      const input = list.querySelector(`.comment-input[data-post-id="${pid}"]`);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      const child = this.getChild();
+      const author = `${child.name} 家長`;
+      store.addPostComment(pid, author, text);
+      this.renderStory();
+    };
+
     list.querySelectorAll('.comment-submit-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const pid = btn.dataset.postId;
-        const input = list.querySelector(`.comment-input[data-post-id="${pid}"]`);
-        const text = input.value.trim();
-        if (!text) return;
-        const child = this.getChild();
-        const author = `${child.name} 家長`;
-        store.addPostComment(pid, author, text);
-        this.renderStory();
+        submitCommentForPost(btn.dataset.postId);
+      });
+    });
+
+    list.querySelectorAll('.comment-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitCommentForPost(input.dataset.postId);
+        }
       });
     });
   }

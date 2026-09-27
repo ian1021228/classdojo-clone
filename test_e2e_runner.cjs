@@ -37,22 +37,97 @@ const server = http.createServer((req, res) => {
   }
 });
 
+// Helper: FontAwesome verification
+async function verifyFontAwesomeIcons(page, pageName, mode) {
+  const result = await page.evaluate(() => {
+    // Check for presence of FontAwesome icon elements
+    const faIcons = document.querySelectorAll('i.fa-solid, i.fa-regular, i.fa-brands, svg[data-icon]');
+    const count = faIcons.length;
+
+    // Check key buttons for crude standalone emoji usage
+    const buttons = Array.from(document.querySelectorAll('button, .btn, .tab-btn, .switch-opt'));
+    const emojiRegex = /^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]$/u;
+    const crudeEmojiButtons = [];
+
+    buttons.forEach(btn => {
+      const text = btn.innerText.trim();
+      // If button text is ONLY a standalone emoji without any FA icon or text label
+      if (emojiRegex.test(text) && !btn.querySelector('i.fa-solid, i.fa-regular')) {
+        crudeEmojiButtons.push(btn.outerHTML.slice(0, 60));
+      }
+    });
+
+    return {
+      faIconCount: count,
+      hasFaIcons: count > 0,
+      crudeEmojiButtons
+    };
+  });
+
+  if (result.hasFaIcons) {
+    console.log(`    ✓ [FontAwesome] Found ${result.faIconCount} FA icons in ${pageName} (${mode})`);
+  } else {
+    console.warn(`    ⚠️ [FontAwesome Warning] Low or zero FA icons detected in ${pageName} (${mode})`);
+  }
+
+  if (result.crudeEmojiButtons.length > 0) {
+    console.warn(`    ⚠️ [FontAwesome Warning] Detected ${result.crudeEmojiButtons.length} raw unformatted emoji buttons:`, result.crudeEmojiButtons);
+  } else {
+    console.log(`    ✓ [FontAwesome] No raw unformatted emoji buttons detected`);
+  }
+
+  return result;
+}
+
+// Helper: Zero Data Alteration verification
+async function verifyZeroDataAlteration(page, pageName, mode) {
+  const check = await page.evaluate(() => {
+    const ALLOWED_KEYS = ['dojo_store_classdojo_system_v1', 'crew_sound_enabled'];
+    const allKeys = Object.keys(localStorage);
+    const unauthorizedKeys = allKeys.filter(k => !ALLOWED_KEYS.includes(k));
+    const hasMainStore = localStorage.getItem('dojo_store_classdojo_system_v1') !== null;
+    return {
+      allKeys,
+      unauthorizedKeys,
+      hasMainStore,
+      safe: unauthorizedKeys.length === 0
+    };
+  });
+
+  if (check.safe) {
+    console.log(`    ✓ [Zero Data Alteration] Storage verified safe in ${pageName} (${mode}): keys=[${check.allKeys.join(', ')}]`);
+  } else {
+    console.error(`    ❌ [Zero Data Alteration Violation] Unauthorized keys found: [${check.unauthorizedKeys.join(', ')}]`);
+    throw new Error(`Data alteration violation: unauthorized keys in localStorage: ${check.unauthorizedKeys.join(', ')}`);
+  }
+
+  return check;
+}
+
 async function runTests() {
   server.listen(PORT, async () => {
     console.log(`[E2E Server] Running at http://localhost:${PORT}`);
 
-    const browser = await puppeteer.launch({
-      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    let browser;
+    try {
+      browser = await puppeteer.launch({
+        executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        headless: 'new',
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      });
+    } catch (e) {
+      console.error(`Failed to launch Chrome browser:`, e.message);
+      console.log(`E2E runner syntax and modules verified successfully. Launch failure typically indicates sandboxed execution environment.`);
+      server.close();
+      process.exit(1);
+    }
 
-    const results = [];
+    const testSummary = [];
 
     // Helper function to test a page in both Desktop & Mobile viewports
     async function testPage(pageName, urlPath, customActions) {
       console.log(`\n========================================`);
-      console.log(`Testing Page: ${pageName}`);
+      console.log(`Testing Page: ${pageName} (${urlPath})`);
       console.log(`========================================`);
 
       // 1. Desktop Test (1280x800)
@@ -61,10 +136,13 @@ async function runTests() {
       await desktopPage.setViewport({ width: 1280, height: 800 });
       await desktopPage.goto(`http://localhost:${PORT}/${urlPath}`, { waitUntil: 'networkidle0' });
 
-      console.log(`  [Desktop] Loaded ${urlPath}`);
+      console.log(`  [Desktop 1280x800] Loaded ${urlPath}`);
       const desktopShotPath = path.join(SCREENSHOTS_DIR, `${pageName}_desktop.png`);
       await desktopPage.screenshot({ path: desktopShotPath });
       console.log(`  [Desktop] Screenshot saved: ${desktopShotPath}`);
+
+      await verifyFontAwesomeIcons(desktopPage, pageName, 'desktop');
+      await verifyZeroDataAlteration(desktopPage, pageName, 'desktop');
 
       if (customActions) {
         await customActions(desktopPage, 'desktop');
@@ -77,66 +155,191 @@ async function runTests() {
       await mobilePage.setViewport({ width: 393, height: 852, isMobile: true, hasTouch: true });
       await mobilePage.goto(`http://localhost:${PORT}/${urlPath}`, { waitUntil: 'networkidle0' });
 
-      console.log(`  [Mobile 393x852] Loaded ${urlPath}`);
+      console.log(`  [Mobile 393x852 touch] Loaded ${urlPath}`);
       const mobileShotPath = path.join(SCREENSHOTS_DIR, `${pageName}_mobile_393x852.png`);
       await mobilePage.screenshot({ path: mobileShotPath });
       console.log(`  [Mobile 393x852] Screenshot saved: ${mobileShotPath}`);
+
+      await verifyFontAwesomeIcons(mobilePage, pageName, 'mobile');
+      await verifyZeroDataAlteration(mobilePage, pageName, 'mobile');
 
       if (customActions) {
         await customActions(mobilePage, 'mobile');
       }
       await mobilePage.close();
 
-      results.push({ page: pageName, status: 'PASSED' });
+      testSummary.push({ page: pageName, status: 'PASSED' });
     }
 
     try {
-      // Test 1: Index Page & Changelog & Quick Login
+      // ========================================================
+      // Test 1: Index Page & Changelog & Fixed Credentials Auth
+      // ========================================================
       await testPage('01_index_portal', 'index.html', async (page, mode) => {
         // Check changelog exists
         const hasChangelog = await page.evaluate(() => {
           return document.querySelector('.changelog-card') !== null;
         });
-        console.log(`    ✓ Changelog rendered: ${hasChangelog}`);
+        if (!hasChangelog) {
+          throw new Error('Changelog card missing on index.html (violates User Global Rule 1)');
+        }
+        console.log(`    ✓ Changelog rendered on index page`);
 
         // Open quick login modal
         await page.click('#btn-hero-demo');
         await new Promise(r => setTimeout(r, 400));
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `01_login_modal_${mode}.png`) });
 
-        // Verify prefilled credentials antigravity / 123456
+        // Verify prefilled credentials antigravity / 123456 (User Rule 2)
         const creds = await page.evaluate(() => ({
-          u: document.getElementById('login-username').value,
-          p: document.getElementById('login-password').value
+          u: document.getElementById('login-username')?.value,
+          p: document.getElementById('login-password')?.value
         }));
-        console.log(`    ✓ Verified credentials: ${creds.u} / ${creds.p}`);
+
+        if (creds.u !== 'antigravity' || creds.p !== '123456') {
+          throw new Error(`Credential mismatch: expected antigravity/123456, got ${creds.u}/${creds.p}`);
+        }
+        console.log(`    ✓ Verified fixed credentials: ${creds.u} / ${creds.p}`);
       });
 
-      // Test 2: Teacher Page
+      // ========================================================
+      // Test 2: Teacher Classroom, Hive Groups & Portfolios Flow
+      // ========================================================
       await testPage('02_teacher_classroom', 'teacher.html', async (page, mode) => {
-        // Verify student tiles exist
+        // 1. Verify student roster cards
         const studentCount = await page.evaluate(() => {
           return document.querySelectorAll('.student-card').length;
         });
-        console.log(`    ✓ Rendered ${studentCount} student cards`);
+        console.log(`    ✓ Rendered ${studentCount} student cards in teacher view`);
 
-        // Click first student to open feedback modal
+        // 2. Individual student point award
         const studentCard = await page.$('.student-card[data-student-id]');
         if (studentCard) {
           await studentCard.click();
           await new Promise(r => setTimeout(r, 400));
           await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_skills_modal_${mode}.png`) });
 
-          // Click positive skill
           const skillBtn = await page.$('.skill-btn[data-skill-id]');
           if (skillBtn) {
             await skillBtn.click();
             await new Promise(r => setTimeout(r, 500));
-            console.log(`    ✓ Awarded feedback point successfully`);
+            console.log(`    ✓ Awarded feedback point successfully to student`);
           }
         }
 
-        // Test Toolkit modal
+        // ----------------------------------------------------
+        // 3. Hive Groups Flow
+        // ----------------------------------------------------
+        console.log(`    --> Testing Hive Groups flow in ${mode}...`);
+        const groupSwitchBtn = await page.$('#btn-switch-groups');
+        if (groupSwitchBtn) {
+          await groupSwitchBtn.click();
+          await new Promise(r => setTimeout(r, 400));
+          await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_groups_view_${mode}.png`) });
+
+          // Verify groups grid visibility
+          const isGroupsVisible = await page.evaluate(() => {
+            const grid = document.getElementById('groups-grid');
+            return grid && grid.style.display !== 'none';
+          });
+          console.log(`    ✓ Groups grid active and displayed: ${isGroupsVisible}`);
+
+          // Verify Hive Leaderboard and live progress bar
+          const leaderboardData = await page.evaluate(() => {
+            const lb = document.getElementById('hive-leaderboard-card');
+            const bars = document.querySelectorAll('.hive-progress-bar-fill, .progress-bar, .group-progress-fill');
+            const groupCards = document.querySelectorAll('.group-team-card');
+            return {
+              hasLeaderboard: lb !== null,
+              progressBarCount: bars.length,
+              groupCardCount: groupCards.length
+            };
+          });
+          console.log(`    ✓ Hive Leaderboard/Groups: cardCount=${leaderboardData.groupCardCount}, progressBars=${leaderboardData.progressBarCount}`);
+
+          // Award Group Collaboration Points
+          const groupCard = await page.$('.group-team-card[data-group-id]');
+          if (groupCard) {
+            await groupCard.click();
+            await new Promise(r => setTimeout(r, 400));
+            const grpSkillBtn = await page.$('.skill-btn[data-skill-id]');
+            if (grpSkillBtn) {
+              await grpSkillBtn.click();
+              await new Promise(r => setTimeout(r, 500));
+              console.log(`    ✓ Awarded group collaboration points`);
+            }
+          }
+
+          // Test Projector Mode Modal
+          const projectorBtn = await page.$('#btn-projector-mode, #btn-show-projector');
+          if (projectorBtn) {
+            await projectorBtn.click();
+            await new Promise(r => setTimeout(r, 500));
+            await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_projector_groups_modal_${mode}.png`) });
+
+            const projectorOpen = await page.evaluate(() => {
+              const modal = document.getElementById('projector-groups-modal');
+              return modal && (modal.classList.contains('open') || modal.style.display !== 'none');
+            });
+            console.log(`    ✓ Projector modal opened: ${projectorOpen}`);
+
+            const closeProjBtn = await page.$('#btn-close-projector');
+            if (closeProjBtn) {
+              await closeProjBtn.click();
+              await new Promise(r => setTimeout(r, 300));
+              console.log(`    ✓ Projector modal dismissed cleanly`);
+            }
+          }
+
+          // Switch back to students tab
+          await page.click('#btn-switch-students');
+          await new Promise(r => setTimeout(r, 300));
+        }
+
+        // ----------------------------------------------------
+        // 4. Portfolios Review Center Flow
+        // ----------------------------------------------------
+        console.log(`    --> Testing Teacher Portfolios Review Center in ${mode}...`);
+        const portfolioTabBtn = await page.$('#tab-btn-portfolios');
+        if (portfolioTabBtn) {
+          await portfolioTabBtn.click();
+          await new Promise(r => setTimeout(r, 400));
+          await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_portfolios_view_${mode}.png`) });
+
+          // Check if review modal can be opened
+          const reviewModalBtn = await page.$('.btn-review-work, [data-review-sub-id], .review-action-btn');
+          if (reviewModalBtn) {
+            await reviewModalBtn.click();
+            await new Promise(r => setTimeout(r, 500));
+            await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_portfolio_review_modal_${mode}.png`) });
+
+            // Select flower sticker
+            const stickerChip = await page.$('.preset-chip[data-sticker], button[data-sticker]');
+            if (stickerChip) {
+              await stickerChip.click();
+              console.log(`    ✓ Selected flower sticker chip`);
+            }
+
+            // Select preset comment
+            const commentBtn = await page.$('.preset-comment-btn');
+            if (commentBtn) {
+              await commentBtn.click();
+              console.log(`    ✓ Selected preset feedback comment`);
+            }
+
+            // Confirm approval
+            const approveBtn = await page.$('#btn-confirm-approve');
+            if (approveBtn) {
+              await approveBtn.click();
+              await new Promise(r => setTimeout(r, 600));
+              console.log(`    ✓ Approved student portfolio submission with points and sticker`);
+            }
+          }
+        }
+
+        // ----------------------------------------------------
+        // 5. Toolkit & Classroom Management Features
+        // ----------------------------------------------------
         if (mode === 'desktop') {
           await page.click('#dock-btn-toolkit');
         } else {
@@ -191,7 +394,7 @@ async function runTests() {
           console.log(`    ✓ Toggled sound switch in ${mode}`);
         }
 
-        // Test Noise Meter
+        // Test Noise Meter (desktop only)
         if (mode === 'desktop') {
           const dockNoise = await page.$('#dock-btn-noise');
           if (dockNoise) {
@@ -230,9 +433,11 @@ async function runTests() {
         }
       });
 
-      // Test 3: Student Page
+      // ========================================================
+      // Test 3: Student Workshop, Creation, Portfolio & Group Tab
+      // ========================================================
       await testPage('03_student_workshop', 'student.html', async (page, mode) => {
-        // If unhatched egg, hatch it!
+        // 1. Egg hatching
         const hasHatchBtn = await page.evaluate(() => {
           const btn = document.getElementById('btn-hatch-egg');
           if (btn) {
@@ -246,7 +451,7 @@ async function runTests() {
           await new Promise(r => setTimeout(r, 600));
         }
 
-        // Test Student Class Code Modal
+        // 2. Class code modal
         const hasStudentCodeBtn = await page.$('#btn-enter-class-code');
         if (hasStudentCodeBtn) {
           await page.click('#btn-enter-class-code');
@@ -256,7 +461,7 @@ async function runTests() {
           await new Promise(r => setTimeout(r, 300));
         }
 
-        // Change monster color & body shape
+        // 3. Customize monster
         await page.evaluate(() => {
           const swatch = document.querySelector('.color-swatch-btn[data-color-idx="2"]');
           if (swatch) swatch.click();
@@ -264,7 +469,7 @@ async function runTests() {
           if (pill) pill.click();
         });
 
-        // Test Points tab & Level XP
+        // 4. Points & Level XP
         await page.evaluate(() => {
           document.getElementById('tab-student-points')?.click();
         });
@@ -272,28 +477,31 @@ async function runTests() {
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_student_level_xp_${mode}.png`) });
         console.log(`    ✓ Student XP Level progress tested in ${mode}`);
 
-        // Test Rewards Store
+        // 5. Rewards Store
         await page.evaluate(() => {
           document.getElementById('tab-student-rewards')?.click();
         });
         await new Promise(r => setTimeout(r, 400));
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_rewards_store_${mode}.png`) });
 
-        // Test The Meadow Canvas
+        // 6. The Meadow Canvas
         await page.evaluate(() => {
           document.getElementById('tab-student-islands')?.click();
         });
         await new Promise(r => setTimeout(r, 600));
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_the_meadow_${mode}.png`) });
 
-        // Switch to Drawing tab
+        // ----------------------------------------------------
+        // 7. Student Portfolio Drawing & Submission Flow
+        // ----------------------------------------------------
+        console.log(`    --> Testing Student Portfolio Creation in ${mode}...`);
         await page.evaluate((m) => {
           const target = m === 'desktop' ? 'tab-student-portfolio' : 'mob-stu-portfolio';
           document.getElementById(target)?.click();
         }, mode);
         await new Promise(r => setTimeout(r, 400));
 
-        // Draw something on canvas
+        // Draw on canvas
         const canvas = await page.$('#drawing-canvas');
         if (canvas) {
           const box = await canvas.boundingBox();
@@ -306,31 +514,86 @@ async function runTests() {
             await page.mouse.up();
           }
         }
-        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_drawing_canvas_${mode}.png`) });
-        console.log(`    ✓ Canvas drawing tested`);
+
+        // Enter caption and submit
+        const captionInput = await page.$('#drawing-caption, #input-work-reflection');
+        if (captionInput) {
+          await captionInput.click();
+          await page.keyboard.type('向日葵小隊今天採集了滿滿的花蜜！');
+        }
+
+        const submitBtn = await page.$('#btn-submit-drawing, #btn-submit-portfolio');
+        if (submitBtn) {
+          await submitBtn.click();
+          await new Promise(r => setTimeout(r, 600));
+          console.log(`    ✓ Student submitted portfolio artwork and reflection`);
+        }
+        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_portfolio_submitted_${mode}.png`) });
+
+        // ----------------------------------------------------
+        // 8. Student Hive Group Tab Flow
+        // ----------------------------------------------------
+        console.log(`    --> Testing Student Hive Group Tab in ${mode}...`);
+        const hasGroupTab = await page.evaluate((m) => {
+          const target = m === 'desktop' ? 'tab-student-group' : 'mob-stu-group';
+          const tab = document.getElementById(target);
+          if (tab) {
+            tab.click();
+            return true;
+          }
+          return false;
+        }, mode);
+
+        if (hasGroupTab) {
+          await new Promise(r => setTimeout(r, 400));
+          await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_student_hive_group_${mode}.png`) });
+          console.log(`    ✓ Student Hive Group view tested in ${mode}`);
+        }
       });
 
-      // Test 4: Parent Page
+      // ========================================================
+      // Test 4: Parent Portal & Portfolio Showcase Flow
+      // ========================================================
       await testPage('04_parent_portal', 'parent.html', async (page, mode) => {
-        // Verify child report
+        // 1. Verify child progress report
         const childName = await page.$eval('#parent-child-name', el => el.textContent);
         console.log(`    ✓ Child report loaded for: ${childName}`);
 
-        // Switch to Chat tab
+        // ----------------------------------------------------
+        // 2. Parent Digital Portfolio Showcase
+        // ----------------------------------------------------
+        console.log(`    --> Testing Parent Portfolio Showcase in ${mode}...`);
+        const portfolioContainer = await page.$('#parent-portfolio-list');
+        if (portfolioContainer) {
+          await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `04_parent_portfolio_${mode}.png`) });
+          const portfolioCardsCount = await page.evaluate(() => {
+            return document.querySelectorAll('#parent-portfolio-list .portfolio-card').length;
+          });
+          console.log(`    ✓ Parent portfolio showcase rendered with ${portfolioCardsCount} approved cards`);
+
+          // Test Like button on portfolio card
+          const likeBtn = await page.$('.btn-like-portfolio, [data-like-sub-id]');
+          if (likeBtn) {
+            await likeBtn.click();
+            await new Promise(r => setTimeout(r, 400));
+            console.log(`    ✓ Parent liked child's portfolio work`);
+          }
+        }
+
+        // 3. Parent-Teacher Direct Chat
         await page.evaluate((m) => {
           const target = m === 'desktop' ? 'tab-parent-chat' : 'mob-par-chat';
           document.getElementById(target)?.click();
         }, mode);
         await new Promise(r => setTimeout(r, 400));
 
-        // Type and send message
         await page.type('#parent-chat-input', '老師您好！謝謝您的用心指導！');
         await page.evaluate(() => document.getElementById('btn-parent-send')?.click());
         await new Promise(r => setTimeout(r, 500));
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `04_parent_chat_${mode}.png`) });
         console.log(`    ✓ Parent chat message sent`);
 
-        // Test Certificate of Merit Modal
+        // 4. Honey Certificate Modal
         await page.evaluate(() => {
           document.getElementById('btn-print-parent-report')?.click();
         });
@@ -342,7 +605,7 @@ async function runTests() {
         });
         await new Promise(r => setTimeout(r, 300));
 
-        // Switch to Story tab and test poll
+        // 5. Parent Story tab & poll
         await page.evaluate((m) => {
           const target = m === 'desktop' ? 'tab-parent-story' : 'mob-par-story';
           document.getElementById(target)?.click();
@@ -357,14 +620,16 @@ async function runTests() {
       });
 
       console.log(`\n========================================`);
-      console.log(`ALL TESTS PASSED WITH ZERO ERRORS!`);
+      console.log(`ALL 4 PORTAL TESTS PASSED ACROSS DESKTOP AND MOBILE!`);
       console.log(`========================================`);
+      console.table(testSummary);
     } catch (err) {
-      console.error(`E2E Test Failure:`, err);
+      console.error(`\n❌ E2E Test Suite Failure:`, err);
+      process.exitCode = 1;
     } finally {
-      await browser.close();
+      if (browser) await browser.close();
       server.close();
-      process.exit(0);
+      console.log(`[E2E Server] Shutdown completed.`);
     }
   });
 }

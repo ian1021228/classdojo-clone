@@ -17,12 +17,15 @@ export const firebaseConfig = {
   appId: "1:389201948201:web:78a9c0d12e345f6a7b8c9d"
 };
 
+import { DatabaseQuotaGuard, StorageQuotaManager } from './security.js';
+
 class FirebaseDataEngine {
   constructor() {
     this.isOnline = false;
     this.db = null;
     this.listeners = new Map();
     this.storageKey = `dojo_store_${APP_NAMESPACE}`;
+    this.quotaGuard = new DatabaseQuotaGuard({ debounceMs: 400 });
     this.init();
   }
 
@@ -59,17 +62,24 @@ class FirebaseDataEngine {
     return defaultState;
   }
 
-  // Save state to local storage and sync to cloud if online
+  // Save state to local storage and sync to cloud if online with quota protection
   saveState(state) {
     try {
+      // Dynamic quota management: prune history if storage approaches capacity
+      StorageQuotaManager.pruneHistoryIfCrowded(state, 40);
+
       localStorage.setItem(this.storageKey, JSON.stringify(state));
       // Notify local listeners
       window.dispatchEvent(new CustomEvent('dojo:state-changed', { detail: state }));
 
-      // Sync to Firestore if online
+      // Debounced and throttled sync to Firestore to prevent read/write spikes and quota exhaustion
       if (this.isOnline && this.db) {
-        this.db.collection(APP_NAMESPACE).doc('active_classroom_state').set(state, { merge: true })
-          .catch(err => console.warn('[ClassDojo Firestore Sync Error]:', err));
+        this.quotaGuard.debounceSave(() => {
+          if (this.isOnline && this.db) {
+            this.db.collection(APP_NAMESPACE).doc('active_classroom_state').set(state, { merge: true })
+              .catch(err => console.warn('[ClassDojo Firestore Sync Error]:', err));
+          }
+        });
       }
     } catch (e) {
       console.error("Failed to save state", e);

@@ -1,2 +1,5 @@
 .DS_Store
 *.log
+.agents/
+.chrome_test_profile/
+tmp_chrome/

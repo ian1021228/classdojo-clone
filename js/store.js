@@ -5,6 +5,7 @@
  */
 
 import { dataEngine } from './firebase-config.js';
+import { escapeHTML, hashPassword, verifyPassword, maskSensitiveCode, DatabaseQuotaGuard, StorageQuotaManager } from './security.js';
 
 // Pre-seeded Rich Demo Data for Crew Beehive Classroom
 const INITIAL_DATA = {
@@ -13,7 +14,9 @@ const INITIAL_DATA = {
     role: 'teacher', // 'teacher' | 'student' | 'parent'
     username: 'antigravity',
     displayName: '林老師 (青青草地小學 ‧ 向日葵蜂巢班)',
-    activeStudentId: 'stu_demo_1'
+    activeStudentId: 'stu_demo_1',
+    passwordHash: 'a4b2c7a2217be305973615237f9b904a62b9b032b9c8bd9c069f3258dbf0ad0c', // SHA-256 of crew_salt_2026:123456
+    salt: 'crew_salt_2026'
   },
   classes: [
     {
@@ -114,8 +117,8 @@ const INITIAL_DATA = {
         }
       ],
       groups: [
-        { id: 'grp_demo_1', name: '🌻 向日葵偵查小隊', studentIds: ['stu_demo_1', 'stu_demo_2'], points: 9 },
-        { id: 'grp_demo_2', name: '🍯 金蜜釀造小隊', studentIds: ['stu_demo_3', 'stu_demo_4', 'stu_demo_5'], points: 9 }
+        { id: 'grp_demo_1', name: '🌻 向日葵偵查小隊', studentIds: ['stu_demo_1', 'stu_demo_2'], points: 9, goalPoints: 30, icon: 'fa-solid fa-people-group', color: '#f59e0b', createdAt: 1727400000000 },
+        { id: 'grp_demo_2', name: '🍯 金蜜釀造小隊', studentIds: ['stu_demo_3', 'stu_demo_4', 'stu_demo_5'], points: 9, goalPoints: 30, icon: 'fa-solid fa-people-group', color: '#eab308', createdAt: 1727400000000 }
       ]
     },
     {
@@ -363,23 +366,53 @@ const INITIAL_DATA = {
       submissions: [
         {
           id: 'sub_1',
+          classId: 'cls_demo_class',
+          activityId: 'act_1',
           studentId: 'stu_demo_1',
           studentName: 'Beyoncé',
+          title: '🌻 向日葵花園小蜜蜂手繪創作',
+          typeTag: 'drawing',
           type: 'drawing',
-          drawingData: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fffdf5"/><circle cx="150" cy="100" r="50" fill="%23f59e0b"/><circle cx="135" cy="90" r="10" fill="%23fff"/><circle cx="165" cy="90" r="10" fill="%23fff"/><circle cx="137" cy="90" r="5" fill="%231e293b"/><circle cx="167" cy="90" r="5" fill="%231e293b"/><path d="M 135 115 Q 150 135 165 115" stroke="%231e293b" stroke-width="4" fill="none"/></svg>',
+          outcomeText: '這是我設計的向日葵小蜜蜂，它有黃金條紋和亮晶晶的翅膀，最喜歡採集香甜的向日葵花蜜！🌻',
           caption: '這是我設計的向日葵小蜜蜂，它有黃金條紋和亮晶晶的翅膀，最喜歡採集香甜的向日葵花蜜！🌻',
+          reflection: '學會了運用幾何圓形與漸層黃色來呈現小蜜蜂的身體，下次我想嘗試畫出更多花瓣背景！',
+          mediaUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fffdf5"/><circle cx="150" cy="100" r="50" fill="%23f59e0b"/><circle cx="135" cy="90" r="10" fill="%23fff"/><circle cx="165" cy="90" r="10" fill="%23fff"/><circle cx="137" cy="90" r="5" fill="%231e293b"/><circle cx="167" cy="90" r="5" fill="%231e293b"/><path d="M 135 115 Q 150 135 165 115" stroke="%231e293b" stroke-width="4" fill="none"/></svg>',
+          drawingData: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fffdf5"/><circle cx="150" cy="100" r="50" fill="%23f59e0b"/><circle cx="135" cy="90" r="10" fill="%23fff"/><circle cx="165" cy="90" r="10" fill="%23fff"/><circle cx="137" cy="90" r="5" fill="%231e293b"/><circle cx="167" cy="90" r="5" fill="%231e293b"/><path d="M 135 115 Q 150 135 165 115" stroke="%231e293b" stroke-width="4" fill="none"/></svg>',
           status: 'approved',
-          timestamp: Date.now() - 43200000
+          timestamp: Date.now() - 43200000,
+          teacherFeedback: '向日葵小蜜蜂的神情非常生動，配色溫暖，展現了極佳的觀察力與手繪美感！',
+          flowerSticker: '🌸 構思精巧花',
+          honeyPoints: 2,
+          reviewedAt: Date.now() - 43000000,
+          isPublishedToStory: true,
+          isPublishedToParent: true,
+          parentLikes: 3,
+          revisionNote: ''
         },
         {
           id: 'sub_2',
+          classId: 'cls_demo_class',
+          activityId: 'act_1',
           studentId: 'stu_demo_2',
           studentName: 'Denzel',
+          title: '飛行小蜂隊長',
+          typeTag: 'drawing',
           type: 'drawing',
-          drawingData: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fefce8"/><circle cx="150" cy="100" r="55" fill="%23eab308"/><circle cx="150" cy="85" r="12" fill="%23fff"/><circle cx="152" cy="85" r="6" fill="%231e293b"/><path d="M 135 115 Q 150 130 165 115" stroke="%231e293b" stroke-width="4" fill="none"/></svg>',
+          outcomeText: '飛行小蜂隊長，頭頂戴著向日葵徽章，守護著花園裡的花朵！✨',
           caption: '飛行小蜂隊長，頭頂戴著向日葵徽章，守護著花園裡的花朵！✨',
+          reflection: '我想讓隊長的翅膀看起來更有速度感，所以加了明亮的光圈與線條。',
+          mediaUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fefce8"/><circle cx="150" cy="100" r="55" fill="%23eab308"/><circle cx="150" cy="85" r="12" fill="%23fff"/><circle cx="152" cy="85" r="6" fill="%231e293b"/><path d="M 135 115 Q 150 130 165 115" stroke="%231e293b" stroke-width="4" fill="none"/></svg>',
+          drawingData: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23fefce8"/><circle cx="150" cy="100" r="55" fill="%23eab308"/><circle cx="150" cy="85" r="12" fill="%23fff"/><circle cx="152" cy="85" r="6" fill="%231e293b"/><path d="M 135 115 Q 150 130 165 115" stroke="%231e293b" stroke-width="4" fill="none"/></svg>',
           status: 'pending',
-          timestamp: Date.now() - 7200000
+          timestamp: Date.now() - 7200000,
+          teacherFeedback: '',
+          flowerSticker: '',
+          honeyPoints: 0,
+          reviewedAt: null,
+          isPublishedToStory: false,
+          isPublishedToParent: false,
+          parentLikes: 0,
+          revisionNote: ''
         }
       ]
     }
@@ -388,20 +421,52 @@ const INITIAL_DATA = {
 
 class DojoStore {
   constructor() {
-    this.state = dataEngine.loadState(INITIAL_DATA);
-    // Ensure all critical properties exist
-    if (!this.state.classes || !this.state.classes.length) {
-      this.state = JSON.parse(JSON.stringify(INITIAL_DATA));
-      dataEngine.saveState(this.state);
-    }
-    // Listen for storage changes from other tabs or firebase
-    window.addEventListener('storage', (e) => {
-      if (e.key === dataEngine.storageKey) {
-        this.state = dataEngine.loadState(INITIAL_DATA);
-        this.notify();
-      }
-    });
     this.subscribers = new Set();
+    this.state = dataEngine.loadState(INITIAL_DATA);
+
+    // Defensive state loading and schema migration
+    if (!this.state || typeof this.state !== 'object') {
+      this.state = JSON.parse(JSON.stringify(INITIAL_DATA));
+    }
+
+    if (!Array.isArray(this.state.classes) || this.state.classes.length === 0) {
+      this.state.classes = JSON.parse(JSON.stringify(INITIAL_DATA.classes));
+    }
+
+    this.state.activeClassId = this.state.activeClassId || (this.state.classes[0] ? this.state.classes[0].id : 'cls_demo_class');
+    this.state.stories = Array.isArray(this.state.stories) ? this.state.stories : JSON.parse(JSON.stringify(INITIAL_DATA.stories || []));
+    this.state.messages = (this.state.messages && typeof this.state.messages === 'object') ? this.state.messages : {};
+    this.state.portfolios = (Array.isArray(this.state.portfolios) && this.state.portfolios.length > 0)
+      ? this.state.portfolios
+      : JSON.parse(JSON.stringify(INITIAL_DATA.portfolios || []));
+
+    // Ensure groups and schema consistency in each class
+    this.state.classes.forEach(cls => {
+      if (!Array.isArray(cls.students)) cls.students = [];
+      if (!Array.isArray(cls.groups)) cls.groups = [];
+      cls.groups.forEach(grp => {
+        if (!grp.icon) grp.icon = 'fa-solid fa-people-group';
+        if (!grp.color) grp.color = '#f59e0b';
+        if (!grp.goalPoints) grp.goalPoints = 30;
+        if (!Array.isArray(grp.studentIds)) grp.studentIds = [];
+        grp.points = (typeof grp.points === 'number' && grp.points > 0)
+          ? grp.points
+          : this.calculateGroupPoints(cls, grp.studentIds);
+        if (!grp.createdAt) grp.createdAt = Date.now();
+      });
+    });
+
+    dataEngine.saveState(this.state);
+
+    // Listen for storage changes from other tabs or firebase
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('storage', (e) => {
+        if (e.key === dataEngine.storageKey) {
+          this.state = dataEngine.loadState(INITIAL_DATA);
+          this.notify();
+        }
+      });
+    }
   }
 
   subscribe(callback) {
@@ -493,6 +558,14 @@ class DojoStore {
     };
     student.history.unshift(historyItem);
 
+    if (Array.isArray(cls.groups)) {
+      cls.groups.forEach(g => {
+        if (g.studentIds && g.studentIds.includes(studentId)) {
+          g.points = this.calculateGroupPoints(cls, g.studentIds);
+        }
+      });
+    }
+
     this.save();
     return { student, historyItem };
   }
@@ -515,6 +588,12 @@ class DojoStore {
     });
 
     cls.totalPoints += skill.points * cls.students.length;
+    if (Array.isArray(cls.groups)) {
+      cls.groups.forEach(g => {
+        g.points = this.calculateGroupPoints(cls, g.studentIds);
+      });
+    }
+
     this.save();
     return cls;
   }
@@ -540,8 +619,127 @@ class DojoStore {
     });
 
     cls.totalPoints += skill.points * studentIds.length;
+    if (Array.isArray(cls.groups)) {
+      cls.groups.forEach(g => {
+        g.points = this.calculateGroupPoints(cls, g.studentIds);
+      });
+    }
+
     this.save();
     return cls;
+  }
+
+  // Calculate total points for a group based on current member points
+  calculateGroupPoints(cls, studentIds = []) {
+    if (!cls || !Array.isArray(cls.students) || !Array.isArray(studentIds)) return 0;
+    return studentIds.reduce((sum, sid) => {
+      const s = cls.students.find(st => st.id === sid);
+      return sum + (s && typeof s.points === 'number' ? s.points : 0);
+    }, 0);
+  }
+
+  // Create a new Hive Group
+  createHiveGroup(classId, { name, studentIds = [], icon = 'fa-solid fa-people-group', color = '#f59e0b', goalPoints = 30 } = {}) {
+    const targetClassId = classId || this.state.activeClassId;
+    const cls = this.state.classes.find(c => c.id === targetClassId);
+    if (!cls) return null;
+    if (!Array.isArray(cls.groups)) cls.groups = [];
+
+    const uniqueStudentIds = Array.from(new Set(Array.isArray(studentIds) ? studentIds : []));
+    const newGroup = {
+      id: `grp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: (name || '蜂巢合作小組').trim(),
+      icon: icon || 'fa-solid fa-people-group',
+      color: color || '#f59e0b',
+      studentIds: uniqueStudentIds,
+      points: this.calculateGroupPoints(cls, uniqueStudentIds),
+      goalPoints: Number(goalPoints) || 30,
+      createdAt: Date.now()
+    };
+
+    cls.groups.push(newGroup);
+    this.save();
+    return newGroup;
+  }
+
+  // Update an existing Hive Group
+  updateHiveGroup(classId, groupId, updates = {}) {
+    const targetClassId = classId || this.state.activeClassId;
+    const cls = this.state.classes.find(c => c.id === targetClassId);
+    if (!cls || !Array.isArray(cls.groups)) return null;
+
+    const grp = cls.groups.find(g => g.id === groupId);
+    if (!grp) return null;
+
+    if (updates.name !== undefined) grp.name = updates.name.trim();
+    if (updates.icon !== undefined) grp.icon = updates.icon;
+    if (updates.color !== undefined) grp.color = updates.color;
+    if (updates.studentIds !== undefined) {
+      grp.studentIds = Array.from(new Set(Array.isArray(updates.studentIds) ? updates.studentIds : []));
+    }
+    if (updates.goalPoints !== undefined) {
+      grp.goalPoints = Number(updates.goalPoints) || 30;
+    }
+    if (updates.points !== undefined) {
+      grp.points = Number(updates.points);
+    } else {
+      grp.points = this.calculateGroupPoints(cls, grp.studentIds);
+    }
+
+    this.save();
+    return grp;
+  }
+
+  // Delete a Hive Group
+  deleteHiveGroup(classId, groupId) {
+    const targetClassId = classId || this.state.activeClassId;
+    const cls = this.state.classes.find(c => c.id === targetClassId);
+    if (!cls || !Array.isArray(cls.groups)) return false;
+
+    const idx = cls.groups.findIndex(g => g.id === groupId);
+    if (idx !== -1) {
+      cls.groups.splice(idx, 1);
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  // Award points to all members in a Hive Group, updating class total and group points
+  awardHiveGroupPoint(classId, groupId, skill) {
+    const targetClassId = classId || this.state.activeClassId;
+    const cls = this.state.classes.find(c => c.id === targetClassId);
+    if (!cls || !Array.isArray(cls.groups)) return null;
+
+    const grp = cls.groups.find(g => g.id === groupId);
+    if (!grp) return null;
+
+    const points = typeof skill.points === 'number' ? skill.points : 1;
+    let awardedCount = 0;
+
+    (grp.studentIds || []).forEach(sid => {
+      const student = cls.students.find(s => s.id === sid);
+      if (student) {
+        student.points += points;
+        if (!Array.isArray(student.history)) student.history = [];
+        student.history.unshift({
+          id: `h_grp_${Date.now()}_${student.id}`,
+          skillName: `[${grp.name}] ${skill.name}`,
+          points: points,
+          type: points >= 0 ? 'pos' : 'neg',
+          icon: skill.icon || 'fa-solid fa-users',
+          timestamp: Date.now(),
+          note: skill.note || `小組協作榮譽：${grp.name}`
+        });
+        awardedCount++;
+      }
+    });
+
+    cls.totalPoints += points * awardedCount;
+    grp.points = this.calculateGroupPoints(cls, grp.studentIds);
+
+    this.save();
+    return { group: grp, awardedCount };
   }
 
   // Set student attendance
@@ -648,80 +846,268 @@ class DojoStore {
     return msg;
   }
 
-  // Submit portfolio work
-  submitPortfolioWork(activityId, studentId, studentName, type, drawingData, caption) {
-    const act = this.state.portfolios.find(a => a.id === activityId);
-    if (!act) return;
-    const sub = {
-      id: `sub_${Date.now()}`,
-      studentId,
-      studentName,
-      type,
-      drawingData,
-      caption,
-      status: 'pending',
-      timestamp: Date.now()
+  // Adapter to guarantee all new schema fields exist on legacy or newly created submissions
+  adaptSubmission(sub, activity = {}) {
+    if (!sub) return null;
+    const actTitle = activity.title || '課堂學習成果';
+    const actId = activity.id || sub.activityId || 'act_1';
+    const actClassId = activity.classId || sub.classId || this.state.activeClassId || 'cls_demo_class';
+
+    return {
+      id: sub.id,
+      classId: sub.classId || actClassId,
+      activityId: sub.activityId || actId,
+      activityTitle: sub.activityTitle || actTitle,
+      studentId: sub.studentId,
+      studentName: sub.studentName,
+      title: sub.title || actTitle,
+      typeTag: sub.typeTag || sub.type || 'drawing',
+      outcomeText: sub.outcomeText || sub.caption || '',
+      reflection: sub.reflection || '',
+      mediaUrl: sub.mediaUrl || sub.drawingData || '',
+      drawingData: sub.drawingData || sub.mediaUrl || '',
+      caption: sub.caption || sub.outcomeText || sub.title || '',
+      status: sub.status || 'pending',
+      timestamp: sub.timestamp || Date.now(),
+      teacherFeedback: sub.teacherFeedback || '',
+      flowerSticker: sub.flowerSticker || (sub.status === 'approved' ? '🌸 構思精巧花' : ''),
+      honeyPoints: typeof sub.honeyPoints === 'number' ? sub.honeyPoints : (sub.status === 'approved' ? 2 : 0),
+      reviewedAt: sub.reviewedAt || (sub.status === 'approved' ? (sub.timestamp || Date.now()) : null),
+      isPublishedToStory: !!sub.isPublishedToStory,
+      isPublishedToParent: sub.isPublishedToParent !== undefined ? !!sub.isPublishedToParent : (sub.status === 'approved'),
+      parentLikes: typeof sub.parentLikes === 'number' ? sub.parentLikes : 0,
+      revisionNote: sub.revisionNote || ''
     };
-    act.submissions.unshift(sub);
-    this.save();
-    return sub;
   }
 
-  // Approve portfolio submission
-  approvePortfolioSubmission(activityId, submissionId, feedback = '', flowerSticker = '🌸 構思精巧花', publishToStory = true) {
-    const act = this.state.portfolios.find(a => a.id === activityId);
-    if (!act) return null;
-    const sub = act.submissions.find(s => s.id === submissionId);
-    if (!sub) return null;
+  // Get all submissions across activities, with optional classId and studentId filters
+  getAllSubmissions(classId = null, studentId = null) {
+    const targetClassId = classId || this.state.activeClassId;
+    const acts = (this.state.portfolios || []).filter(a => !targetClassId || a.classId === targetClassId);
 
-    sub.status = 'approved';
-    sub.teacherFeedback = feedback;
-    sub.flowerSticker = flowerSticker;
-    sub.reviewedAt = Date.now();
+    let allSubs = [];
+    acts.forEach(act => {
+      (act.submissions || []).forEach(sub => {
+        allSubs.push(this.adaptSubmission(sub, act));
+      });
+    });
 
-    // Award +2 Honey Points to the student
-    const skill = {
-      name: `學習歷程作品 (${flowerSticker.split(' ')[0]})`,
-      points: 2,
-      icon: '🎨',
-      note: feedback || `在「${act.title}」完成優秀作品`
+    if (studentId) {
+      allSubs = allSubs.filter(s => s.studentId === studentId);
+    }
+
+    return allSubs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  }
+
+  // Create student portfolio work
+  createPortfolioWork({
+    classId,
+    studentId,
+    studentName,
+    title = '',
+    typeTag = 'drawing',
+    outcomeText = '',
+    reflection = '',
+    mediaData = '',
+    activityId = null
+  }) {
+    const targetClassId = classId || this.state.activeClassId;
+    if (!Array.isArray(this.state.portfolios)) this.state.portfolios = [];
+
+    // Find or create target activity
+    let act = activityId ? this.state.portfolios.find(a => a.id === activityId) : null;
+    if (!act) {
+      act = this.state.portfolios.find(a => a.classId === targetClassId);
+      if (!act) {
+        act = {
+          id: `act_${Date.now()}`,
+          classId: targetClassId,
+          title: '蜂巢課堂個人數位作品集',
+          description: '自主學習、手繪創作與探究反思專區',
+          type: 'mixed',
+          submissions: []
+        };
+        this.state.portfolios.unshift(act);
+      }
+    }
+
+    if (!Array.isArray(act.submissions)) act.submissions = [];
+
+    const newSub = {
+      id: `sub_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      classId: targetClassId,
+      activityId: act.id,
+      studentId,
+      studentName,
+      title: (title || '').trim() || '我的蜂巢學習作品',
+      typeTag: typeTag || 'drawing',
+      outcomeText: (outcomeText || '').trim(),
+      reflection: (reflection || '').trim(),
+      mediaUrl: mediaData || '',
+      drawingData: mediaData || '',
+      caption: (outcomeText || '').trim() || (title || '').trim(),
+      status: 'pending',
+      timestamp: Date.now(),
+      teacherFeedback: '',
+      flowerSticker: '',
+      honeyPoints: 0,
+      reviewedAt: null,
+      isPublishedToStory: false,
+      isPublishedToParent: false,
+      parentLikes: 0,
+      revisionNote: ''
     };
-    this.awardStudentPoint(act.classId, sub.studentId, skill);
 
-    // If requested, publish as a Story Post
-    if (publishToStory) {
-      const content = `🐝 小蜜蜂【${sub.studentName}】在作業「${act.title}」中完成了精彩手繪創作！\n「${sub.caption}」\n${flowerSticker} 導師評語：${feedback || '構思生動，筆觸用心！'}`;
-      this.addStoryPost(act.classId, '林老師', content, sub.drawingData);
-      sub.isPublishedToStory = true;
+    act.submissions.unshift(newSub);
+    this.save();
+    return newSub;
+  }
+
+  // Submit portfolio work (legacy support)
+  submitPortfolioWork(activityId, studentId, studentName, type, drawingData, caption) {
+    const act = this.state.portfolios ? this.state.portfolios.find(a => a.id === activityId) : null;
+    const classId = act ? act.classId : this.state.activeClassId;
+    return this.createPortfolioWork({
+      classId,
+      activityId,
+      studentId,
+      studentName,
+      title: caption || (act ? act.title : '課堂學習成果'),
+      typeTag: type || 'drawing',
+      outcomeText: caption || '',
+      reflection: '',
+      mediaData: drawingData
+    });
+  }
+
+  // Approve portfolio submission with idempotent point awarding
+  approvePortfolioSubmission(activityId, submissionId, options = {}) {
+    let feedback = '';
+    let flowerSticker = '🌸 構思精巧花';
+    let points = 2;
+    let publishToStory = true;
+
+    // Support legacy positional parameters: (activityId, submissionId, feedback, flowerSticker, publishToStory)
+    if (typeof options === 'string') {
+      feedback = options;
+      if (arguments[3] !== undefined) flowerSticker = arguments[3];
+      if (arguments[4] !== undefined) publishToStory = arguments[4];
+    } else if (typeof options === 'object' && options !== null) {
+      if (options.feedback !== undefined) feedback = options.feedback;
+      if (options.flowerSticker !== undefined) flowerSticker = options.flowerSticker;
+      if (options.points !== undefined) points = Number(options.points);
+      if (options.publishToStory !== undefined) publishToStory = !!options.publishToStory;
+    }
+
+    let targetAct = null;
+    let targetSub = null;
+
+    if (activityId) {
+      targetAct = (this.state.portfolios || []).find(a => a.id === activityId);
+      if (targetAct && Array.isArray(targetAct.submissions)) {
+        targetSub = targetAct.submissions.find(s => s.id === submissionId);
+      }
+    }
+    if (!targetSub) {
+      for (const act of (this.state.portfolios || [])) {
+        const sub = (act.submissions || []).find(s => s.id === submissionId);
+        if (sub) {
+          targetAct = act;
+          targetSub = sub;
+          break;
+        }
+      }
+    }
+
+    if (!targetSub || !targetAct) return null;
+
+    // Idempotent point awarding: only award points once if status wasn't already approved
+    const isAlreadyApproved = targetSub.status === 'approved';
+
+    targetSub.status = 'approved';
+    targetSub.teacherFeedback = feedback;
+    targetSub.flowerSticker = flowerSticker;
+    targetSub.honeyPoints = points;
+    targetSub.reviewedAt = Date.now();
+    targetSub.isPublishedToParent = true;
+
+    if (!isAlreadyApproved && points > 0) {
+      const stickerClean = (flowerSticker || '').replace(/[^\u4e00-\u9fa5]/g, '') || '優秀作品';
+      const skill = {
+        name: `學習歷程作品 (${stickerClean})`,
+        points: points,
+        icon: '🎨',
+        note: feedback || `在「${targetSub.title || targetAct.title || '作品集'}」展現優異成果`
+      };
+      this.awardStudentPoint(targetAct.classId, targetSub.studentId, skill);
+    }
+
+    if (publishToStory && !targetSub.isPublishedToStory) {
+      const content = `🐝 小蜜蜂【${targetSub.studentName}】在作業「${targetAct.title || targetSub.title}」發布了精彩作品《${targetSub.title}》！\n${targetSub.outcomeText ? '「' + targetSub.outcomeText + '」\n' : (targetSub.caption ? '「' + targetSub.caption + '」\n' : '')}${flowerSticker} 導師評語：${feedback || '構思生動用心，值得全班表揚！'}`;
+      this.addStoryPost(targetAct.classId, '林老師', content, targetSub.mediaUrl || targetSub.drawingData);
+      targetSub.isPublishedToStory = true;
     }
 
     this.save();
-    return sub;
+    return targetSub;
   }
 
   // Return portfolio submission for revision
   returnPortfolioSubmission(activityId, submissionId, revisionNote = '') {
-    const act = this.state.portfolios.find(a => a.id === activityId);
-    if (!act) return null;
-    const sub = act.submissions.find(s => s.id === submissionId);
-    if (!sub) return null;
+    let targetAct = null;
+    let targetSub = null;
 
-    sub.status = 'needs_revision';
-    sub.revisionNote = revisionNote || '作品很有創意！建議可以再豐富小蜜蜂的花朵背景喔～';
-    sub.reviewedAt = Date.now();
+    if (activityId) {
+      targetAct = (this.state.portfolios || []).find(a => a.id === activityId);
+      if (targetAct && Array.isArray(targetAct.submissions)) {
+        targetSub = targetAct.submissions.find(s => s.id === submissionId);
+      }
+    }
+    if (!targetSub) {
+      for (const act of (this.state.portfolios || [])) {
+        const sub = (act.submissions || []).find(s => s.id === submissionId);
+        if (sub) {
+          targetAct = act;
+          targetSub = sub;
+          break;
+        }
+      }
+    }
+
+    if (!targetSub) return null;
+
+    targetSub.status = 'needs_revision';
+    targetSub.revisionNote = revisionNote || '作品很有潛力！請根據老師的建議稍微補充細節喔！';
+    targetSub.reviewedAt = Date.now();
     this.save();
-    return sub;
+    return targetSub;
+  }
+
+  // Like portfolio submission
+  likePortfolioSubmission(submissionId) {
+    for (const act of (this.state.portfolios || [])) {
+      const sub = (act.submissions || []).find(s => s.id === submissionId);
+      if (sub) {
+        sub.parentLikes = (sub.parentLikes || 0) + 1;
+        this.save();
+        return sub.parentLikes;
+      }
+    }
+    return 0;
   }
 
   // Add new portfolio activity
   addPortfolioActivity(classId, title, description, type = 'drawing') {
+    const targetClassId = classId || this.state.activeClassId;
+    if (!Array.isArray(this.state.portfolios)) this.state.portfolios = [];
     const newAct = {
       id: `act_${Date.now()}`,
-      classId,
-      title,
-      description,
-      type,
-      submissions: []
+      classId: targetClassId,
+      title: (title || '').trim() || '新課堂作業活動',
+      description: (description || '').trim(),
+      type: type || 'drawing',
+      submissions: [],
+      createdAt: Date.now()
     };
     this.state.portfolios.unshift(newAct);
     this.save();
@@ -733,6 +1119,27 @@ class DojoStore {
     this.state = JSON.parse(JSON.stringify(INITIAL_DATA));
     this.save();
   }
+
+  // Security: Salted Web Crypto verification
+  async verifyUserLogin(username, password) {
+    if (!this.state.currentUser) return false;
+    if (this.state.currentUser.username !== username) return false;
+    const storedHash = this.state.currentUser.passwordHash || 'a4b2c7a2217be305973615237f9b904a62b9b032b9c8bd9c069f3258dbf0ad0c';
+    const salt = this.state.currentUser.salt || 'crew_salt_2026';
+    return await verifyPassword(password, storedHash, salt);
+  }
+
+  // Quota & Storage health check
+  getStorageQuota() {
+    return StorageQuotaManager.getUsage();
+  }
 }
 
 export const store = new DojoStore();
+export { escapeHTML, escapeHTML as escapeHtml, maskSensitiveCode, StorageQuotaManager, DatabaseQuotaGuard };
+
+if (typeof window !== 'undefined') {
+  window.escapeHTML = escapeHTML;
+  window.escapeHtml = escapeHTML;
+  window.maskSensitiveCode = maskSensitiveCode;
+}

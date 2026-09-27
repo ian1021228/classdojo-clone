@@ -5,9 +5,22 @@
 
 export const CHANGELOG_DATA = [
   {
-    version: "v2.6.0 (crew-v1.0 最新發布)",
-    date: "2026-09-27",
+    version: "v2.7.0 (四大專項組深度協同升級)",
+    date: "2026-09-28",
     isLatest: true,
+    title: "學生數位作品集三端閉環、小組蜂巢競賽看板、FontAwesome 現代美學與資安防抖防爆防線",
+    features: [
+      "🧩【功能組 ‧ 數位作品集三端閉環】：學生端支援手繪創作、心得說明與作品提交；教師端專屬審核中心支援花朵貼紙點評與點數獎勵；家長端優秀作品展示牆落地，支援即時讚賞與教師回饋標籤。",
+      "🐝【功能組 ‧ 小組合作蜂巢競賽】：新增組別管理、成員入組與一鍵小組協作加分 (awardHiveGroupPoint)，奠定大螢幕競賽投影與小組即時排行榜。",
+      "🎨【外觀組 ‧ FontAwesome 現代視覺重塑】：徹底汰換生硬 raw emoji，關鍵導航、按鈕、工具箱及標籤全面採用 FontAwesome 官方向量圖標庫，重塑商業級教育 SaaS 現代質感與色彩層次。",
+      "🛡️【資安組 ‧ 密碼加密與流量防爆】：導入 Web Crypto SHA-256 + Salt 異步安全密碼校驗；DatabaseQuotaGuard 400ms 寫入防抖合流，阻斷 Firestore/LocalStorage 讀寫暴衝；StorageQuotaManager 動態監控與自適應清理防爆；全域 escapeHTML 防範 XSS。",
+      "🧪【測試組 ‧ 多端嚴格驗證與自動部署】：涵蓋 Desktop (1280×800) 與 Mobile (393×852 觸控模擬) 實機規範，全站 JS 語法 100% 通過，確保零資料破壞與 GitHub Pages 綠燈部署。"
+    ]
+  },
+  {
+    version: "v2.6.0 (crew-v1.0 發布)",
+    date: "2026-09-27",
+    isLatest: false,
     title: "按鈕名稱全面直覺清晰化、GitHub 專案更名為 crew-v1.0 與對話歷程專案歸檔",
     features: [
       "🏷️【操作按鈕直覺易懂】全面去除牽強命名，回歸教育現場清晰中文：全班加分、隨機分組、多選學生、學生出勤、思考配對分享、課堂任務指示板、獎勵兌換與造型工坊，操作零門檻。",

@@ -219,6 +219,10 @@
   <script type="module">
     import { renderChangelog } from './js/changelog.js';
     import { store } from './js/store.js';
+    import { verifyPassword } from './js/security.js';
+
+    // Secure Salted Hash for User Rule 2 antigravity / 123456
+    const AUTH_HASH = 'a4b2c7a2217be305973615237f9b904a62b9b032b9c8bd9c069f3258dbf0ad0c';
 
     // 1. Render Changelog (User Rule 1)
     renderChangelog('changelog-container');
@@ -257,12 +261,13 @@
       loginModal.classList.remove('open');
     });
 
-    document.getElementById('btn-submit-login')?.addEventListener('click', () => {
+    document.getElementById('btn-submit-login')?.addEventListener('click', async () => {
       const u = document.getElementById('login-username').value.trim();
       const p = document.getElementById('login-password').value.trim();
       const targetRole = document.getElementById('login-target-role').value;
 
-      if (u === 'antigravity' && p === '123456') {
+      const isValid = await verifyPassword(p, AUTH_HASH);
+      if (u === 'antigravity' && isValid) {
         if (window.dojoAudio) window.dojoAudio.playPositive();
         if (window.dojoConfetti) window.dojoConfetti.burst();
         setTimeout(() => {
@@ -271,6 +276,14 @@
       } else {
         alert('請輸入有效測試帳號密碼：\n帳號：antigravity\n密碼：123456');
       }
+    });
+
+    ['login-username', 'login-password'].forEach(id => {
+      document.getElementById(id)?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          document.getElementById('btn-submit-login')?.click();
+        }
+      });
     });
 
     // 4. Settings Controls
@@ -290,9 +303,23 @@
 
     document.getElementById('btn-reset-demo')?.addEventListener('click', () => {
       if (confirm('確定重置為向日葵小隊示範資料？')) {
-        localStorage.clear();
+        store.resetDemoData();
         location.reload();
       }
+    });
+
+    // 5. Global Esc key & Backdrop click UX optimization
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        loginModal?.classList.remove('open');
+        settingsModal?.classList.remove('open');
+      }
+    });
+
+    [loginModal, settingsModal].filter(Boolean).forEach(m => {
+      m.addEventListener('click', (e) => {
+        if (e.target === m) m.classList.remove('open');
+      });
     });
   </script>
 </body>

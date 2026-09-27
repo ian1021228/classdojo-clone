@@ -4,7 +4,7 @@
  * Honey Rewards Store redemption, The Meadow 2D canvas exploration, HTML5 drawing pad, and Hive stories.
  */
 
-import { store } from './store.js';
+import { store, escapeHTML, maskSensitiveCode } from './store.js';
 import { rewardStore } from './rewards-store.js';
 import { DojoIslands } from './dojo-islands.js';
 
@@ -106,6 +106,7 @@ class StudentController {
     document.getElementById('btn-enter-class-code')?.addEventListener('click', () => {
       if (codeInput) codeInput.value = '';
       if (codeModal) codeModal.classList.add('open');
+      codeInput?.focus();
     });
 
     const closeCodeModal = () => {
@@ -114,7 +115,7 @@ class StudentController {
     document.getElementById('btn-close-student-code')?.addEventListener('click', closeCodeModal);
     document.getElementById('btn-cancel-student-code')?.addEventListener('click', closeCodeModal);
 
-    document.getElementById('btn-submit-student-code')?.addEventListener('click', () => {
+    const submitCode = () => {
       const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
       const matched = store.state.classes.find(c => c.code === code);
       if (matched) {
@@ -130,10 +131,26 @@ class StudentController {
       } else {
         alert('⚠️ 查無此班級代碼！請確認代碼是否正確（例如 CREW88）。');
       }
+    };
+
+    document.getElementById('btn-submit-student-code')?.addEventListener('click', submitCode);
+
+    codeInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitCode();
+      }
     });
 
-    codeInput?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') document.getElementById('btn-submit-student-code')?.click();
+    // Global Esc key & backdrop click for modals
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        closeCodeModal();
+      }
+    });
+
+    codeModal?.addEventListener('click', (e) => {
+      if (e.target === codeModal) closeCodeModal();
     });
 
     // Save Bee Button
@@ -149,21 +166,30 @@ class StudentController {
     this.setupDrawingEvents();
 
     // Submit Drawing Button
-    document.getElementById('btn-submit-drawing')?.addEventListener('click', () => {
+    const submitDrawing = () => {
       const captionInput = document.getElementById('drawing-caption');
-      const caption = captionInput.value.trim() || '我的小蜜蜂課堂創作';
+      const caption = captionInput ? captionInput.value.trim() || '我的小蜜蜂課堂創作' : '我的小蜜蜂課堂創作';
       const dataUrl = this.canvas.toDataURL('image/png');
 
       const s = this.getStudent();
       const act = store.state.portfolios[0];
       if (act && s) {
         store.submitPortfolioWork(act.id, s.id, s.name, 'drawing', dataUrl, caption);
-        captionInput.value = '';
+        if (captionInput) captionInput.value = '';
         this.clearCanvas();
         if (window.dojoAudio) window.dojoAudio.playPositive();
         if (window.dojoConfetti) window.dojoConfetti.burst();
         alert('🚀 小蜜蜂創作已送出！等待蜜糖導師審核通過並頒發花蜜點數！');
         this.renderPortfolioSubmissions();
+      }
+    };
+
+    document.getElementById('btn-submit-drawing')?.addEventListener('click', submitDrawing);
+
+    document.getElementById('drawing-caption')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitDrawing();
       }
     });
 
@@ -245,7 +271,7 @@ class StudentController {
     if (!this.studentSelect) return;
     this.studentSelect.innerHTML = this.activeClass.students.map(s => `
       <option value="${s.id}" ${s.id === this.currentStudentId ? 'selected' : ''}>
-        ${s.isHatched ? '🐝' : '🍯'} ${s.name} (${s.points} 滴花蜜)
+        ${s.isHatched ? '🐝' : '🍯'} ${escapeHTML(s.name)} (${s.points} 滴花蜜)
       </option>
     `).join('');
   }
@@ -396,8 +422,8 @@ class StudentController {
         <div style="display: flex; align-items: center; gap: 12px;">
           <span style="font-size: 1.5rem;">${item.icon || (item.points >= 0 ? '🍯' : '💨')}</span>
           <div>
-            <strong style="font-size: 0.95rem; color: #1e293b; display: block;">${item.skillName}</strong>
-            <small style="color: #64748b;">${item.note || '蜂巢課堂優良表現'}</small>
+            <strong style="font-size: 0.95rem; color: #1e293b; display: block;">${escapeHTML(item.skillName)}</strong>
+            <small style="color: #64748b;">${escapeHTML(item.note || '蜂巢課堂優良表現')}</small>
           </div>
         </div>
         <div style="font-weight: 800; font-size: 1.1rem; color: ${item.points >= 0 ? '#d97706' : '#ef4444'};">
@@ -427,8 +453,8 @@ class StudentController {
                 🍯 ${r.points} 滴花蜜
               </span>
             </div>
-            <h4 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">${r.title}</h4>
-            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 16px;">${r.desc}</p>
+            <h4 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">${escapeHTML(r.title)}</h4>
+            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 16px;">${escapeHTML(r.desc)}</p>
           </div>
           <button class="btn btn-sm ${canAfford ? 'btn-primary' : 'btn-secondary'}" data-redeem-id="${r.id}" ${canAfford ? '' : 'disabled'} style="width: 100%; border-radius: 10px; font-weight: 700; ${canAfford ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : 'opacity: 0.6; cursor: not-allowed;'}">
             ${canAfford ? '✨ 立即兌換特權' : `尚缺 ${r.points - s.points} 滴`}
@@ -580,7 +606,7 @@ class StudentController {
         <div style="background: white; border-radius: 8px; overflow: hidden; margin-bottom: 8px; text-align: center; border: 1px solid #fde68a;">
           <img src="${sub.drawingData}" alt="學生手繪作品" style="max-width: 100%; height: 130px; object-fit: contain;">
         </div>
-        <p style="font-size: 0.85rem; color: #1e293b;">${sub.caption}</p>
+        <p style="font-size: 0.85rem; color: #1e293b;">${escapeHTML(sub.caption)}</p>
       </div>
     `).join('');
   }
@@ -596,16 +622,16 @@ class StudentController {
         <div class="post-header">
           <div class="post-avatar" style="background: #fef3c7; border: 1.5px solid #fde68a; font-size: 1.3rem;">🐝</div>
           <div class="post-meta">
-            <h4>${post.author}</h4>
+            <h4>${escapeHTML(post.author)}</h4>
             <span style="color: #64748b;">蜂巢課堂公告</span>
           </div>
         </div>
-        <div class="post-content" style="color: #334155; line-height: 1.6;">${post.content}</div>
+        <div class="post-content" style="color: #334155; line-height: 1.6;">${escapeHTML(post.content).replace(/\n/g, '<br>')}</div>
         ${post.poll ? `
           <div class="hive-poll-box" style="margin: 14px 0; padding: 14px 16px; background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 12px;">
             <div style="font-weight: 800; font-size: 0.95rem; color: #78350f; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
               <span>📊</span>
-              <span>${post.poll.question}</span>
+              <span>${escapeHTML(post.poll.question)}</span>
             </div>
             <div class="poll-options-list" style="display: flex; flex-direction: column; gap: 8px;">
               ${post.poll.options.map(opt => {
@@ -617,7 +643,7 @@ class StudentController {
                     <div class="poll-bar-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: ${pct}%; background: ${isSelected ? '#fde68a' : '#fef3c7'}; z-index: 1; transition: width 0.4s ease; opacity: 0.6;"></div>
                     <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center;">
                       <span style="font-size: 0.9rem; font-weight: ${isSelected ? '800' : '600'}; color: #1e293b;">
-                        ${isSelected ? '✅ ' : '⚪ '}${opt.text}
+                        ${isSelected ? '✅ ' : '⚪ '}${escapeHTML(opt.text)}
                       </span>
                       <span style="font-size: 0.85rem; font-weight: 700; color: #b45309;">
                         ${pct}% (${opt.votes || 0} 票)

@@ -75,7 +75,13 @@
           </div>
         </div>
 
-        <div class="class-actions-area">
+        <div class="class-actions-area" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <!-- Quick Real-Time Student Search / Filter Box -->
+          <div class="student-search-box-wrap" style="position: relative; display: flex; align-items: center;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; color: #94a3b8; font-size: 0.85rem; pointer-events: none;"></i>
+            <input type="text" id="input-search-student" placeholder="快速搜尋學生或座號..." style="padding: 7px 30px 7px 32px; border: 1.5px solid #fde68a; border-radius: var(--radius-full); font-size: 0.85rem; outline: none; width: 190px; background: #fffdf5; color: #1e293b; transition: all 0.2s ease;">
+            <button id="btn-clear-search-student" style="display: none; position: absolute; right: 10px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px;" title="清除搜尋 (Esc)">&times;</button>
+          </div>
           <div class="view-switch">
             <button class="switch-opt active" id="btn-switch-students">學生</button>
             <button class="switch-opt" id="btn-switch-groups">小組</button>
@@ -206,10 +212,10 @@
       <div style="max-width: 960px; margin: 24px auto 100px; padding: 0 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
           <div>
-            <h2 style="font-size: 1.6rem; font-weight: 800;">📁 學生學習歷程與作業審核</h2>
+            <h2 style="font-size: 1.6rem; font-weight: 800;"><i class="fa-solid fa-folder-open" style="color: #f59e0b;"></i> 學生學習歷程與作業審核</h2>
             <p style="color: var(--text-muted);">查看並核准學生手繪創作與課堂作品</p>
           </div>
-          <button class="btn btn-primary btn-sm" id="btn-create-activity">+ 發布新作業活動</button>
+          <button class="btn btn-primary btn-sm" id="btn-create-activity"><i class="fa-solid fa-plus"></i> 發布新作業活動</button>
         </div>
 
         <div id="portfolios-list" style="display: flex; flex-direction: column; gap: 20px;">
@@ -225,10 +231,10 @@
       <div style="max-width: 960px; margin: 24px auto 100px; padding: 0 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h2 style="font-size: 1.6rem; font-weight: 800;">📅 班級行事曆與重大活動</h2>
+            <h2 style="font-size: 1.6rem; font-weight: 800;"><i class="fa-solid fa-calendar-days" style="color: #f59e0b;"></i> 班級行事曆與重大活動</h2>
             <p style="color: var(--text-muted);">發布戶外教學、科學競賽、同樂會與家長座談日</p>
           </div>
-          <button class="btn btn-primary btn-sm" id="btn-add-calendar-event">+ 發布新活動</button>
+          <button class="btn btn-primary btn-sm" id="btn-add-calendar-event"><i class="fa-solid fa-plus"></i> 發布新活動</button>
         </div>
 
         <div id="calendar-events-list" style="display: flex; flex-direction: column; gap: 16px;">
@@ -280,19 +286,19 @@
   <!-- Mobile Bottom Navigation Bar (393x852) -->
   <nav class="mobile-bottom-bar">
     <button class="mobile-nav-item active" id="mob-nav-classroom">
-      <span class="mobile-nav-icon">🏫</span>
+      <span class="mobile-nav-icon"><i class="fa-solid fa-chalkboard-user"></i></span>
       <span>課堂</span>
     </button>
     <button class="mobile-nav-item" id="mob-nav-toolkit">
-      <span class="mobile-nav-icon">🧰</span>
+      <span class="mobile-nav-icon"><i class="fa-solid fa-toolbox"></i></span>
       <span>工具包</span>
     </button>
     <button class="mobile-nav-item" id="mob-nav-story">
-      <span class="mobile-nav-icon">📸</span>
+      <span class="mobile-nav-icon"><i class="fa-solid fa-camera"></i></span>
       <span>故事</span>
     </button>
     <button class="mobile-nav-item" id="mob-nav-messages">
-      <span class="mobile-nav-icon">💬</span>
+      <span class="mobile-nav-icon"><i class="fa-solid fa-comments"></i></span>
       <span>訊息</span>
     </button>
   </nav>
@@ -317,8 +323,8 @@
 
       <div class="modal-body">
         <div class="skills-tabs">
-          <button class="skill-tab-btn active positive" id="btn-tab-pos">🟢 正向行為技能</button>
-          <button class="skill-tab-btn needs-work" id="btn-tab-neg">🔴 需待改進</button>
+          <button class="skill-tab-btn active positive" id="btn-tab-pos"><i class="fa-solid fa-circle-plus"></i> 正向行為技能</button>
+          <button class="skill-tab-btn needs-work" id="btn-tab-neg"><i class="fa-solid fa-circle-minus"></i> 需待改進</button>
         </div>
 
         <!-- Positive Skills Grid -->
@@ -342,7 +348,7 @@
     <div class="modal-card" style="max-width: 580px;">
       <div class="modal-header">
         <div class="modal-title-group">
-          <span style="font-size: 1.5rem;">🧰</span>
+          <span style="font-size: 1.5rem; color: #f59e0b;"><i class="fa-solid fa-toolbox"></i></span>
           <h3 class="modal-title">課堂工具箱 (Classroom Toolkit)</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-toolkit">&times;</button>
@@ -350,37 +356,37 @@
       <div class="modal-body">
         <div class="skills-grid" style="grid-template-columns: repeat(2, 1fr); gap: 16px;">
           <div class="skill-btn" id="tk-card-timer">
-            <span style="font-size: 2.5rem;">⏱️</span>
+            <span style="font-size: 2.2rem; color: #f59e0b; margin-bottom: 8px;"><i class="fa-solid fa-stopwatch"></i></span>
             <strong class="skill-label">倒數計時器</strong>
             <small style="color: var(--text-muted);">課堂活動與測驗精確計時</small>
           </div>
           <div class="skill-btn" id="tk-card-random">
-            <span style="font-size: 2.5rem;">🔀</span>
+            <span style="font-size: 2.2rem; color: #3b82f6; margin-bottom: 8px;"><i class="fa-solid fa-shuffle"></i></span>
             <strong class="skill-label">隨機抽籤</strong>
             <small style="color: var(--text-muted);">聚光燈學生輪播與抽問</small>
           </div>
           <div class="skill-btn" id="tk-card-groups">
-            <span style="font-size: 2.5rem;">👥</span>
+            <span style="font-size: 2.2rem; color: #10b981; margin-bottom: 8px;"><i class="fa-solid fa-users"></i></span>
             <strong class="skill-label">智慧分組機</strong>
             <small style="color: var(--text-muted);">自動分配小組與洗牌</small>
           </div>
           <div class="skill-btn" id="tk-card-noise">
-            <span style="font-size: 2.5rem;">🎙️</span>
+            <span style="font-size: 2.2rem; color: #ef4444; margin-bottom: 8px;"><i class="fa-solid fa-microphone"></i></span>
             <strong class="skill-label">分貝噪音計</strong>
             <small style="color: var(--text-muted);">課堂聲音監控與安靜提醒</small>
           </div>
           <div class="skill-btn" id="tk-card-thinkpair">
-            <span style="font-size: 2.5rem;">💡</span>
+            <span style="font-size: 2.2rem; color: #f59e0b; margin-bottom: 8px;"><i class="fa-solid fa-lightbulb"></i></span>
             <strong class="skill-label">思考配對分享</strong>
             <small style="color: var(--text-muted);">引導課堂主題討論題庫與計時</small>
           </div>
           <div class="skill-btn" id="tk-card-directions">
-            <span style="font-size: 2.5rem;">📋</span>
+            <span style="font-size: 2.2rem; color: #8b5cf6; margin-bottom: 8px;"><i class="fa-solid fa-list-check"></i></span>
             <strong class="skill-label">課堂任務指示板</strong>
             <small style="color: var(--text-muted);">大螢幕逐步任務指引與勾選</small>
           </div>
           <div class="skill-btn" id="tk-card-music">
-            <span style="font-size: 2.5rem;">🎵</span>
+            <span style="font-size: 2.2rem; color: #ec4899; margin-bottom: 8px;"><i class="fa-solid fa-music"></i></span>
             <strong class="skill-label">課堂專注輕音樂</strong>
             <small style="color: var(--text-muted);">沉浸式白噪音與學習節奏</small>
           </div>
@@ -394,7 +400,7 @@
     <div class="modal-card" style="max-width: 480px;">
       <div class="modal-header">
         <div class="modal-title-group">
-          <span style="font-size: 1.5rem;">⏱️</span>
+          <span style="font-size: 1.5rem; color: #f59e0b;"><i class="fa-solid fa-stopwatch"></i></span>
           <h3 class="modal-title">課堂計時器</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-timer">&times;</button>
@@ -410,8 +416,8 @@
           </div>
 
           <div class="timer-controls">
-            <button class="btn btn-primary btn-lg" id="btn-timer-toggle">開始計時</button>
-            <button class="btn btn-secondary btn-lg" id="btn-timer-reset">重置</button>
+            <button class="btn btn-primary btn-lg" id="btn-timer-toggle"><i class="fa-solid fa-play"></i> 開始計時</button>
+            <button class="btn btn-secondary btn-lg" id="btn-timer-reset"><i class="fa-solid fa-rotate-left"></i> 重置</button>
           </div>
 
           <div class="timer-presets">
@@ -431,7 +437,7 @@
     <div class="modal-card" style="max-width: 480px;">
       <div class="modal-header">
         <div class="modal-title-group">
-          <span style="font-size: 1.5rem;">🔀</span>
+          <span style="font-size: 1.5rem; color: #3b82f6;"><i class="fa-solid fa-shuffle"></i></span>
           <h3 class="modal-title">隨機學生抽籤</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-random">&times;</button>
@@ -445,8 +451,8 @@
           <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;" id="spotlight-sub">誰會是下一位幸運發言者？</p>
 
           <div style="display: flex; gap: 12px; margin-top: 24px;">
-            <button class="btn btn-primary btn-lg" id="btn-spin-random">🎲 開始抽籤</button>
-            <button class="btn btn-outline-primary btn-lg" id="btn-award-picked" style="display: none;">⭐ 給他加分！</button>
+            <button class="btn btn-primary btn-lg" id="btn-spin-random"><i class="fa-solid fa-dice"></i> 開始抽籤</button>
+            <button class="btn btn-outline-primary btn-lg" id="btn-award-picked" style="display: none;"><i class="fa-solid fa-star" style="color: #f59e0b;"></i> 給他加分！</button>
           </div>
         </div>
       </div>
@@ -458,7 +464,7 @@
     <div class="modal-card" style="max-width: 720px;">
       <div class="modal-header">
         <div class="modal-title-group">
-          <span style="font-size: 1.5rem;">👥</span>
+          <span style="font-size: 1.5rem; color: #10b981;"><i class="fa-solid fa-users"></i></span>
           <h3 class="modal-title">智慧隨機分組機</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-groups">&times;</button>
@@ -473,7 +479,7 @@
               <option value="4" selected>4 人一組</option>
             </select>
           </div>
-          <button class="btn btn-primary btn-sm" id="btn-shuffle-teams">🔀 重新打散分組</button>
+          <button class="btn btn-primary btn-sm" id="btn-shuffle-teams"><i class="fa-solid fa-shuffle"></i> 重新打散分組</button>
         </div>
 
         <div class="group-results-grid" id="group-results-container">

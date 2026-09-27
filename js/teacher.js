@@ -1,4 +1,4 @@
-import { store } from './store.js';
+import { store, escapeHTML, maskSensitiveCode } from './store.js';
 import { calendarManager } from './events-calendar.js';
 import { DojoIslands } from './dojo-islands.js';
 import { bigIdeasManager } from './big-ideas.js';
@@ -11,6 +11,7 @@ class TeacherController {
     this.isAttendanceMode = false;
     this.isMultipleMode = false;
     this.selectedStudentIds = new Set();
+    this.studentSearchQuery = '';
     
     // Target for skills modal
     this.awardTarget = { type: 'student', id: null, name: '' };
@@ -262,6 +263,39 @@ class TeacherController {
       window.print();
     });
 
+    // Real-Time Student Search / Filter Controls
+    const searchInput = document.getElementById('input-search-student');
+    const clearSearchBtn = document.getElementById('btn-clear-search-student');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.studentSearchQuery = e.target.value.trim().toLowerCase();
+        if (clearSearchBtn) {
+          clearSearchBtn.style.display = this.studentSearchQuery ? 'block' : 'none';
+        }
+        this.renderStudents();
+      });
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+          e.stopPropagation();
+          searchInput.value = '';
+          this.studentSearchQuery = '';
+          if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+          this.renderStudents();
+        }
+      });
+    }
+
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        this.studentSearchQuery = '';
+        clearSearchBtn.style.display = 'none';
+        this.renderStudents();
+        searchInput?.focus();
+      });
+    }
+
     // Floating Dock Buttons
     document.getElementById('dock-btn-toolkit')?.addEventListener('click', () => this.openModal(this.toolkitModal));
     document.getElementById('dock-btn-attendance')?.addEventListener('click', (e) => {
@@ -380,6 +414,12 @@ class TeacherController {
       this.addDirectionsStep(val);
       input.value = '';
     });
+    document.getElementById('input-new-step')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('btn-add-step')?.click();
+      }
+    });
 
     // Timer Modal Controls
     document.getElementById('btn-close-timer')?.addEventListener('click', () => {
@@ -438,7 +478,21 @@ class TeacherController {
       if (window.dojoConfetti) window.dojoConfetti.burst();
     });
 
+    document.getElementById('new-student-name')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('btn-submit-add-student')?.click();
+      }
+    });
+
     // Class Story Posting & Poll Creator
+    document.getElementById('story-post-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('btn-publish-story')?.click();
+      }
+    });
+
     document.getElementById('btn-toggle-poll-box')?.addEventListener('click', () => {
       const wrap = document.getElementById('story-poll-input-wrap');
       if (wrap) {
@@ -534,6 +588,21 @@ class TeacherController {
     document.getElementById('btn-print-table-report')?.addEventListener('click', () => {
       window.print();
     });
+
+    // Global Esc key & backdrop click for all modals
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        this.closeTopModal();
+      }
+    });
+
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) {
+          this.closeModal(backdrop);
+        }
+      });
+    });
   }
 
   // View Switcher
@@ -592,7 +661,7 @@ class TeacherController {
 
   renderClassDropdown() {
     this.classSelect.innerHTML = store.state.classes.map(c => `
-      <option value="${c.id}" ${c.id === store.state.activeClassId ? 'selected' : ''}>${c.name}</option>
+      <option value="${c.id}" ${c.id === store.state.activeClassId ? 'selected' : ''}>${escapeHTML(c.name)}</option>
     `).join('') + `<option value="__add_new__">+ 新增班級...</option>`;
   }
 
@@ -611,63 +680,91 @@ class TeacherController {
     if (!cls) return;
 
     let html = '';
+    const q = this.studentSearchQuery ? this.studentSearchQuery.trim().toLowerCase() : '';
+    const filteredStudents = q
+      ? cls.students.filter(s => s.name.toLowerCase().includes(q) || String(s.seatNumber) === q || `座號 ${s.seatNumber}`.toLowerCase().includes(q))
+      : cls.students;
 
-    // 1. Whole Class Card
-    html += `
-      <div class="student-card whole-class-card" id="card-whole-class">
-        <span class="points-badge">${cls.totalPoints}</span>
-        <div class="monster-avatar-wrap">
-          ${window.monsterEngine ? window.monsterEngine.renderWholeClassIcon(105) : ''}
-        </div>
-        <div class="student-name" style="font-weight: 800; color: var(--dojo-primary);">全班同學</div>
-        <div class="student-sub">${cls.students.length} 位學生</div>
-      </div>
-    `;
-
-    // 2. Student Cards
-    cls.students.forEach(student => {
-      const isSelected = this.selectedStudentIds.has(student.id);
-      let monsterSvg = '';
-      if (student.isHatched) {
-        monsterSvg = window.monsterEngine ? window.monsterEngine.render(student.monster, 100) : '';
-      } else {
-        monsterSvg = window.monsterEngine ? window.monsterEngine.renderEgg(student.seed || student.name, 100) : '';
-      }
-
-      let attClass = `att-${student.attendance || 'present'}`;
-      let ptsClass = student.points < 0 ? 'negative' : (student.points === 0 ? 'zero' : '');
-
+    // 1. Whole Class Card (shown only when not searching)
+    if (!q) {
       html += `
-        <div class="student-card ${isSelected ? 'selected' : ''}" data-student-id="${student.id}">
-          <div class="attendance-indicator ${attClass}" title="出勤狀態：${student.attendance}"></div>
-          <span class="points-badge ${ptsClass}">${student.points}</span>
-          ${this.isMultipleMode ? `<input type="checkbox" class="student-checkbox" ${isSelected ? 'checked' : ''} style="position: absolute; top: 12px; left: 12px; width: 18px; height: 18px; z-index: 5;">` : ''}
+        <div class="student-card whole-class-card" id="card-whole-class">
+          <span class="points-badge">${cls.totalPoints}</span>
           <div class="monster-avatar-wrap">
-            ${monsterSvg}
+            ${window.monsterEngine ? window.monsterEngine.renderWholeClassIcon(105) : ''}
           </div>
-          <div class="student-name">${student.name}</div>
-          <div class="student-sub">座號 ${student.seatNumber}</div>
+          <div class="student-name" style="font-weight: 800; color: var(--dojo-primary);">全班同學</div>
+          <div class="student-sub">${cls.students.length} 位學生</div>
         </div>
       `;
-    });
+    }
 
-    // 3. Add Student Card
-    html += `
-      <div class="add-student-card" id="card-add-student">
-        <div class="add-student-icon">+</div>
-        <strong style="font-size: 0.95rem; color: var(--text-main);">添加學生</strong>
-      </div>
-    `;
+    // 2. Student Cards
+    if (q && filteredStudents.length === 0) {
+      html += `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; background: #fffdf5; border: 2px dashed #fde68a; border-radius: 16px;">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
+          <h4 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">查無符合「${escapeHTML(this.studentSearchQuery)}」的學生</h4>
+          <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 16px;">請檢查姓名拼寫或座號，或點擊下方按鈕清除搜尋條件。</p>
+          <button class="btn btn-secondary btn-sm" id="btn-reset-search-prompt" style="border-radius: var(--radius-full);"><i class="fa-solid fa-arrow-rotate-left"></i> 清除搜尋條件</button>
+        </div>
+      `;
+    } else {
+      filteredStudents.forEach(student => {
+        const isSelected = this.selectedStudentIds.has(student.id);
+        let monsterSvg = '';
+        if (student.isHatched) {
+          monsterSvg = window.monsterEngine ? window.monsterEngine.render(student.monster, 100) : '';
+        } else {
+          monsterSvg = window.monsterEngine ? window.monsterEngine.renderEgg(student.seed || student.name, 100) : '';
+        }
+
+        let attClass = `att-${student.attendance || 'present'}`;
+        let ptsClass = student.points < 0 ? 'negative' : (student.points === 0 ? 'zero' : '');
+
+        html += `
+          <div class="student-card ${isSelected ? 'selected' : ''}" data-student-id="${student.id}">
+            <div class="attendance-indicator ${attClass}" title="出勤狀態：${student.attendance}"></div>
+            <span class="points-badge ${ptsClass}">${student.points}</span>
+            ${this.isMultipleMode ? `<input type="checkbox" class="student-checkbox" ${isSelected ? 'checked' : ''} style="position: absolute; top: 12px; left: 12px; width: 18px; height: 18px; z-index: 5;">` : ''}
+            <div class="monster-avatar-wrap">
+              ${monsterSvg}
+            </div>
+            <div class="student-name">${escapeHTML(student.name)}</div>
+            <div class="student-sub">座號 ${student.seatNumber}</div>
+          </div>
+        `;
+      });
+
+      // 3. Add Student Card
+      html += `
+        <div class="add-student-card" id="card-add-student">
+          <div class="add-student-icon">+</div>
+          <strong style="font-size: 0.95rem; color: var(--text-main);">添加學生</strong>
+        </div>
+      `;
+    }
 
     this.studentsGrid.innerHTML = html;
 
+    // Reset search button listener if present
+    document.getElementById('btn-reset-search-prompt')?.addEventListener('click', () => {
+      const searchInput = document.getElementById('input-search-student');
+      const clearSearchBtn = document.getElementById('btn-clear-search-student');
+      if (searchInput) searchInput.value = '';
+      this.studentSearchQuery = '';
+      if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+      this.renderStudents();
+      searchInput?.focus();
+    });
+
     // Attach card event listeners
-    document.getElementById('card-whole-class').addEventListener('click', () => {
+    document.getElementById('card-whole-class')?.addEventListener('click', () => {
       if (this.isAttendanceMode || this.isMultipleMode) return;
       this.openSkillsModal({ type: 'whole_class', name: '全班同學' });
     });
 
-    document.getElementById('card-add-student').addEventListener('click', () => {
+    document.getElementById('card-add-student')?.addEventListener('click', () => {
       this.openModal(this.addStudentModal);
     });
 
@@ -709,7 +806,7 @@ class TeacherController {
       return `
         <div class="group-team-card" style="cursor: pointer;" data-group-id="${grp.id}">
           <div class="group-team-header">
-            <span>${grp.name}</span>
+            <span>${escapeHTML(grp.name)}</span>
             <span class="points-badge" style="position: static;">${grp.points}</span>
           </div>
           <div style="display: flex; gap: 8px; margin: 12px 0;">
@@ -780,7 +877,7 @@ class TeacherController {
           <span>${skill.icon}</span>
           <span class="skill-pts-tag">+${skill.points}</span>
         </div>
-        <span class="skill-label">${skill.name}</span>
+        <span class="skill-label">${escapeHTML(skill.name)}</span>
       </button>
     `).join('');
 
@@ -790,7 +887,7 @@ class TeacherController {
           <span>${skill.icon}</span>
           <span class="skill-pts-tag">${skill.points}</span>
         </div>
-        <span class="skill-label">${skill.name}</span>
+        <span class="skill-label">${escapeHTML(skill.name)}</span>
       </button>
     `).join('');
 
@@ -974,7 +1071,7 @@ class TeacherController {
             <div style="width: 28px; height: 28px;">
               ${s.isHatched ? window.monsterEngine.render(s.monster, 28) : window.monsterEngine.renderEgg(s.name, 28)}
             </div>
-            <span>${s.name}</span>
+            <span>${escapeHTML(s.name)}</span>
           </div>
         `).join('')}
       </div>
@@ -1123,16 +1220,16 @@ class TeacherController {
         <div class="post-header">
           <div class="post-avatar">👨‍🏫</div>
           <div class="post-meta">
-            <h4>${post.author}</h4>
+            <h4>${escapeHTML(post.author)}</h4>
             <span>剛剛 • 課堂公開故事</span>
           </div>
         </div>
-        <div class="post-content">${post.content}</div>
+        <div class="post-content">${escapeHTML(post.content).replace(/\n/g, '<br>')}</div>
         ${post.poll ? `
           <div class="hive-poll-box" style="margin: 14px 0; padding: 14px 16px; background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 12px;">
             <div style="font-weight: 800; font-size: 0.95rem; color: #78350f; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
               <span>📊</span>
-              <span>${post.poll.question}</span>
+              <span>${escapeHTML(post.poll.question)}</span>
             </div>
             <div class="poll-options-list" style="display: flex; flex-direction: column; gap: 8px;">
               ${post.poll.options.map(opt => {
@@ -1144,7 +1241,7 @@ class TeacherController {
                     <div class="poll-bar-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: ${pct}%; background: ${isSelected ? '#fde68a' : '#fef3c7'}; z-index: 1; transition: width 0.4s ease; opacity: 0.6;"></div>
                     <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center;">
                       <span style="font-size: 0.9rem; font-weight: ${isSelected ? '800' : '600'}; color: #1e293b;">
-                        ${isSelected ? '✅ ' : '⚪ '}${opt.text}
+                        ${isSelected ? '✅ ' : '⚪ '}${escapeHTML(opt.text)}
                       </span>
                       <span style="font-size: 0.85rem; font-weight: 700; color: #b45309;">
                         ${pct}% (${opt.votes || 0} 票)
@@ -1169,8 +1266,8 @@ class TeacherController {
         <div class="comments-list">
           ${post.comments.map(c => `
             <div class="comment-bubble">
-              <span class="comment-author">${c.author}:</span>
-              <span>${c.text}</span>
+              <span class="comment-author">${escapeHTML(c.author)}:</span>
+              <span>${escapeHTML(c.text)}</span>
             </div>
           `).join('')}
           <div style="display: flex; gap: 8px; margin-top: 8px;">
@@ -1201,14 +1298,27 @@ class TeacherController {
       });
     });
 
+    const submitComment = (pid) => {
+      const input = list.querySelector(`.comment-input[data-post-id="${pid}"]`);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      store.addPostComment(pid, '林老師', text);
+      this.renderStories();
+    };
+
     list.querySelectorAll('.comment-submit-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const pid = btn.dataset.postId;
-        const input = list.querySelector(`.comment-input[data-post-id="${pid}"]`);
-        const text = input.value.trim();
-        if (!text) return;
-        store.addPostComment(pid, '林老師', text);
-        this.renderStories();
+        submitComment(btn.dataset.postId);
+      });
+    });
+
+    list.querySelectorAll('.comment-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitComment(input.dataset.postId);
+        }
       });
     });
   }
@@ -1622,7 +1732,7 @@ class TeacherController {
             ${step.done ? '✓' : idx + 1}
           </span>
           <span style="font-size: 0.95rem; font-weight: ${step.done ? '600' : '700'}; color: ${step.done ? '#065f46' : '#1e293b'}; text-decoration: ${step.done ? 'line-through' : 'none'};">
-            ${step.text}
+            ${escapeHTML(step.text)}
           </span>
         </div>
         <span style="font-size: 0.8rem; font-weight: 700; color: ${step.done ? '#059669' : '#94a3b8'};">
@@ -1659,7 +1769,23 @@ class TeacherController {
   }
 
   closeModal(modal) {
-    if (modal) modal.classList.remove('open');
+    if (!modal) return;
+    if (modal === this.timerModal) {
+      this.pauseTimer();
+    } else if (modal === this.noiseModal) {
+      this.stopNoiseMeter();
+    } else if (modal === this.thinkPairModal) {
+      this.pauseThinkPairTimer();
+    }
+    modal.classList.remove('open');
+  }
+
+  closeTopModal() {
+    const openModals = Array.from(document.querySelectorAll('.modal-backdrop.open'));
+    if (openModals.length === 0) return false;
+    const topModal = openModals[openModals.length - 1];
+    this.closeModal(topModal);
+    return true;
   }
 }
 
