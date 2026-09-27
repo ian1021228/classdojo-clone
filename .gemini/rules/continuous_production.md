@@ -35,3 +35,29 @@
 - **資料庫讀寫頻率與尖峰控管 (Database Quota Guard)**：在 `firebase-config.js` 實施 400ms 寫入防抖 (Debounce) 與批量合流 (Batch Coalescing)，阻斷快速連續連點造成的 Firestore / 本機讀寫暴衝，確保資料庫配額安全。
 - **儲存空間配置與動態防爆管理 (Storage Quota Manager)**：監控 LocalStorage 與 Cloud 空間佔用，對作品集大圖/手繪向量進行壓縮；當儲存空間接近 80% 警戒線時，自動觸發歷史舊流水號之無損滾動封存（LRU 策略），徹底杜絕 `QuotaExceededError` 引起的程式崩潰。
 - **零資料更動原則**：絕不破壞、覆蓋既有使用者的正式班級、學生與作業資料結構。
+
+---
+
+## 3. 終端機執行限制與禁止指令清單 (Terminal Execution Policy & DenyList)
+在所有對話、任務與自動化腳本中，嚴格遵守以下終端機執行限制：
+
+```json
+{
+  "agent": {
+    "terminalExecutionPolicy": "turbo",
+    "denyList": [
+      "rm -rf",
+      "del /f /s /q",
+      "format",
+      "rmdir /s /q",
+      "rd /s /q",
+      "shutdown",
+      "reg delete",
+      "bcdedit",
+      "diskpart"
+    ]
+  }
+}
+```
+
+任何情況下均嚴禁執行或提出上述清單中的危險指令。
