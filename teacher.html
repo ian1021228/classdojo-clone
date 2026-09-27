@@ -59,8 +59,13 @@
         <div class="class-title-area">
           <div class="class-icon-badge" id="class-badge-icon">🚀</div>
           <div class="class-info">
-            <h1 id="class-display-name">三年甲班 快樂冒險家</h1>
-            <p><span id="class-student-count">8</span> 位學生 • 班級代碼：<strong id="class-code-tag" style="color: var(--dojo-blue); letter-spacing: 1px;">DOJO77</strong></p>
+            <h1 id="class-display-name">向日葵四年一班 (Crew Sunflowers)</h1>
+            <p>
+              <span id="class-student-count">5</span> 位學生 • 班級代碼：<strong id="class-code-tag" style="color: #b45309; letter-spacing: 1px;">CREW88</strong>
+              <button class="btn btn-secondary btn-sm" id="btn-show-class-code" style="padding: 3px 10px; font-size: 0.8rem; border-radius: var(--radius-full); margin-left: 8px;">
+                <i class="fa-solid fa-qrcode"></i> 登入代碼卡
+              </button>
+            </p>
           </div>
         </div>
 
@@ -579,6 +584,63 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btn-cancel-add-event">取消</button>
         <button class="btn btn-primary" id="btn-submit-add-event">確認發布活動</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 10: Student Class Code & QR Login Cards Modal -->
+  <div class="modal-backdrop" id="class-code-modal">
+    <div class="modal-card" style="max-width: 580px; text-align: center;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">🎟️</span>
+          <h3 class="modal-title">學生小蜂登入代碼與 QR 徽章卡</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-class-code">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 20px;">
+          學生可在學生端輸入 6 碼大寫班級代碼，或以平板鏡頭掃描個人專屬 QR 徽章卡直接登入：
+        </p>
+
+        <!-- 6-Letter Big Code Box -->
+        <div style="background: #fffdf5; border: 2px dashed #f59e0b; border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+          <span style="font-size: 0.85rem; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 1px;">班級 6 碼文字代碼 (Class Text Code)</span>
+          <div style="display: flex; justify-content: center; gap: 8px; margin: 16px 0;" id="code-letters-container">
+            <span style="width: 44px; height: 52px; background: #ffffff; border: 2px solid #fde68a; border-radius: 10px; font-size: 1.8rem; font-weight: 900; color: #b45309; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">C</span>
+            <span style="width: 44px; height: 52px; background: #ffffff; border: 2px solid #fde68a; border-radius: 10px; font-size: 1.8rem; font-weight: 900; color: #b45309; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">R</span>
+            <span style="width: 44px; height: 52px; background: #ffffff; border: 2px solid #fde68a; border-radius: 10px; font-size: 1.8rem; font-weight: 900; color: #b45309; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">E</span>
+            <span style="width: 44px; height: 52px; background: #ffffff; border: 2px solid #fde68a; border-radius: 10px; font-size: 1.8rem; font-weight: 900; color: #b45309; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">W</span>
+            <span style="width: 44px; height: 52px; background: #ffffff; border: 2px solid #fde68a; border-radius: 10px; font-size: 1.8rem; font-weight: 900; color: #b45309; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">8</span>
+            <span style="width: 44px; height: 52px; background: #ffffff; border: 2px solid #fde68a; border-radius: 10px; font-size: 1.8rem; font-weight: 900; color: #b45309; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">8</span>
+          </div>
+          <div style="font-size: 0.8rem; color: #94a3b8;">48 小時內有效 ‧ 可直接投放到教室投影幕引導學生登入</div>
+        </div>
+
+        <!-- QR Code Simulation -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 24px; background: #ffffff; border: 1.5px solid #fde68a; border-radius: 16px; padding: 20px;">
+          <div style="width: 120px; height: 120px; background: #fafafa; border: 1px solid #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative;">
+            <svg viewBox="0 0 100 100" width="100" height="100">
+              <rect x="10" y="10" width="24" height="24" fill="#1e293b"/>
+              <rect x="14" y="14" width="16" height="16" fill="#fff"/>
+              <rect x="18" y="18" width="8" height="8" fill="#1e293b"/>
+              <rect x="66" y="10" width="24" height="24" fill="#1e293b"/>
+              <rect x="70" y="14" width="16" height="16" fill="#fff"/>
+              <rect x="74" y="18" width="8" height="8" fill="#1e293b"/>
+              <rect x="10" y="66" width="24" height="24" fill="#1e293b"/>
+              <rect x="14" y="70" width="16" height="16" fill="#fff"/>
+              <rect x="18" y="74" width="8" height="8" fill="#1e293b"/>
+              <!-- Bee icon center -->
+              <circle cx="50" cy="50" r="14" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="50" y="55" font-size="14" text-anchor="middle">🐝</text>
+            </svg>
+          </div>
+          <div style="text-align: left;">
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">全班學生 QR 徽章卡</h4>
+            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 12px;">列印後可剪裁成學生個人名片大小，方便低年級與學童無障礙掃描進場！</p>
+            <button class="btn btn-secondary btn-sm" id="btn-print-qr-cards"><i class="fa-solid fa-print"></i> 列印全班 QR 登入徽章卡</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

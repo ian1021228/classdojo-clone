@@ -144,6 +144,16 @@ async function runTests() {
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_toolkit_modal_${mode}.png`) });
         await page.click('#btn-close-toolkit');
         await new Promise(r => setTimeout(r, 300));
+
+        // Test Class Code & QR Login Modal
+        const hasCodeBtn = await page.$('#btn-show-class-code');
+        if (hasCodeBtn) {
+          await page.click('#btn-show-class-code');
+          await new Promise(r => setTimeout(r, 400));
+          await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_class_code_modal_${mode}.png`) });
+          await page.click('#btn-close-class-code');
+          await new Promise(r => setTimeout(r, 300));
+        }
       });
 
       // Test 3: Student Page

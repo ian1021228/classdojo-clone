@@ -195,6 +195,18 @@ class TeacherController {
       });
     });
 
+    // Class Code Modal Controls
+    const classCodeModal = document.getElementById('class-code-modal');
+    document.getElementById('btn-show-class-code')?.addEventListener('click', () => {
+      this.openModal(classCodeModal);
+    });
+    document.getElementById('btn-close-class-code')?.addEventListener('click', () => {
+      this.closeModal(classCodeModal);
+    });
+    document.getElementById('btn-print-qr-cards')?.addEventListener('click', () => {
+      window.print();
+    });
+
     // Floating Dock Buttons
     document.getElementById('dock-btn-toolkit')?.addEventListener('click', () => this.openModal(this.toolkitModal));
     document.getElementById('dock-btn-attendance')?.addEventListener('click', (e) => {
