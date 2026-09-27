@@ -210,6 +210,55 @@ class BeeEngine {
   }
 }
 
+function getBeeLevelInfo(points = 0) {
+  const pts = Math.max(0, points || 0);
+  if (pts >= 50) {
+    return {
+      level: 4,
+      title: '👑 傳奇蜂巢守護者',
+      badge: '👑',
+      min: 50,
+      next: null,
+      progress: 100,
+      nextDiff: 0,
+      nextTitle: null
+    };
+  } else if (pts >= 30) {
+    return {
+      level: 3,
+      title: '🥇 金蜜釀造大師',
+      badge: '🥇',
+      min: 30,
+      next: 50,
+      progress: Math.min(100, Math.round(((pts - 30) / 20) * 100)),
+      nextDiff: 50 - pts,
+      nextTitle: '👑 傳奇蜂巢守護者'
+    };
+  } else if (pts >= 15) {
+    return {
+      level: 2,
+      title: '🥈 花園巡邏小隊長',
+      badge: '🥈',
+      min: 15,
+      next: 30,
+      progress: Math.min(100, Math.round(((pts - 15) / 15) * 100)),
+      nextDiff: 30 - pts,
+      nextTitle: '🥇 金蜜釀造大師'
+    };
+  } else {
+    return {
+      level: 1,
+      title: '🥉 採蜜見習小蜂',
+      badge: '🥉',
+      min: 0,
+      next: 15,
+      progress: Math.min(100, Math.round((pts / 15) * 100)),
+      nextDiff: 15 - pts,
+      nextTitle: '🥈 花園巡邏小隊長'
+    };
+  }
+}
+
 const beeEngineInstance = new BeeEngine();
 if (typeof window !== 'undefined') {
   window.HONEY_COLORS = HONEY_COLORS;
@@ -218,8 +267,10 @@ if (typeof window !== 'undefined') {
   window.MonsterEngine = BeeEngine;
   window.beeEngine = beeEngineInstance;
   window.monsterEngine = beeEngineInstance;
+  window.getBeeLevelInfo = getBeeLevelInfo;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { HONEY_COLORS, BEE_ARCHETYPES, BeeEngine, MonsterEngine: BeeEngine };
+  module.exports = { HONEY_COLORS, BEE_ARCHETYPES, BeeEngine, MonsterEngine: BeeEngine, getBeeLevelInfo };
 }
+

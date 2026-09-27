@@ -190,6 +190,17 @@ async function runTests() {
           }
           await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_story_poll_${mode}.png`) });
         }
+
+        // Test Export Report Modal
+        const exportBtn = await page.$('#btn-export-report');
+        if (exportBtn) {
+          await page.evaluate(el => el.click(), exportBtn);
+          await new Promise(r => setTimeout(r, 400));
+          await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_export_report_${mode}.png`) });
+          await page.evaluate(() => document.getElementById('btn-close-export-report')?.click());
+          await new Promise(r => setTimeout(r, 300));
+          console.log(`    ✓ Export report modal tested in ${mode}`);
+        }
       });
 
       // Test 3: Student Page
@@ -225,6 +236,14 @@ async function runTests() {
           const pill = document.querySelector('.trait-pill-btn[data-trait-val="fluffy"]');
           if (pill) pill.click();
         });
+
+        // Test Points tab & Level XP
+        await page.evaluate(() => {
+          document.getElementById('tab-student-points')?.click();
+        });
+        await new Promise(r => setTimeout(r, 400));
+        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `03_student_level_xp_${mode}.png`) });
+        console.log(`    ✓ Student XP Level progress tested in ${mode}`);
 
         // Test Rewards Store
         await page.evaluate(() => {

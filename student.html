@@ -118,6 +118,20 @@
           </div>
           <h3 id="student-points-title" style="font-size: 1.35rem; font-weight: 800; color: #1e293b;">Beyoncé</h3>
           <p style="color: #64748b; font-size: 0.9rem; margin-top: 6px;">勤勞認真，持續採集知識的花蜜！</p>
+
+          <!-- Level & XP Progress Bar -->
+          <div style="margin-top: 18px; padding: 14px; background: #fffdf5; border-radius: 12px; border: 1.5px solid #fde68a;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span id="student-level-title" style="font-weight: 800; font-size: 0.9rem; color: #b45309;">🥉 採蜜見習小蜂</span>
+              <span id="student-level-xp" style="font-size: 0.8rem; font-weight: 700; color: #78350f;">5 / 15 點</span>
+            </div>
+            <div style="width: 100%; height: 10px; background: #fef3c7; border-radius: 999px; overflow: hidden; border: 1px solid #fde68a;">
+              <div id="student-level-progress-bar" style="width: 33%; height: 100%; background: linear-gradient(90deg, #f59e0b, #d97706); border-radius: 999px; transition: width 0.5s ease;"></div>
+            </div>
+            <div id="student-level-hint" style="font-size: 0.75rem; color: #94a3b8; margin-top: 6px; text-align: left;">
+              再收集 10 滴蜜糖即可晉升「🥈 花園巡邏小隊長」！
+            </div>
+          </div>
         </div>
 
         <!-- Right: Feedback History Timeline -->

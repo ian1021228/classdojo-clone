@@ -92,6 +92,7 @@ class TeacherController {
     this.addStudentModal = document.getElementById('add-student-modal');
     this.bigIdeasModal = document.getElementById('bigideas-modal');
     this.addEventModal = document.getElementById('add-event-modal');
+    this.exportReportModal = document.getElementById('export-report-modal');
   }
 
   bindEvents() {
@@ -452,14 +453,18 @@ class TeacherController {
       if (e.key === 'Enter') document.getElementById('btn-send-message').click();
     });
 
-    // Export Report
+    // Export Report Modal Controls
     document.getElementById('btn-export-report')?.addEventListener('click', () => {
-      const cls = store.getActiveClass();
-      let summary = `【ClassDojo 評量報表】\n班級：${cls.name}\n總分：${cls.totalPoints} 點\n\n學生表現一覽：\n`;
-      cls.students.forEach(s => {
-        summary += `- ${s.name} (座號 ${s.seatNumber}): ${s.points} 點 (出勤: ${s.attendance})\n`;
-      });
-      alert(summary);
+      this.openExportReportModal();
+    });
+    document.getElementById('btn-close-export-report')?.addEventListener('click', () => {
+      this.closeModal(this.exportReportModal);
+    });
+    document.getElementById('btn-download-csv')?.addEventListener('click', () => {
+      this.downloadReportCSV();
+    });
+    document.getElementById('btn-print-table-report')?.addEventListener('click', () => {
+      window.print();
     });
   }
 
@@ -1388,6 +1393,70 @@ class TeacherController {
     });
 
     this.openModal(this.bigIdeasModal);
+  }
+
+  openExportReportModal() {
+    const cls = store.getActiveClass();
+    if (!cls) return;
+
+    const nameEl = document.getElementById('report-class-name');
+    const summaryEl = document.getElementById('report-class-summary');
+    const tbody = document.getElementById('export-report-tbody');
+
+    if (nameEl) nameEl.textContent = `${cls.name} ‧ 採蜜總評量報表`;
+    if (summaryEl) {
+      summaryEl.textContent = `全班共 ${cls.students.length} 位小蜜蜂 ‧ 累積總點數 ${cls.totalPoints} 點 ‧ 產出時間：${new Date().toLocaleDateString('zh-TW')}`;
+    }
+
+    if (tbody) {
+      tbody.innerHTML = cls.students.map(s => {
+        const lvl = window.getBeeLevelInfo ? window.getBeeLevelInfo(s.points) : { title: '🥉 採蜜見習小蜂' };
+        const attText = s.attendance === 'present' ? '出席' : (s.attendance === 'tardy' ? '遲到' : '缺席');
+        const attColor = s.attendance === 'present' ? '#166534' : (s.attendance === 'tardy' ? '#b45309' : '#b91c1c');
+
+        return `
+          <tr style="border-bottom: 1px solid #fde68a;">
+            <td style="padding: 10px 14px; font-weight: 700; color: #64748b;">${s.seatNumber}</td>
+            <td style="padding: 10px 14px;">
+              <div style="width: 36px; height: 36px;">
+                ${window.beeEngine ? window.beeEngine.renderMonsterSVG(s.monster || {}, 36, s.isHatched) : '🐝'}
+              </div>
+            </td>
+            <td style="padding: 10px 14px; font-weight: 800; color: #1e293b;">${s.name}</td>
+            <td style="padding: 10px 14px; font-weight: 800; color: #d97706;">${s.points} 🍯</td>
+            <td style="padding: 10px 14px;"><span style="font-weight: 700; font-size: 0.85rem; background: #fffdf5; padding: 2px 8px; border-radius: 6px; border: 1px solid #fde68a;">${lvl.title}</span></td>
+            <td style="padding: 10px 14px;"><span style="font-weight: 700; color: ${attColor};">${attText}</span></td>
+            <td style="padding: 10px 14px; color: #64748b;">${s.parentName || s.name + ' 家長'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    this.openModal(this.exportReportModal);
+    if (window.dojoAudio) window.dojoAudio.playTick();
+  }
+
+  downloadReportCSV() {
+    const cls = store.getActiveClass();
+    if (!cls) return;
+
+    let csv = '\uFEFF座號,學生姓名,累積花蜜點數,成長稱號,今日出勤,家長代表\n';
+    cls.students.forEach(s => {
+      const lvl = window.getBeeLevelInfo ? window.getBeeLevelInfo(s.points) : { title: '採蜜見習小蜂' };
+      const attText = s.attendance === 'present' ? '出席' : (s.attendance === 'tardy' ? '遲到' : '缺席');
+      csv += `"${s.seatNumber}","${s.name}","${s.points}","${lvl.title}","${attText}","${s.parentName || s.name + ' 家長'}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${cls.name}_採蜜評量總表_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    if (window.dojoAudio) window.dojoAudio.playPositive();
   }
 
   // Modal helpers

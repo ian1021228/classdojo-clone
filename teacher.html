@@ -659,6 +659,48 @@
         </div>
       </div>
     </div>
+  <!-- Modal 10: Export Report Modal -->
+  <div class="modal-backdrop" id="export-report-modal">
+    <div class="modal-card" style="max-width: 820px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">📊</span>
+          <h3 class="modal-title">班級採蜜總評量報表</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-export-report">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h4 id="report-class-name" style="font-size: 1.2rem; font-weight: 800; color: #1e293b;">班級採蜜總評量</h4>
+            <span id="report-class-summary" style="font-size: 0.85rem; color: #64748b;">全班共 6 位小蜜蜂 ‧ 累積總點數 48 點</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-secondary btn-sm" id="btn-download-csv"><i class="fa-solid fa-file-csv"></i> 下載 CSV 試算表</button>
+            <button class="btn btn-primary btn-sm" id="btn-print-table-report"><i class="fa-solid fa-print"></i> 列印總評量表</button>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto; border: 1.5px solid #fde68a; border-radius: 12px; max-height: 420px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;" id="export-report-table">
+            <thead>
+              <tr style="background: #fef3c7; color: #78350f; border-bottom: 1.5px solid #fde68a; position: sticky; top: 0; z-index: 5;">
+                <th style="padding: 10px 14px;">座號</th>
+                <th style="padding: 10px 14px;">小蜜蜂</th>
+                <th style="padding: 10px 14px;">學生姓名</th>
+                <th style="padding: 10px 14px;">累積花蜜</th>
+                <th style="padding: 10px 14px;">成長等級</th>
+                <th style="padding: 10px 14px;">今日出勤</th>
+                <th style="padding: 10px 14px;">家長代表</th>
+              </tr>
+            </thead>
+            <tbody id="export-report-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->

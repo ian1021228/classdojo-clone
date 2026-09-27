@@ -362,6 +362,22 @@ class StudentController {
     const title = document.getElementById('student-points-title');
     if (title) title.textContent = `${s.name} (座號 ${s.seatNumber})`;
 
+    // Update Bee Level & XP Progress
+    if (window.getBeeLevelInfo) {
+      const lvl = window.getBeeLevelInfo(s.points);
+      const lvlTitle = document.getElementById('student-level-title');
+      const lvlXp = document.getElementById('student-level-xp');
+      const lvlBar = document.getElementById('student-level-progress-bar');
+      const lvlHint = document.getElementById('student-level-hint');
+
+      if (lvlTitle) lvlTitle.textContent = lvl.title;
+      if (lvlXp) lvlXp.textContent = lvl.next ? `${s.points} / ${lvl.next} 點` : `${s.points} 點 (已達最高榮譽)`;
+      if (lvlBar) lvlBar.style.width = `${lvl.progress}%`;
+      if (lvlHint) {
+        lvlHint.textContent = lvl.next ? `再收集 ${lvl.nextDiff} 滴蜜糖即可晉升「${lvl.nextTitle}」！` : '🎉 恭喜！你已解鎖最高榮譽「傳奇蜂巢守護者」，向日葵花園的至高驕傲！';
+      }
+    }
+
     const timelineWrap = document.getElementById('student-feedback-timeline');
     if (!timelineWrap) return;
 

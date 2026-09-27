@@ -219,6 +219,13 @@ class ParentController {
       this.childAttBadge.innerHTML = `<i class="fa-solid fa-check"></i> ${attLabels[child.attendance || 'present'] || '✅ 今日準時抵達蜂巢'}`;
     }
 
+    // Update Level Badge
+    const lvlBadge = document.getElementById('parent-level-badge');
+    if (lvlBadge && window.getBeeLevelInfo) {
+      const lvl = window.getBeeLevelInfo(child.points);
+      lvlBadge.textContent = lvl.title;
+    }
+
     // Feedback timeline
     const timelineWrap = document.getElementById('parent-feedback-timeline');
     if (!timelineWrap) return;
