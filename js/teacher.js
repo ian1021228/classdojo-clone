@@ -33,7 +33,47 @@ class TeacherController {
     this.isMicActive = false;
     this.micStream = null;
     this.micAudioCtx = null;
-    this.micAnimFrame = null;
+    // Think-Pair-Share state
+    this.thinkPairRemaining = 60;
+    this.thinkPairInterval = null;
+    this.isThinkPairRunning = false;
+    this.thinkPairPrompts = [
+      '「如果遇到一道目前還解不開的難題，你可以對自己或夥伴說什麼呢？」',
+      '「課堂實驗中，水分子是怎麼運動的？請和同桌夥伴互相說明 30 秒！」',
+      '「分享一件今天最讓你感到成就感的小事，並給身邊夥伴一個熱情的擊掌！」',
+      '「如果蜜蜂要告訴花朵感謝的話，你覺得牠會說些什麼？請用一句話表達！」',
+      '「在團隊協作時，如果組員有不同的想法，我們可以用什麼好方法找到共識？」'
+    ];
+    this.currentPromptIdx = 0;
+
+    // Directions state
+    this.directionsPresets = {
+      science: {
+        title: '🧪 自然科學探究任務',
+        steps: [
+          { text: '拿出自然課本翻至第 42 頁，安靜預覽實驗器材圖', done: false },
+          { text: '與小組成員討論水火箭受壓原理並記錄於手稿', done: false },
+          { text: '由小組長分配實驗觀察記錄員與器材操作員', done: false }
+        ]
+      },
+      reading: {
+        title: '📖 晨讀專注任務',
+        steps: [
+          { text: '自選一本喜歡的科學或文學繪本安靜閱讀 15 分鐘', done: false },
+          { text: '在閱讀小卡上寫下一句最有感觸的金句', done: false },
+          { text: '向右邊的同伴分享書中最喜歡的插圖或情節', done: false }
+        ]
+      },
+      clean: {
+        title: '🧹 課後蜂巢打掃整理',
+        steps: [
+          { text: '將個人桌面收拾乾淨，文具與水壺放回置物籃', done: false },
+          { text: '各小組將桌椅靠攏對齊向日葵地線', done: false },
+          { text: '值日小蜂檢查黑板與板擦是否已清理乾淨', done: false }
+        ]
+      }
+    };
+    this.currentDirections = JSON.parse(JSON.stringify(this.directionsPresets.science));
 
     this.init();
   }
@@ -93,6 +133,8 @@ class TeacherController {
     this.bigIdeasModal = document.getElementById('bigideas-modal');
     this.addEventModal = document.getElementById('add-event-modal');
     this.exportReportModal = document.getElementById('export-report-modal');
+    this.thinkPairModal = document.getElementById('thinkpair-modal');
+    this.directionsModal = document.getElementById('directions-modal');
   }
 
   bindEvents() {
@@ -298,19 +340,45 @@ class TeacherController {
       this.openNoiseModal();
     });
     document.getElementById('tk-card-thinkpair')?.addEventListener('click', () => {
-      const prompts = [
-        '「如果你有一種超能力，你想用它來解決生活中的什麼問題？」',
-        '「課堂實驗中，水分子是怎麼運動的？請和夥伴互相說明 30 秒！」',
-        '「回想今天最讓你開心的一件事，並給身邊的夥伴一個擊掌！」'
-      ];
-      const p = prompts[Math.floor(Math.random() * prompts.length)];
-      alert(`💡 思考-配對-分享 (Think-Pair-Share):\n\n${p}\n\n請給學生 1 分鐘互相分享討論！`);
+      this.closeModal(this.toolkitModal);
+      this.openThinkPairModal();
+    });
+    document.getElementById('tk-card-directions')?.addEventListener('click', () => {
+      this.closeModal(this.toolkitModal);
+      this.openDirectionsModal();
     });
     document.getElementById('tk-card-music')?.addEventListener('click', () => {
       if (window.dojoAudio) {
         window.dojoAudio.playFanfare();
-        alert('🎵 專注提示音已播放！課堂輕快專注節奏啟動。');
+        if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 40);
       }
+    });
+
+    // Think-Pair-Share Controls
+    document.getElementById('btn-close-thinkpair')?.addEventListener('click', () => {
+      this.pauseThinkPairTimer();
+      this.closeModal(this.thinkPairModal);
+    });
+    document.getElementById('btn-next-prompt')?.addEventListener('click', () => this.nextThinkPairPrompt());
+    document.getElementById('btn-custom-prompt')?.addEventListener('click', () => {
+      const q = prompt('請輸入自訂的課堂討論引導題：');
+      if (q && q.trim()) {
+        const textEl = document.getElementById('thinkpair-prompt-text');
+        if (textEl) textEl.textContent = `「${q.trim()}」`;
+      }
+    });
+    document.getElementById('btn-thinkpair-timer-toggle')?.addEventListener('click', () => this.toggleThinkPairTimer());
+    document.getElementById('btn-thinkpair-timer-reset')?.addEventListener('click', () => this.resetThinkPairTimer());
+
+    // Directions Controls
+    document.getElementById('btn-close-directions')?.addEventListener('click', () => this.closeModal(this.directionsModal));
+    document.getElementById('directions-preset-select')?.addEventListener('change', (e) => this.loadDirectionsPreset(e.target.value));
+    document.getElementById('btn-add-step')?.addEventListener('click', () => {
+      const input = document.getElementById('input-new-step');
+      const val = input.value.trim();
+      if (!val) return;
+      this.addDirectionsStep(val);
+      input.value = '';
     });
 
     // Timer Modal Controls
@@ -1456,6 +1524,132 @@ class TeacherController {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    if (window.dojoAudio) window.dojoAudio.playPositive();
+  }
+
+  // Think-Pair-Share
+  openThinkPairModal() {
+    this.openModal(this.thinkPairModal);
+    this.updateThinkPairPromptUI();
+    this.updateThinkPairTimerUI();
+    if (window.dojoAudio) window.dojoAudio.playTick();
+  }
+
+  nextThinkPairPrompt() {
+    this.currentPromptIdx = (this.currentPromptIdx + 1) % this.thinkPairPrompts.length;
+    this.updateThinkPairPromptUI();
+    if (window.dojoAudio) window.dojoAudio.playTick();
+  }
+
+  updateThinkPairPromptUI() {
+    const textEl = document.getElementById('thinkpair-prompt-text');
+    if (textEl) textEl.textContent = this.thinkPairPrompts[this.currentPromptIdx];
+  }
+
+  updateThinkPairTimerUI() {
+    const display = document.getElementById('thinkpair-timer-display');
+    if (!display) return;
+    const mins = Math.floor(this.thinkPairRemaining / 60);
+    const secs = this.thinkPairRemaining % 60;
+    display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  toggleThinkPairTimer() {
+    const btn = document.getElementById('btn-thinkpair-timer-toggle');
+    if (this.isThinkPairRunning) {
+      this.pauseThinkPairTimer();
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i> 繼續嗡嗡討論';
+    } else {
+      this.isThinkPairRunning = true;
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-pause"></i> 暫停計時';
+      this.thinkPairInterval = setInterval(() => {
+        if (this.thinkPairRemaining > 0) {
+          this.thinkPairRemaining--;
+          this.updateThinkPairTimerUI();
+        } else {
+          this.pauseThinkPairTimer();
+          if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i> 開始 1 分鐘嗡嗡討論';
+          if (window.dojoAudio) window.dojoAudio.playPollenChime();
+          if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 60);
+          alert('🔔 時間到！小蜜蜂夥伴們請停下嗡嗡聲，準備向全班分享精彩見解！');
+        }
+      }, 1000);
+    }
+  }
+
+  pauseThinkPairTimer() {
+    this.isThinkPairRunning = false;
+    if (this.thinkPairInterval) {
+      clearInterval(this.thinkPairInterval);
+      this.thinkPairInterval = null;
+    }
+    const btn = document.getElementById('btn-thinkpair-timer-toggle');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i> 開始 1 分鐘嗡嗡討論';
+  }
+
+  resetThinkPairTimer() {
+    this.pauseThinkPairTimer();
+    this.thinkPairRemaining = 60;
+    this.updateThinkPairTimerUI();
+    if (window.dojoAudio) window.dojoAudio.playTick();
+  }
+
+  // Directions Board
+  openDirectionsModal() {
+    this.openModal(this.directionsModal);
+    this.renderDirectionsSteps();
+    if (window.dojoAudio) window.dojoAudio.playTick();
+  }
+
+  loadDirectionsPreset(presetKey) {
+    if (this.directionsPresets[presetKey]) {
+      this.currentDirections = JSON.parse(JSON.stringify(this.directionsPresets[presetKey]));
+      const titleEl = document.getElementById('directions-title');
+      if (titleEl) titleEl.textContent = this.currentDirections.title;
+      this.renderDirectionsSteps();
+      if (window.dojoAudio) window.dojoAudio.playTick();
+    }
+  }
+
+  renderDirectionsSteps() {
+    const list = document.getElementById('directions-steps-list');
+    if (!list) return;
+
+    list.innerHTML = this.currentDirections.steps.map((step, idx) => `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: ${step.done ? '#ecfdf5' : '#ffffff'}; border: 1.5px solid ${step.done ? '#6ee7b7' : '#fde68a'}; border-radius: 10px; cursor: pointer; transition: all 0.2s;" data-step-idx="${idx}">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="width: 26px; height: 26px; border-radius: 50%; background: ${step.done ? '#10b981' : '#fef3c7'}; color: ${step.done ? '#ffffff' : '#b45309'}; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800;">
+            ${step.done ? '✓' : idx + 1}
+          </span>
+          <span style="font-size: 0.95rem; font-weight: ${step.done ? '600' : '700'}; color: ${step.done ? '#065f46' : '#1e293b'}; text-decoration: ${step.done ? 'line-through' : 'none'};">
+            ${step.text}
+          </span>
+        </div>
+        <span style="font-size: 0.8rem; font-weight: 700; color: ${step.done ? '#059669' : '#94a3b8'};">
+          ${step.done ? '已完成' : '待完成'}
+        </span>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-step-idx]').forEach(item => {
+      item.addEventListener('click', () => {
+        const idx = parseInt(item.dataset.stepIdx, 10);
+        this.currentDirections.steps[idx].done = !this.currentDirections.steps[idx].done;
+        if (window.dojoAudio) {
+          if (this.currentDirections.steps[idx].done) {
+            window.dojoAudio.playHoneyDrop();
+          } else {
+            window.dojoAudio.playTick();
+          }
+        }
+        this.renderDirectionsSteps();
+      });
+    });
+  }
+
+  addDirectionsStep(text) {
+    this.currentDirections.steps.push({ text, done: false });
+    this.renderDirectionsSteps();
     if (window.dojoAudio) window.dojoAudio.playPositive();
   }
 

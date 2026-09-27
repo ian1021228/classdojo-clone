@@ -144,8 +144,35 @@ async function runTests() {
         }
         await new Promise(r => setTimeout(r, 400));
         await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_toolkit_modal_${mode}.png`) });
-        await page.click('#btn-close-toolkit');
+
+        // Test Think-Pair-Share Modal
+        await page.evaluate(() => document.getElementById('tk-card-thinkpair')?.click());
+        await new Promise(r => setTimeout(r, 500));
+        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_thinkpair_modal_${mode}.png`) });
+        await page.evaluate(() => document.getElementById('btn-next-prompt')?.click());
         await new Promise(r => setTimeout(r, 300));
+        await page.evaluate(() => document.getElementById('btn-close-thinkpair')?.click());
+        await new Promise(r => setTimeout(r, 400));
+        console.log(`    ✓ Think-Pair-Share modal tested in ${mode}`);
+
+        // Re-open toolkit and test Directions Modal
+        if (mode === 'desktop') {
+          await page.click('#dock-btn-toolkit');
+        } else {
+          await page.click('#mob-nav-toolkit');
+        }
+        await new Promise(r => setTimeout(r, 400));
+        await page.evaluate(() => document.getElementById('tk-card-directions')?.click());
+        await new Promise(r => setTimeout(r, 500));
+        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_directions_modal_${mode}.png`) });
+        await page.evaluate(() => {
+          const step = document.querySelector('[data-step-idx="0"]');
+          if (step) step.click();
+        });
+        await new Promise(r => setTimeout(r, 300));
+        await page.evaluate(() => document.getElementById('btn-close-directions')?.click());
+        await new Promise(r => setTimeout(r, 400));
+        console.log(`    ✓ Directions task board tested in ${mode}`);
 
         // Test Class Code & QR Login Modal
         const hasCodeBtn = await page.$('#btn-show-class-code');

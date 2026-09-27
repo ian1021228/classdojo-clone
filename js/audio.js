@@ -172,6 +172,11 @@ class DojoAudio {
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
+      osc.start(startTime);
+      osc.stop(startTime + 0.18);
+    }
+  }
+
   // Liquid Honey Drop Sound (soft sweet droplet resonance)
   playHoneyDrop() {
     if (!this.enabled) return;
