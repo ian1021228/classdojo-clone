@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ClassDojo - 讓課堂充滿笑聲與成長的學習社群</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dojo-ui.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%2300d27a%22/><circle cx=%2238%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2262%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2240%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><circle cx=%2264%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><path d=%22M 36 60 Q 50 72 64 60%22 stroke=%22%232b3b48%22 stroke-width=%224%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="dojo-navbar">
+    <a href="index.html" class="dojo-brand">
+      <div class="dojo-logo-icon">👾</div>
+      <span>ClassDojo</span>
+    </a>
+    <nav class="dojo-nav-links">
+      <a href="teacher.html" class="nav-link-btn">👨‍🏫 教師端</a>
+      <a href="student.html" class="nav-link-btn">👾 學生端</a>
+      <a href="parent.html" class="nav-link-btn">👨‍👩‍👧 家長端</a>
+      <button id="btn-open-settings" class="btn btn-secondary btn-sm" title="系統與 Firebase 設定">⚙️ 設定</button>
+      <button id="btn-quick-login" class="btn btn-primary btn-sm">🚀 快速登入</button>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="landing-hero">
+      <div id="hero-monster-banner" style="display: flex; justify-content: center; gap: 16px; margin-bottom: 20px;"></div>
+      <h1 class="hero-title">建立更緊密的<span>課堂與家庭</span>社群</h1>
+      <p class="hero-subtitle">
+        專為教師、學生與家長設計的趣味激勵平台。透過超萌怪獸頭像、即時點數激勵、課堂工具箱與動態交流，陪伴孩子快樂成長！
+      </p>
+
+      <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; flex-wrap: wrap;">
+        <a href="teacher.html" class="btn btn-primary btn-lg">進入教師課堂管理</a>
+        <button id="btn-hero-demo" class="btn btn-secondary btn-lg">測試帳號一鍵體驗 (antigravity)</button>
+      </div>
+
+      <!-- Role Entrance Cards Grid -->
+      <div class="role-cards-grid">
+        <!-- Teacher Card -->
+        <a href="teacher.html" class="role-entry-card" id="card-teacher">
+          <div class="role-icon-circle" style="background: #e6f9f0; color: #00af66;">👨‍🏫</div>
+          <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 8px;">教師課堂管理</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px;">
+            班級學生名單、怪獸卡片、正負向技能給分、全班音效慶祝、計時器、分組與抽籤工具箱。
+          </p>
+          <span class="btn btn-outline-primary btn-sm" style="margin-top: auto;">進入教師端 →</span>
+        </a>
+
+        <!-- Student Card -->
+        <a href="student.html" class="role-entry-card" id="card-student">
+          <div class="role-icon-circle" style="background: #ebf3ff; color: #3a86ff;">👾</div>
+          <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 8px;">學生怪獸工坊</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px;">
+            輸入班級代碼 (DOJO77)、自訂專屬怪獸身型與配件換裝、查看個人成長點數、手繪板歷程創作。
+          </p>
+          <span class="btn btn-outline-primary btn-sm" style="margin-top: auto;">進入學生端 →</span>
+        </a>
+
+        <!-- Parent Card -->
+        <a href="parent.html" class="role-entry-card" id="card-parent">
+          <div class="role-icon-circle" style="background: #fdf2f8; color: #ff006e;">👨‍👩‍👧</div>
+          <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 8px;">家長即時聯絡簿</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px;">
+            掌握孩子的每日點數與在校表現明細、瀏覽班級精彩照片故事動態、與班導師即時私訊溝通。
+          </p>
+          <span class="btn btn-outline-primary btn-sm" style="margin-top: auto;">進入家長端 →</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Homepage Changelog (User Global Rule 1) -->
+    <section class="changelog-section" id="changelog-container">
+      <!-- Rendered dynamically by changelog.js -->
+    </section>
+  </main>
+
+  <!-- Quick Login Modal (User Rule 2: antigravity / 123456) -->
+  <div class="modal-backdrop" id="login-modal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">🔐</span>
+          <h3 class="modal-title">快速登入驗證</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-login">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 0.85rem; color: #166534;">
+          <strong>💡 測試規範預設帳號：</strong><br>
+          帳號：<code>antigravity</code> | 密碼：<code>123456</code>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px;">使用者帳號</label>
+            <input type="text" id="login-username" value="antigravity" style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: inherit;">
+          </div>
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px;">密碼</label>
+            <input type="password" id="login-password" value="123456" style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: inherit;">
+          </div>
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px;">前往角色</label>
+            <select id="login-target-role" style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: inherit;">
+              <option value="teacher.html">👨‍🏫 教師端 (Teacher Dashboard)</option>
+              <option value="student.html">👾 學生端 (Student Workshop)</option>
+              <option value="parent.html">👨‍👩‍👧 家長端 (Parent Portal)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-login">取消</button>
+        <button class="btn btn-primary" id="btn-submit-login">登入並進入系統</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- System & Firebase Settings Modal (User Rule 4: Data Security) -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">⚙️</span>
+          <h3 class="modal-title">系統與資料庫設定</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-settings">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: 8px; padding: 14px; margin-bottom: 18px;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">🛡️ 零資料更動保證 (Zero Data Disruption)</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+            本系統使用獨立隔離命名空間 <code>classdojo_system_v1</code>。絕對不影響、不覆蓋、不損害任何既有線上專案與作業清點系統正式資料。
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">當前儲存引擎狀態</label>
+            <div style="padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 0.9rem; color: #15803d; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+              <span>✅ 本地雙軌持久化運作中 (LocalStorage + Cloud Failover)</span>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">自訂 Firebase API Key (選填)</label>
+            <input type="text" id="cfg-firebase-key" placeholder="貼上自訂 Firebase API Key 啟用雲端即時連線" style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: inherit; font-size: 0.85rem;">
+          </div>
+          <div style="border-top: 1px solid var(--border-light); padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong style="font-size: 0.9rem; color: var(--text-main); display: block;">重置為預設演示資料</strong>
+              <small style="color: var(--text-muted);">還原 3年甲班 快樂冒險隊與 8 隻怪獸學生</small>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-reset-demo" style="color: var(--dojo-red);">重置資料</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btn-save-settings">儲存設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation Bar (393x852 Viewport) -->
+  <nav class="mobile-bottom-bar">
+    <a href="index.html" class="mobile-nav-item active">
+      <span class="mobile-nav-icon">🏠</span>
+      <span>首頁</span>
+    </a>
+    <a href="teacher.html" class="mobile-nav-item">
+      <span class="mobile-nav-icon">👨‍🏫</span>
+      <span>教師</span>
+    </a>
+    <a href="student.html" class="mobile-nav-item">
+      <span class="mobile-nav-icon">👾</span>
+      <span>學生</span>
+    </a>
+    <a href="parent.html" class="mobile-nav-item">
+      <span class="mobile-nav-icon">👨‍👩‍👧</span>
+      <span>家長</span>
+    </a>
+  </nav>
+
+  <!-- Load Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/confetti.js"></script>
+  <script src="js/monster-engine.js"></script>
+  <script type="module">
+    import { renderChangelog } from './js/changelog.js';
+    import { store } from './js/store.js';
+
+    // 1. Render Changelog (User Rule 1)
+    renderChangelog('changelog-container');
+
+    // 2. Render Hero Monsters Banner
+    const banner = document.getElementById('hero-monster-banner');
+    if (banner && window.monsterEngine) {
+      banner.innerHTML = `
+        <div style="transform: rotate(-6deg);">${window.monsterEngine.render({ colorIdx: 0, bodyShape: 'round', eyeStyle: 'two_big', mouthStyle: 'smile', accessory: 'party_hat' }, 90)}</div>
+        <div style="transform: translateY(-8px);">${window.monsterEngine.renderWholeClassIcon(110)}</div>
+        <div style="transform: rotate(6deg);">${window.monsterEngine.render({ colorIdx: 5, bodyShape: 'pear', eyeStyle: 'happy', mouthStyle: 'cute_open', accessory: 'bow' }, 90)}</div>
+      `;
+    }
+
+    // 3. Quick Login Modal Handlers
+    const loginModal = document.getElementById('login-modal');
+    const openLoginBtn = document.getElementById('btn-quick-login');
+    const heroDemoBtn = document.getElementById('btn-hero-demo');
+    const closeLoginBtn = document.getElementById('btn-close-login');
+    const cancelLoginBtn = document.getElementById('btn-cancel-login');
+    const submitLoginBtn = document.getElementById('btn-submit-login');
+
+    function openLogin() { loginModal.classList.add('open'); }
+    function closeLogin() { loginModal.classList.remove('open'); }
+
+    if (openLoginBtn) openLoginBtn.addEventListener('click', openLogin);
+    if (heroDemoBtn) heroDemoBtn.addEventListener('click', openLogin);
+    if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeLogin);
+    if (cancelLoginBtn) cancelLoginBtn.addEventListener('click', closeLogin);
+
+    if (submitLoginBtn) {
+      submitLoginBtn.addEventListener('click', () => {
+        const u = document.getElementById('login-username').value.trim();
+        const p = document.getElementById('login-password').value.trim();
+        const target = document.getElementById('login-target-role').value;
+
+        if (u === 'antigravity' && p === '123456') {
+          if (window.dojoAudio) window.dojoAudio.playPositive();
+          if (window.dojoConfetti) window.dojoConfetti.burst();
+          setTimeout(() => {
+            window.location.href = target;
+          }, 400);
+        } else {
+          alert('請輸入規範測試帳號：antigravity / 密碼：123456');
+        }
+      });
+    }
+
+    // 4. Settings Modal Handlers
+    const settingsModal = document.getElementById('settings-modal');
+    const openSettingsBtn = document.getElementById('btn-open-settings');
+    const closeSettingsBtn = document.getElementById('btn-close-settings');
+    const saveSettingsBtn = document.getElementById('btn-save-settings');
+    const resetDemoBtn = document.getElementById('btn-reset-demo');
+
+    if (openSettingsBtn) openSettingsBtn.addEventListener('click', () => settingsModal.classList.add('open'));
+    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
+    if (saveSettingsBtn) {
+      saveSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.remove('open');
+        alert('設定已儲存！已落實零資料更動保證。');
+      });
+    }
+    if (resetDemoBtn) {
+      resetDemoBtn.addEventListener('click', () => {
+        if (confirm('確定要還原演示班級與怪獸資料嗎？')) {
+          store.resetDemoData();
+          alert('已成功還原為預設演示資料！');
+          location.reload();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

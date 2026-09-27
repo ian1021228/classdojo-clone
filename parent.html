@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ClassDojo - 家長即時聯絡簿</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dojo-ui.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23ff006e%22/><circle cx=%2238%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2262%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2240%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><circle cx=%2264%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><path d=%22M 36 60 Q 50 72 64 60%22 stroke=%22%232b3b48%22 stroke-width=%224%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="dojo-navbar">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <a href="index.html" class="dojo-brand">
+        <div class="dojo-logo-icon" style="background: var(--dojo-red);">👨‍👩‍👧</div>
+        <span>ClassDojo 家長端</span>
+      </a>
+      <select id="parent-child-select" style="padding: 6px 14px; border-radius: var(--radius-full); border: 1.5px solid var(--border-light); font-weight: 700; background: #ffffff; color: var(--text-main); font-size: 0.9rem; cursor: pointer; outline: none;">
+      </select>
+    </div>
+
+    <div class="dojo-nav-links">
+      <a href="teacher.html" class="btn btn-secondary btn-sm">👨‍🏫 切換教師端</a>
+      <a href="student.html" class="btn btn-secondary btn-sm">👾 切換學生端</a>
+      <a href="index.html" class="btn btn-secondary btn-sm">🏠 首頁</a>
+    </div>
+  </header>
+
+  <!-- Secondary Tab Navigation Bar -->
+  <div class="dojo-tabs-bar">
+    <div class="tabs-container">
+      <button class="tab-btn active" id="tab-parent-report">📊 孩子在校學習日誌</button>
+      <button class="tab-btn" id="tab-parent-chat">💬 與班導師即時私訊</button>
+      <button class="tab-btn" id="tab-parent-story">📸 班級動態牆與公告</button>
+    </div>
+    <div>
+      <button id="btn-print-parent-report" class="btn btn-secondary btn-sm">🖨️ 列印/下載本週報表</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main style="max-width: 1000px; margin: 24px auto 100px; padding: 0 20px; width: 100%;">
+    <!-- ========================================== -->
+    <!-- Tab 1: Child Progress Report               -->
+    <!-- ========================================== -->
+    <section id="view-parent-report">
+      <!-- Child Summary Card -->
+      <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
+        <div style="display: flex; align-items: center; gap: 24px;">
+          <div id="parent-child-monster-wrap" style="width: 120px; height: 100px; display: flex; align-items: center; justify-content: center;"></div>
+          <div>
+            <h2 id="parent-child-name" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">王小明 (Leo)</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">三年甲班 快樂冒險家 • 班導師：林老師</p>
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+              <span id="parent-att-badge" style="background: #e6f9f0; color: #00af66; font-weight: 700; font-size: 0.85rem; padding: 4px 12px; border-radius: var(--radius-full);">
+                ✅ 今日出席正常
+              </span>
+              <span style="background: #ebf3ff; color: #3a86ff; font-weight: 700; font-size: 0.85rem; padding: 4px 12px; border-radius: var(--radius-full);">
+                🌟 本週正向率 100%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center; background: #f8fafc; border-radius: 16px; padding: 18px 28px; border: 1px solid var(--border-light);">
+          <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">目前累積點數</span>
+          <strong id="parent-child-points-total" style="font-size: 2.8rem; font-weight: 900; color: var(--dojo-primary); line-height: 1;">12</strong>
+          <small style="color: var(--text-muted); display: block; margin-top: 4px;">點數成長茁壯中</small>
+        </div>
+      </div>
+
+      <!-- Feedback History Detail Timeline -->
+      <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
+        <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 20px;">📜 教師課堂反饋明細記錄</h3>
+        <div id="parent-feedback-timeline" style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 2: Direct Chat with Teacher            -->
+    <!-- ========================================== -->
+    <section id="view-parent-chat" style="display: none;">
+      <div class="chat-container" style="max-width: 800px; height: 560px;">
+        <div class="chat-main" style="width: 100%;">
+          <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="post-avatar">👨‍🏫</div>
+              <div>
+                <strong style="font-size: 1.05rem;">林老師 (Teacher Lin)</strong>
+                <div style="font-size: 0.8rem; color: #00af66; font-weight: 700;">🟢 目前在線上</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-messages-area" id="parent-chat-messages-box">
+            <!-- Injected dynamically -->
+          </div>
+
+          <div class="chat-input-bar">
+            <input type="text" id="parent-chat-input" placeholder="輸入要傳送給林老師的訊息...">
+            <button class="btn btn-primary btn-sm" id="btn-parent-send">發送</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 3: Class Story Feed                   -->
+    <!-- ========================================== -->
+    <section id="view-parent-story" style="display: none;">
+      <div class="story-feed-wrap" style="max-width: 680px; margin: 0 auto;">
+        <div id="parent-story-posts" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar (393x852) -->
+  <nav class="mobile-bottom-bar">
+    <button class="mobile-nav-item active" id="mob-par-report">
+      <span class="mobile-nav-icon">📊</span>
+      <span>日誌</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-par-chat">
+      <span class="mobile-nav-icon">💬</span>
+      <span>私訊</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-par-story">
+      <span class="mobile-nav-icon">📸</span>
+      <span>故事</span>
+    </button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/confetti.js"></script>
+  <script src="js/monster-engine.js"></script>
+  <script type="module" src="js/parent.js"></script>
+</body>
+</html>

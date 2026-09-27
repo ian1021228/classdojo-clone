@@ -1,0 +1,1000 @@
+/**
+ * ClassDojo Teacher Dashboard Controller
+ * Implements classroom management, monster cards, points awarding, toolkit, stories, chat, and portfolios.
+ */
+
+import { store } from './store.js';
+
+class TeacherController {
+  constructor() {
+    this.currentView = 'classroom'; // 'classroom' | 'story' | 'messages' | 'portfolios'
+    this.classroomMode = 'students'; // 'students' | 'groups'
+    this.isAttendanceMode = false;
+    this.isMultipleMode = false;
+    this.selectedStudentIds = new Set();
+    
+    // Target for skills modal
+    this.awardTarget = { type: 'student', id: null, name: '' };
+    
+    // Active chat parent
+    this.activeChatStudentId = 'stu_1';
+
+    // Timer state
+    this.timerDuration = 60;
+    this.timerRemaining = 60;
+    this.timerInterval = null;
+    this.isTimerRunning = false;
+
+    // Noise meter simulation
+    this.noiseInterval = null;
+    this.noiseSensitivity = 75;
+
+    this.init();
+  }
+
+  init() {
+    this.bindDOMElements();
+    this.bindEvents();
+    this.renderAll();
+
+    // Subscribe to store updates
+    store.subscribe(() => {
+      this.renderAll();
+    });
+  }
+
+  bindDOMElements() {
+    // Top Tabs
+    this.tabClassroom = document.getElementById('tab-btn-classroom');
+    this.tabStory = document.getElementById('tab-btn-story');
+    this.tabMessages = document.getElementById('tab-btn-messages');
+    this.tabPortfolios = document.getElementById('tab-btn-portfolios');
+
+    // Views
+    this.viewClassroom = document.getElementById('view-classroom');
+    this.viewStory = document.getElementById('view-story');
+    this.viewMessages = document.getElementById('view-messages');
+    this.viewPortfolios = document.getElementById('view-portfolios');
+
+    // Classroom headers
+    this.classSelect = document.getElementById('class-select');
+    this.classDisplayName = document.getElementById('class-display-name');
+    this.classStudentCount = document.getElementById('class-student-count');
+    this.classCodeTag = document.getElementById('class-code-tag');
+    this.classBadgeIcon = document.getElementById('class-badge-icon');
+
+    // Grids
+    this.studentsGrid = document.getElementById('students-grid');
+    this.groupsGrid = document.getElementById('groups-grid');
+
+    // Bars
+    this.attendanceBar = document.getElementById('attendance-bar');
+    this.multipleSelectBar = document.getElementById('multiple-select-bar');
+    this.selectedCountTag = document.getElementById('selected-student-count');
+
+    // Modals
+    this.skillsModal = document.getElementById('skills-modal');
+    this.toolkitModal = document.getElementById('toolkit-modal');
+    this.timerModal = document.getElementById('timer-modal');
+    this.randomModal = document.getElementById('random-modal');
+    this.groupsModal = document.getElementById('groups-modal');
+    this.noiseModal = document.getElementById('noise-modal');
+    this.addStudentModal = document.getElementById('add-student-modal');
+  }
+
+  bindEvents() {
+    // Navigation Tabs
+    this.tabClassroom.addEventListener('click', () => this.switchView('classroom'));
+    this.tabStory.addEventListener('click', () => this.switchView('story'));
+    this.tabMessages.addEventListener('click', () => this.switchView('messages'));
+    this.tabPortfolios.addEventListener('click', () => this.switchView('portfolios'));
+
+    // Mobile nav bar items
+    document.getElementById('mob-nav-classroom')?.addEventListener('click', () => this.switchView('classroom'));
+    document.getElementById('mob-nav-toolkit')?.addEventListener('click', () => this.openModal(this.toolkitModal));
+    document.getElementById('mob-nav-story')?.addEventListener('click', () => this.switchView('story'));
+    document.getElementById('mob-nav-messages')?.addEventListener('click', () => this.switchView('messages'));
+
+    // Class selector
+    this.classSelect.addEventListener('change', (e) => {
+      if (e.target.value === '__add_new__') {
+        const name = prompt('請輸入新班級名稱：', '四年丙班 探索號');
+        if (name) {
+          const newCls = store.addClass(name);
+          this.classSelect.value = newCls.id;
+        } else {
+          this.classSelect.value = store.state.activeClassId;
+        }
+      } else {
+        store.setActiveClass(e.target.value);
+      }
+    });
+
+    // View switch: Students vs Groups
+    document.getElementById('btn-switch-students').addEventListener('click', () => {
+      this.classroomMode = 'students';
+      document.getElementById('btn-switch-students').classList.add('active');
+      document.getElementById('btn-switch-groups').classList.remove('active');
+      this.studentsGrid.style.display = 'grid';
+      this.groupsGrid.style.display = 'none';
+    });
+
+    document.getElementById('btn-switch-groups').addEventListener('click', () => {
+      this.classroomMode = 'groups';
+      document.getElementById('btn-switch-groups').classList.add('active');
+      document.getElementById('btn-switch-students').classList.remove('active');
+      this.studentsGrid.style.display = 'none';
+      this.groupsGrid.style.display = 'grid';
+      this.renderGroups();
+    });
+
+    // Give Whole Class point button
+    document.getElementById('btn-give-whole-class').addEventListener('click', () => {
+      this.openSkillsModal({ type: 'whole_class', name: '全班同學' });
+    });
+
+    // Attendance Bar buttons
+    document.getElementById('btn-mark-all-present')?.addEventListener('click', () => {
+      const cls = store.getActiveClass();
+      cls.students.forEach(s => s.attendance = 'present');
+      store.save();
+    });
+
+    document.getElementById('btn-finish-attendance')?.addEventListener('click', () => {
+      this.isAttendanceMode = false;
+      this.attendanceBar.style.display = 'none';
+      document.getElementById('dock-btn-attendance')?.classList.remove('active');
+      this.renderStudents();
+    });
+
+    // Multiple Select Bar buttons
+    document.getElementById('btn-select-all-students')?.addEventListener('click', () => {
+      const cls = store.getActiveClass();
+      cls.students.forEach(s => this.selectedStudentIds.add(s.id));
+      this.updateMultipleBar();
+      this.renderStudents();
+    });
+
+    document.getElementById('btn-cancel-multiple')?.addEventListener('click', () => {
+      this.isMultipleMode = false;
+      this.selectedStudentIds.clear();
+      this.multipleSelectBar.style.display = 'none';
+      document.getElementById('dock-btn-multiple')?.classList.remove('active');
+      this.renderStudents();
+    });
+
+    document.getElementById('btn-award-selected')?.addEventListener('click', () => {
+      if (this.selectedStudentIds.size === 0) {
+        alert('請先在學生卡片上勾選至少一位學生！');
+        return;
+      }
+      this.openSkillsModal({
+        type: 'multiple',
+        studentIds: Array.from(this.selectedStudentIds),
+        name: `已選取 ${this.selectedStudentIds.size} 位學生`
+      });
+    });
+
+    // Floating Dock Buttons
+    document.getElementById('dock-btn-toolkit')?.addEventListener('click', () => this.openModal(this.toolkitModal));
+    document.getElementById('dock-btn-attendance')?.addEventListener('click', (e) => {
+      this.isAttendanceMode = !this.isAttendanceMode;
+      this.attendanceBar.style.display = this.isAttendanceMode ? 'flex' : 'none';
+      e.currentTarget.classList.toggle('active', this.isAttendanceMode);
+      if (this.isMultipleMode) {
+        this.isMultipleMode = false;
+        this.multipleSelectBar.style.display = 'none';
+      }
+      this.renderStudents();
+    });
+
+    document.getElementById('dock-btn-multiple')?.addEventListener('click', (e) => {
+      this.isMultipleMode = !this.isMultipleMode;
+      this.selectedStudentIds.clear();
+      this.multipleSelectBar.style.display = this.isMultipleMode ? 'flex' : 'none';
+      e.currentTarget.classList.toggle('active', this.isMultipleMode);
+      if (this.isAttendanceMode) {
+        this.isAttendanceMode = false;
+        this.attendanceBar.style.display = 'none';
+      }
+      this.updateMultipleBar();
+      this.renderStudents();
+    });
+
+    document.getElementById('dock-btn-timer')?.addEventListener('click', () => this.openTimerModal());
+    document.getElementById('dock-btn-random')?.addEventListener('click', () => this.openRandomModal());
+    document.getElementById('dock-btn-groups-maker')?.addEventListener('click', () => this.openGroupsMakerModal());
+    document.getElementById('dock-btn-noise')?.addEventListener('click', () => this.openNoiseModal());
+
+    // Skills Modal Events
+    document.getElementById('btn-close-skills')?.addEventListener('click', () => this.closeModal(this.skillsModal));
+    document.getElementById('btn-tab-pos')?.addEventListener('click', () => {
+      document.getElementById('btn-tab-pos').classList.add('active');
+      document.getElementById('btn-tab-neg').classList.remove('active');
+      document.getElementById('pos-skills-grid').style.display = 'grid';
+      document.getElementById('neg-skills-grid').style.display = 'none';
+    });
+    document.getElementById('btn-tab-neg')?.addEventListener('click', () => {
+      document.getElementById('btn-tab-neg').classList.add('active');
+      document.getElementById('btn-tab-pos').classList.remove('active');
+      document.getElementById('pos-skills-grid').style.display = 'none';
+      document.getElementById('neg-skills-grid').style.display = 'grid';
+    });
+
+    // Custom Skill Add
+    document.getElementById('btn-add-custom-skill')?.addEventListener('click', () => {
+      const name = prompt('請輸入技能名稱：', '熱心助人');
+      if (!name) return;
+      const pts = parseInt(prompt('點數變化（正數如 1，或負數如 -1）：', '1'), 10) || 1;
+      const cls = store.getActiveClass();
+      const newSkill = { id: `skill_${Date.now()}`, name, points: pts, icon: pts > 0 ? '✨' : '⚠️' };
+      if (pts >= 0) cls.skills.positive.push(newSkill);
+      else cls.skills.needsWork.push(newSkill);
+      store.save();
+      this.renderSkillsModalContent();
+    });
+
+    // Toolkit Modal Cards
+    document.getElementById('btn-close-toolkit')?.addEventListener('click', () => this.closeModal(this.toolkitModal));
+    document.getElementById('tk-card-timer')?.addEventListener('click', () => {
+      this.closeModal(this.toolkitModal);
+      this.openTimerModal();
+    });
+    document.getElementById('tk-card-random')?.addEventListener('click', () => {
+      this.closeModal(this.toolkitModal);
+      this.openRandomModal();
+    });
+    document.getElementById('tk-card-groups')?.addEventListener('click', () => {
+      this.closeModal(this.toolkitModal);
+      this.openGroupsMakerModal();
+    });
+    document.getElementById('tk-card-noise')?.addEventListener('click', () => {
+      this.closeModal(this.toolkitModal);
+      this.openNoiseModal();
+    });
+    document.getElementById('tk-card-thinkpair')?.addEventListener('click', () => {
+      const prompts = [
+        '「如果你有一種超能力，你想用它來解決生活中的什麼問題？」',
+        '「課堂實驗中，水分子是怎麼運動的？請和夥伴互相說明 30 秒！」',
+        '「回想今天最讓你開心的一件事，並給身邊的夥伴一個擊掌！」'
+      ];
+      const p = prompts[Math.floor(Math.random() * prompts.length)];
+      alert(`💡 思考-配對-分享 (Think-Pair-Share):\n\n${p}\n\n請給學生 1 分鐘互相分享討論！`);
+    });
+    document.getElementById('tk-card-music')?.addEventListener('click', () => {
+      if (window.dojoAudio) {
+        window.dojoAudio.playFanfare();
+        alert('🎵 專注提示音已播放！課堂輕快專注節奏啟動。');
+      }
+    });
+
+    // Timer Modal Controls
+    document.getElementById('btn-close-timer')?.addEventListener('click', () => {
+      this.pauseTimer();
+      this.closeModal(this.timerModal);
+    });
+    document.getElementById('btn-timer-toggle')?.addEventListener('click', () => this.toggleTimer());
+    document.getElementById('btn-timer-reset')?.addEventListener('click', () => this.resetTimer());
+    document.querySelectorAll('.preset-chip').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const secs = parseInt(e.target.dataset.seconds, 10);
+        this.setTimerPreset(secs);
+      });
+    });
+
+    // Random Modal Controls
+    document.getElementById('btn-close-random')?.addEventListener('click', () => this.closeModal(this.randomModal));
+    document.getElementById('btn-spin-random')?.addEventListener('click', () => this.spinRandomPicker());
+    document.getElementById('btn-award-picked')?.addEventListener('click', () => {
+      if (this.lastPickedStudent) {
+        this.closeModal(this.randomModal);
+        this.openSkillsModal({ type: 'student', id: this.lastPickedStudent.id, name: this.lastPickedStudent.name });
+      }
+    });
+
+    // Groups Maker Controls
+    document.getElementById('btn-close-groups')?.addEventListener('click', () => this.closeModal(this.groupsModal));
+    document.getElementById('btn-shuffle-teams')?.addEventListener('click', () => this.shuffleGroups());
+    document.getElementById('group-size-select')?.addEventListener('change', () => this.shuffleGroups());
+
+    // Noise Meter Controls
+    document.getElementById('btn-close-noise')?.addEventListener('click', () => {
+      this.stopNoiseMeter();
+      this.closeModal(this.noiseModal);
+    });
+    document.getElementById('noise-sensitivity')?.addEventListener('input', (e) => {
+      this.noiseSensitivity = parseInt(e.target.value, 10);
+      document.getElementById('noise-threshold-val').textContent = `${this.noiseSensitivity}%`;
+      document.getElementById('noise-threshold-line').style.left = `${this.noiseSensitivity}%`;
+    });
+
+    // Add Student Modal Controls
+    document.getElementById('btn-close-add-student')?.addEventListener('click', () => this.closeModal(this.addStudentModal));
+    document.getElementById('btn-cancel-add-student')?.addEventListener('click', () => this.closeModal(this.addStudentModal));
+    document.getElementById('btn-submit-add-student')?.addEventListener('click', () => {
+      const input = document.getElementById('new-student-name');
+      const name = input.value.trim();
+      if (!name) return;
+      store.addStudent(store.state.activeClassId, name);
+      input.value = '';
+      this.closeModal(this.addStudentModal);
+      if (window.dojoAudio) window.dojoAudio.playPositive();
+      if (window.dojoConfetti) window.dojoConfetti.burst();
+    });
+
+    // Class Story Posting
+    document.getElementById('btn-publish-story')?.addEventListener('click', () => {
+      const textarea = document.getElementById('story-post-input');
+      const content = textarea.value.trim();
+      if (!content) return;
+      const preview = document.getElementById('story-image-preview');
+      const img = preview.dataset.img || '';
+      store.addStoryPost(store.state.activeClassId, '林老師 (Teacher Lin)', content, img);
+      textarea.value = '';
+      preview.innerHTML = '';
+      preview.style.display = 'none';
+      delete preview.dataset.img;
+      if (window.dojoAudio) window.dojoAudio.playPositive();
+      this.renderStories();
+    });
+
+    document.getElementById('btn-add-sample-img')?.addEventListener('click', () => {
+      const preview = document.getElementById('story-image-preview');
+      const sampleSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="160" viewBox="0 0 600 160"><rect width="100%" height="100%" fill="#e6f9f0"/><circle cx="100" cy="80" r="50" fill="#00d27a"/><circle cx="300" cy="80" r="45" fill="#3a86ff"/><circle cx="500" cy="80" r="48" fill="#ffbe0b"/><text x="50%" y="85" text-anchor="middle" fill="#2b3b48" font-size="20" font-weight="bold">🎉 課堂精彩時刻照片展示</text></svg>`;
+      preview.innerHTML = sampleSvg;
+      preview.style.display = 'block';
+      preview.dataset.img = 'sample_activity.svg';
+    });
+
+    // Chat Message Sending
+    document.getElementById('btn-send-message')?.addEventListener('click', () => {
+      const input = document.getElementById('chat-input-text');
+      const text = input.value.trim();
+      if (!text) return;
+      store.sendMessage(this.activeChatStudentId, 'teacher', text);
+      input.value = '';
+      if (window.dojoAudio) window.dojoAudio.playTick();
+      this.renderChatMessages();
+    });
+
+    document.getElementById('chat-input-text')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('btn-send-message').click();
+    });
+
+    // Export Report
+    document.getElementById('btn-export-report')?.addEventListener('click', () => {
+      const cls = store.getActiveClass();
+      let summary = `【ClassDojo 評量報表】\n班級：${cls.name}\n總分：${cls.totalPoints} 點\n\n學生表現一覽：\n`;
+      cls.students.forEach(s => {
+        summary += `- ${s.name} (座號 ${s.seatNumber}): ${s.points} 點 (出勤: ${s.attendance})\n`;
+      });
+      alert(summary);
+    });
+  }
+
+  // View Switcher
+  switchView(viewName) {
+    this.currentView = viewName;
+    [this.tabClassroom, this.tabStory, this.tabMessages, this.tabPortfolios].forEach(tab => tab.classList.remove('active'));
+    [this.viewClassroom, this.viewStory, this.viewMessages, this.viewPortfolios].forEach(view => view.style.display = 'none');
+
+    if (viewName === 'classroom') {
+      this.tabClassroom.classList.add('active');
+      this.viewClassroom.style.display = 'block';
+      this.renderStudents();
+    } else if (viewName === 'story') {
+      this.tabStory.classList.add('active');
+      this.viewStory.style.display = 'block';
+      this.renderStories();
+    } else if (viewName === 'messages') {
+      this.tabMessages.classList.add('active');
+      this.viewMessages.style.display = 'block';
+      this.renderMessages();
+    } else if (viewName === 'portfolios') {
+      this.tabPortfolios.classList.add('active');
+      this.viewPortfolios.style.display = 'block';
+      this.renderPortfolios();
+    }
+  }
+
+  renderAll() {
+    this.renderClassDropdown();
+    this.renderHeader();
+    if (this.currentView === 'classroom') {
+      this.renderStudents();
+      if (this.classroomMode === 'groups') this.renderGroups();
+    } else if (this.currentView === 'story') {
+      this.renderStories();
+    } else if (this.currentView === 'messages') {
+      this.renderMessages();
+    } else if (this.currentView === 'portfolios') {
+      this.renderPortfolios();
+    }
+  }
+
+  renderClassDropdown() {
+    this.classSelect.innerHTML = store.state.classes.map(c => `
+      <option value="${c.id}" ${c.id === store.state.activeClassId ? 'selected' : ''}>${c.name}</option>
+    `).join('') + `<option value="__add_new__">+ 新增班級...</option>`;
+  }
+
+  renderHeader() {
+    const cls = store.getActiveClass();
+    if (!cls) return;
+    this.classDisplayName.textContent = cls.name;
+    this.classStudentCount.textContent = cls.students.length;
+    this.classCodeTag.textContent = cls.code;
+    this.classBadgeIcon.textContent = cls.icon || '🎒';
+  }
+
+  // Render Students Grid
+  renderStudents() {
+    const cls = store.getActiveClass();
+    if (!cls) return;
+
+    let html = '';
+
+    // 1. Whole Class Card
+    html += `
+      <div class="student-card whole-class-card" id="card-whole-class">
+        <span class="points-badge">${cls.totalPoints}</span>
+        <div class="monster-avatar-wrap">
+          ${window.monsterEngine ? window.monsterEngine.renderWholeClassIcon(105) : ''}
+        </div>
+        <div class="student-name" style="font-weight: 800; color: var(--dojo-primary);">全班同學</div>
+        <div class="student-sub">${cls.students.length} 位學生</div>
+      </div>
+    `;
+
+    // 2. Student Cards
+    cls.students.forEach(student => {
+      const isSelected = this.selectedStudentIds.has(student.id);
+      let monsterSvg = '';
+      if (student.isHatched) {
+        monsterSvg = window.monsterEngine ? window.monsterEngine.render(student.monster, 100) : '';
+      } else {
+        monsterSvg = window.monsterEngine ? window.monsterEngine.renderEgg(student.seed || student.name, 100) : '';
+      }
+
+      let attClass = `att-${student.attendance || 'present'}`;
+      let ptsClass = student.points < 0 ? 'negative' : (student.points === 0 ? 'zero' : '');
+
+      html += `
+        <div class="student-card ${isSelected ? 'selected' : ''}" data-student-id="${student.id}">
+          <div class="attendance-indicator ${attClass}" title="出勤狀態：${student.attendance}"></div>
+          <span class="points-badge ${ptsClass}">${student.points}</span>
+          ${this.isMultipleMode ? `<input type="checkbox" class="student-checkbox" ${isSelected ? 'checked' : ''} style="position: absolute; top: 12px; left: 12px; width: 18px; height: 18px; z-index: 5;">` : ''}
+          <div class="monster-avatar-wrap">
+            ${monsterSvg}
+          </div>
+          <div class="student-name">${student.name}</div>
+          <div class="student-sub">座號 ${student.seatNumber}</div>
+        </div>
+      `;
+    });
+
+    // 3. Add Student Card
+    html += `
+      <div class="add-student-card" id="card-add-student">
+        <div class="add-student-icon">+</div>
+        <strong style="font-size: 0.95rem; color: var(--text-main);">添加學生</strong>
+      </div>
+    `;
+
+    this.studentsGrid.innerHTML = html;
+
+    // Attach card event listeners
+    document.getElementById('card-whole-class').addEventListener('click', () => {
+      if (this.isAttendanceMode || this.isMultipleMode) return;
+      this.openSkillsModal({ type: 'whole_class', name: '全班同學' });
+    });
+
+    document.getElementById('card-add-student').addEventListener('click', () => {
+      this.openModal(this.addStudentModal);
+    });
+
+    this.studentsGrid.querySelectorAll('.student-card[data-student-id]').forEach(card => {
+      const id = card.dataset.studentId;
+      const student = cls.students.find(s => s.id === id);
+
+      card.addEventListener('click', (e) => {
+        if (this.isAttendanceMode) {
+          // Cycle attendance status: present -> absent -> tardy -> left_early -> present
+          const cycles = { present: 'absent', absent: 'tardy', tardy: 'left_early', left_early: 'present' };
+          const next = cycles[student.attendance || 'present'] || 'present';
+          store.setAttendance(cls.id, student.id, next);
+          if (window.dojoAudio) window.dojoAudio.playTick();
+          return;
+        }
+
+        if (this.isMultipleMode) {
+          if (this.selectedStudentIds.has(id)) this.selectedStudentIds.delete(id);
+          else this.selectedStudentIds.add(id);
+          this.updateMultipleBar();
+          this.renderStudents();
+          return;
+        }
+
+        // Normal mode: award feedback points
+        this.openSkillsModal({ type: 'student', id: student.id, name: student.name, monster: student.monster, isHatched: student.isHatched, points: student.points });
+      });
+    });
+  }
+
+  // Render Groups Grid
+  renderGroups() {
+    const cls = store.getActiveClass();
+    if (!cls || !cls.groups) return;
+
+    this.groupsGrid.innerHTML = cls.groups.map(grp => {
+      const members = grp.studentIds.map(id => cls.students.find(s => s.id === id)).filter(Boolean);
+      return `
+        <div class="group-team-card" style="cursor: pointer;" data-group-id="${grp.id}">
+          <div class="group-team-header">
+            <span>${grp.name}</span>
+            <span class="points-badge" style="position: static;">${grp.points}</span>
+          </div>
+          <div style="display: flex; gap: 8px; margin: 12px 0;">
+            ${members.map(m => `
+              <div style="width: 44px; height: 44px;">
+                ${m.isHatched ? window.monsterEngine.render(m.monster, 44) : window.monsterEngine.renderEgg(m.name, 44)}
+              </div>
+            `).join('')}
+          </div>
+          <button class="btn btn-outline-primary btn-sm" style="width: 100%;">⭐ 給小組反饋</button>
+        </div>
+      `;
+    }).join('') + `
+      <div class="add-student-card" id="card-create-group">
+        <div class="add-student-icon">👥</div>
+        <strong style="font-size: 0.95rem; color: var(--text-main);">使用智慧分組機建立小組</strong>
+      </div>
+    `;
+
+    document.getElementById('card-create-group')?.addEventListener('click', () => this.openGroupsMakerModal());
+    this.groupsGrid.querySelectorAll('.group-team-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const gid = card.dataset.groupId;
+        const grp = cls.groups.find(g => g.id === gid);
+        if (grp) {
+          this.openSkillsModal({ type: 'multiple', studentIds: grp.studentIds, name: grp.name });
+        }
+      });
+    });
+  }
+
+  updateMultipleBar() {
+    if (this.selectedCountTag) {
+      this.selectedCountTag.textContent = this.selectedStudentIds.size;
+    }
+  }
+
+  // Skills Modal Management
+  openSkillsModal(target) {
+    this.awardTarget = target;
+    const titleEl = document.getElementById('modal-award-title');
+    const subEl = document.getElementById('modal-award-sub');
+    const avatarEl = document.getElementById('modal-student-avatar');
+
+    titleEl.textContent = `給予 ${target.name} 反饋`;
+    subEl.textContent = target.points !== undefined ? `目前累積：${target.points} 點` : '';
+
+    if (target.type === 'whole_class') {
+      avatarEl.innerHTML = window.monsterEngine.renderWholeClassIcon(52);
+    } else if (target.type === 'student') {
+      avatarEl.innerHTML = target.isHatched ? window.monsterEngine.render(target.monster, 52) : window.monsterEngine.renderEgg(target.name, 52);
+    } else {
+      avatarEl.innerHTML = `👥`;
+    }
+
+    this.renderSkillsModalContent();
+    this.openModal(this.skillsModal);
+  }
+
+  renderSkillsModalContent() {
+    const cls = store.getActiveClass();
+    const posContainer = document.getElementById('pos-skills-grid');
+    const negContainer = document.getElementById('neg-skills-grid');
+
+    posContainer.innerHTML = cls.skills.positive.map(skill => `
+      <button class="skill-btn" data-skill-id="${skill.id}">
+        <div class="skill-icon-wrap">
+          <span>${skill.icon}</span>
+          <span class="skill-pts-tag">+${skill.points}</span>
+        </div>
+        <span class="skill-label">${skill.name}</span>
+      </button>
+    `).join('');
+
+    negContainer.innerHTML = cls.skills.needsWork.map(skill => `
+      <button class="skill-btn needs-work" data-skill-id="${skill.id}">
+        <div class="skill-icon-wrap">
+          <span>${skill.icon}</span>
+          <span class="skill-pts-tag">${skill.points}</span>
+        </div>
+        <span class="skill-label">${skill.name}</span>
+      </button>
+    `).join('');
+
+    // Attach click triggers
+    const onSkillClick = (skill) => {
+      const activeCls = store.getActiveClass();
+      if (this.awardTarget.type === 'student') {
+        store.awardStudentPoint(activeCls.id, this.awardTarget.id, skill);
+      } else if (this.awardTarget.type === 'whole_class') {
+        store.awardWholeClassPoint(activeCls.id, skill);
+      } else if (this.awardTarget.type === 'multiple') {
+        store.awardMultipleStudents(activeCls.id, this.awardTarget.studentIds, skill);
+      }
+
+      // Audio & Confetti
+      if (skill.points > 0) {
+        if (this.awardTarget.type === 'whole_class') {
+          if (window.dojoAudio) window.dojoAudio.playFanfare();
+        } else {
+          if (window.dojoAudio) window.dojoAudio.playPositive();
+        }
+        if (window.dojoConfetti) window.dojoConfetti.burst();
+      } else {
+        if (window.dojoAudio) window.dojoAudio.playNeedsWork();
+      }
+
+      this.closeModal(this.skillsModal);
+    };
+
+    posContainer.querySelectorAll('.skill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const s = cls.skills.positive.find(sk => sk.id === btn.dataset.skillId);
+        if (s) onSkillClick(s);
+      });
+    });
+
+    negContainer.querySelectorAll('.skill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const s = cls.skills.needsWork.find(sk => sk.id === btn.dataset.skillId);
+        if (s) onSkillClick(s);
+      });
+    });
+  }
+
+  // Timer Feature
+  openTimerModal() {
+    this.openModal(this.timerModal);
+    this.updateTimerDisplay();
+  }
+
+  toggleTimer() {
+    const btn = document.getElementById('btn-timer-toggle');
+    if (this.isTimerRunning) {
+      this.pauseTimer();
+      btn.textContent = '繼續計時';
+    } else {
+      this.isTimerRunning = true;
+      btn.textContent = '暫停';
+      this.timerInterval = setInterval(() => {
+        this.timerRemaining--;
+        this.updateTimerDisplay();
+        if (this.timerRemaining <= 0) {
+          this.pauseTimer();
+          btn.textContent = '開始計時';
+          if (window.dojoAudio) window.dojoAudio.playTimerAlarm();
+          if (window.dojoConfetti) window.dojoConfetti.burst();
+          alert('⏰ 時間到！課堂活動計時結束！');
+        }
+      }, 1000);
+    }
+  }
+
+  pauseTimer() {
+    this.isTimerRunning = false;
+    clearInterval(this.timerInterval);
+  }
+
+  resetTimer() {
+    this.pauseTimer();
+    this.timerRemaining = this.timerDuration;
+    document.getElementById('btn-timer-toggle').textContent = '開始計時';
+    this.updateTimerDisplay();
+  }
+
+  setTimerPreset(seconds) {
+    this.timerDuration = seconds;
+    this.timerRemaining = seconds;
+    this.resetTimer();
+  }
+
+  updateTimerDisplay() {
+    const mins = Math.floor(this.timerRemaining / 60);
+    const secs = this.timerRemaining % 60;
+    const str = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    const textEl = document.getElementById('timer-text');
+    if (textEl) textEl.textContent = str;
+
+    const ring = document.getElementById('timer-progress-ring');
+    if (ring) {
+      const totalCirc = 276.46;
+      const progress = this.timerRemaining / this.timerDuration;
+      ring.style.strokeDashoffset = totalCirc * (1 - progress);
+    }
+  }
+
+  // Random Picker Spotlight
+  openRandomModal() {
+    this.openModal(this.randomModal);
+    document.getElementById('spotlight-student-name').textContent = '點擊開始抽籤';
+    document.getElementById('spotlight-sub').textContent = '誰會是下一位幸運發言者？';
+    document.getElementById('btn-award-picked').style.display = 'none';
+    document.getElementById('spotlight-monster-wrap').innerHTML = window.monsterEngine.renderWholeClassIcon(90);
+  }
+
+  spinRandomPicker() {
+    const cls = store.getActiveClass();
+    if (!cls || cls.students.length === 0) return;
+
+    const card = document.getElementById('spotlight-card');
+    const nameEl = document.getElementById('spotlight-student-name');
+    const wrap = document.getElementById('spotlight-monster-wrap');
+    const awardBtn = document.getElementById('btn-award-picked');
+
+    card.classList.add('spinning');
+    awardBtn.style.display = 'none';
+
+    let count = 0;
+    const maxSpins = 20;
+    const timer = setInterval(() => {
+      count++;
+      const randomIdx = Math.floor(Math.random() * cls.students.length);
+      const tempStudent = cls.students[randomIdx];
+
+      nameEl.textContent = tempStudent.name;
+      wrap.innerHTML = tempStudent.isHatched ? window.monsterEngine.render(tempStudent.monster, 90) : window.monsterEngine.renderEgg(tempStudent.name, 90);
+
+      if (window.dojoAudio) window.dojoAudio.playTick();
+
+      if (count >= maxSpins) {
+        clearInterval(timer);
+        card.classList.remove('spinning');
+        this.lastPickedStudent = tempStudent;
+
+        nameEl.textContent = `🎉 ${tempStudent.name}！`;
+        document.getElementById('spotlight-sub').textContent = `座號 ${tempStudent.seatNumber} • 目前累積 ${tempStudent.points} 點`;
+        awardBtn.style.display = 'inline-flex';
+
+        if (window.dojoAudio) window.dojoAudio.playPositive();
+        if (window.dojoConfetti) window.dojoConfetti.burst();
+      }
+    }, 100);
+  }
+
+  // Group Maker
+  openGroupsMakerModal() {
+    this.openModal(this.groupsModal);
+    this.shuffleGroups();
+  }
+
+  shuffleGroups() {
+    const cls = store.getActiveClass();
+    if (!cls) return;
+
+    const size = parseInt(document.getElementById('group-size-select').value, 10);
+    const shuffled = [...cls.students].sort(() => 0.5 - Math.random());
+    const groups = [];
+
+    for (let i = 0; i < shuffled.length; i += size) {
+      groups.push(shuffled.slice(i, i + size));
+    }
+
+    const container = document.getElementById('group-results-container');
+    container.innerHTML = groups.map((grp, idx) => `
+      <div class="group-team-card">
+        <div class="group-team-header">
+          <span>第 ${idx + 1} 組 (${grp.length} 人)</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">小組合作</span>
+        </div>
+        ${grp.map(s => `
+          <div class="group-member-item">
+            <div style="width: 28px; height: 28px;">
+              ${s.isHatched ? window.monsterEngine.render(s.monster, 28) : window.monsterEngine.renderEgg(s.name, 28)}
+            </div>
+            <span>${s.name}</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+
+    if (window.dojoAudio) window.dojoAudio.playTick();
+  }
+
+  // Noise Meter
+  openNoiseModal() {
+    this.openModal(this.noiseModal);
+    this.startNoiseMeterSimulation();
+  }
+
+  startNoiseMeterSimulation() {
+    const bar = document.getElementById('noise-bar-fill');
+    const emoji = document.getElementById('noise-emoji');
+    const tag = document.getElementById('noise-status-tag');
+
+    this.noiseInterval = setInterval(() => {
+      // Simulate classroom natural murmur
+      const level = Math.floor(20 + Math.random() * 65);
+      bar.style.width = `${level}%`;
+
+      if (level > this.noiseSensitivity) {
+        emoji.textContent = '📢';
+        tag.textContent = '⚠️ 太吵了！請全班安靜！';
+        tag.className = 'noise-status-badge loud';
+        if (window.dojoAudio) window.dojoAudio.playNeedsWork();
+      } else {
+        emoji.textContent = '🤫';
+        tag.textContent = '課堂環境非常安靜';
+        tag.className = 'noise-status-badge quiet';
+      }
+    }, 800);
+  }
+
+  stopNoiseMeter() {
+    clearInterval(this.noiseInterval);
+  }
+
+  // Class Story View
+  renderStories() {
+    const list = document.getElementById('story-posts-list');
+    const posts = store.state.stories.filter(p => p.classId === store.state.activeClassId);
+
+    list.innerHTML = posts.map(post => `
+      <div class="post-card" data-post-id="${post.id}">
+        <div class="post-header">
+          <div class="post-avatar">👨‍🏫</div>
+          <div class="post-meta">
+            <h4>${post.author}</h4>
+            <span>剛剛 • 課堂公開故事</span>
+          </div>
+        </div>
+        <div class="post-content">${post.content}</div>
+        ${post.image ? `<div style="margin-bottom: 14px; border-radius: 8px; overflow: hidden; background: #e6f9f0; padding: 12px; text-align: center;">📷 已上傳班級活動紀錄照片</div>` : ''}
+        <div class="post-footer">
+          <button class="like-btn ${post.liked ? 'liked' : ''}" data-like-btn="${post.id}">
+            <span>${post.liked ? '❤️' : '🤍'}</span>
+            <span>${post.likes} 個愛心</span>
+          </button>
+        </div>
+        <div class="comments-list">
+          ${post.comments.map(c => `
+            <div class="comment-bubble">
+              <span class="comment-author">${c.author}:</span>
+              <span>${c.text}</span>
+            </div>
+          `).join('')}
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <input type="text" placeholder="留言支持孩子與老師..." class="comment-input" data-post-id="${post.id}" style="flex: 1; padding: 6px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-full); font-size: 0.85rem;">
+            <button class="btn btn-secondary btn-sm comment-submit-btn" data-post-id="${post.id}">送出</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Attach like & comment events
+    list.querySelectorAll('[data-like-btn]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        store.togglePostLike(btn.dataset.likeBtn);
+        if (window.dojoAudio) window.dojoAudio.playTick();
+        this.renderStories();
+      });
+    });
+
+    list.querySelectorAll('.comment-submit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pid = btn.dataset.postId;
+        const input = list.querySelector(`.comment-input[data-post-id="${pid}"]`);
+        const text = input.value.trim();
+        if (!text) return;
+        store.addPostComment(pid, '林老師', text);
+        this.renderStories();
+      });
+    });
+  }
+
+  // Messages View
+  renderMessages() {
+    const cls = store.getActiveClass();
+    const list = document.getElementById('chat-parents-list');
+
+    list.innerHTML = cls.students.map(s => `
+      <div class="chat-user-item ${s.id === this.activeChatStudentId ? 'active' : ''}" data-student-id="${s.id}">
+        <div class="post-avatar">👩</div>
+        <div>
+          <strong style="display: block; font-size: 0.95rem;">${s.parentName || s.name + ' 家長'}</strong>
+          <small style="color: var(--text-muted);">學生：${s.name}</small>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.chat-user-item').forEach(item => {
+      item.addEventListener('click', () => {
+        this.activeChatStudentId = item.dataset.studentId;
+        this.renderMessages();
+      });
+    });
+
+    // Update active chat header
+    const activeStudent = cls.students.find(s => s.id === this.activeChatStudentId) || cls.students[0];
+    if (activeStudent) {
+      document.getElementById('active-chat-parent-name').textContent = activeStudent.parentName || `${activeStudent.name} 家長`;
+      document.getElementById('active-chat-student-sub').textContent = `學生：${activeStudent.name} (座號 ${activeStudent.seatNumber})`;
+    }
+
+    this.renderChatMessages();
+  }
+
+  renderChatMessages() {
+    const container = document.getElementById('chat-messages-box');
+    const msgs = store.state.messages[this.activeChatStudentId] || [];
+
+    container.innerHTML = msgs.map(m => `
+      <div class="chat-bubble ${m.sender}">
+        <div>${m.text}</div>
+        <small style="display: block; font-size: 0.75rem; opacity: 0.8; margin-top: 4px; text-align: ${m.sender === 'teacher' ? 'right' : 'left'};">
+          ${new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </small>
+      </div>
+    `).join('');
+
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // Portfolios View
+  renderPortfolios() {
+    const container = document.getElementById('portfolios-list');
+    const acts = store.state.portfolios.filter(a => a.classId === store.state.activeClassId);
+
+    container.innerHTML = acts.map(act => `
+      <div class="post-card">
+        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">📌 ${act.title}</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">${act.description}</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+          ${act.submissions.map(sub => `
+            <div style="border: 1px solid var(--border-light); border-radius: 12px; padding: 12px; background: #fafbfc;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong>${sub.studentName}</strong>
+                <span style="font-size: 0.8rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); ${sub.status === 'approved' ? 'background: #dcfce7; color: #166534;' : 'background: #fef3c7; color: #92400e;'}">
+                  ${sub.status === 'approved' ? '✅ 已通過' : '⏳ 待審核'}
+                </span>
+              </div>
+              <div style="background: #ffffff; border-radius: 8px; overflow: hidden; margin-bottom: 8px; text-align: center;">
+                <img src="${sub.drawingData}" alt="學生作品" style="max-width: 100%; height: 140px; object-fit: contain;">
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-main); margin-bottom: 10px;">${sub.caption}</p>
+              ${sub.status !== 'approved' ? `
+                <button class="btn btn-primary btn-sm btn-approve-sub" data-act-id="${act.id}" data-sub-id="${sub.id}" style="width: 100%;">
+                  👍 審核通過並給予點數
+                </button>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.btn-approve-sub').forEach(btn => {
+      btn.addEventListener('click', () => {
+        store.approvePortfolioSubmission(btn.dataset.actId, btn.dataset.subId);
+        if (window.dojoAudio) window.dojoAudio.playPositive();
+        if (window.dojoConfetti) window.dojoConfetti.burst();
+        this.renderPortfolios();
+      });
+    });
+  }
+
+  // Modal helpers
+  openModal(modal) {
+    if (modal) modal.classList.add('open');
+  }
+
+  closeModal(modal) {
+    if (modal) modal.classList.remove('open');
+  }
+}
+
+window.teacherController = new TeacherController();

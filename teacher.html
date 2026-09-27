@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ClassDojo - 教師課堂管理</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dojo-ui.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%2300d27a%22/><circle cx=%2238%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2262%22 cy=%2244%22 r=%228%22 fill=%22%23fff%22/><circle cx=%2240%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><circle cx=%2264%22 cy=%2244%22 r=%224%22 fill=%22%232b3b48%22/><path d=%22M 36 60 Q 50 72 64 60%22 stroke=%22%232b3b48%22 stroke-width=%224%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="dojo-navbar">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <a href="index.html" class="dojo-brand">
+        <div class="dojo-logo-icon">👾</div>
+        <span>ClassDojo</span>
+      </a>
+      <!-- Class Selector Dropdown -->
+      <select id="class-select" style="padding: 6px 14px; border-radius: var(--radius-full); border: 1.5px solid var(--border-light); font-weight: 700; background: #ffffff; color: var(--text-main); font-size: 0.9rem; cursor: pointer; outline: none;">
+      </select>
+    </div>
+
+    <div class="dojo-nav-links">
+      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;" id="teacher-profile-tag">👨‍🏫 林老師 (antigravity)</span>
+      <a href="student.html" class="btn btn-secondary btn-sm" title="切換學生視角">👾 學生端</a>
+      <a href="parent.html" class="btn btn-secondary btn-sm" title="切換家長視角">👨‍👩‍👧 家長端</a>
+      <a href="index.html" class="btn btn-secondary btn-sm">🏠 首頁</a>
+    </div>
+  </header>
+
+  <!-- Secondary Tab Navigation Bar -->
+  <div class="dojo-tabs-bar">
+    <div class="tabs-container">
+      <button class="tab-btn active" id="tab-btn-classroom">🏫 課堂</button>
+      <button class="tab-btn" id="tab-btn-story">📸 課堂故事</button>
+      <button class="tab-btn" id="tab-btn-messages">💬 聊天訊息</button>
+      <button class="tab-btn" id="tab-btn-portfolios">📁 學習歷程檔案</button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button id="btn-export-report" class="btn btn-secondary btn-sm">📊 匯出評量報表</button>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main style="flex: 1;">
+    <!-- ========================================== -->
+    <!-- View 1: Classroom Roster (Students / Groups) -->
+    <!-- ========================================== -->
+    <section id="view-classroom">
+      <!-- Classroom Subheader -->
+      <div class="classroom-header">
+        <div class="class-title-area">
+          <div class="class-icon-badge" id="class-badge-icon">🚀</div>
+          <div class="class-info">
+            <h1 id="class-display-name">三年甲班 快樂冒險家</h1>
+            <p><span id="class-student-count">8</span> 位學生 • 班級代碼：<strong id="class-code-tag" style="color: var(--dojo-blue); letter-spacing: 1px;">DOJO77</strong></p>
+          </div>
+        </div>
+
+        <div class="class-actions-area">
+          <div class="view-switch">
+            <button class="switch-opt active" id="btn-switch-students">學生</button>
+            <button class="switch-opt" id="btn-switch-groups">小組</button>
+          </div>
+          <button id="btn-give-whole-class" class="btn btn-primary btn-sm">
+            <span>⭐ 給全班反饋</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Attendance Mode Notice Bar (Hidden by default) -->
+      <div id="attendance-bar" style="display: none; background: #e6f9f0; border-bottom: 2px solid #86efac; padding: 10px 32px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.3rem;">📋</span>
+          <strong style="color: #166534;">正在進行出勤標記：點擊學生卡片可快速切換出席狀態</strong>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-mark-all-present">全部設為出席</button>
+          <button class="btn btn-primary btn-sm" id="btn-finish-attendance">完成出勤標記</button>
+        </div>
+      </div>
+
+      <!-- Multiple Selection Mode Bar (Hidden by default) -->
+      <div id="multiple-select-bar" style="display: none; background: #ebf3ff; border-bottom: 2px solid #93c5fd; padding: 10px 32px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.3rem;">☑️</span>
+          <strong style="color: #1e40af;">多選模式：已選取 <span id="selected-student-count">0</span> 位學生</strong>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-select-all-students">全選</button>
+          <button class="btn btn-primary btn-sm" id="btn-award-selected">給所選學生反饋</button>
+          <button class="btn btn-secondary btn-sm" id="btn-cancel-multiple">取消</button>
+        </div>
+      </div>
+
+      <!-- Student Cards Grid -->
+      <div class="roster-grid" id="students-grid">
+        <!-- Injected dynamically by teacher.js -->
+      </div>
+
+      <!-- Groups Grid (Hidden by default) -->
+      <div class="roster-grid" id="groups-grid" style="display: none;">
+        <!-- Injected dynamically by teacher.js -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- View 2: Class Story Feed                   -->
+    <!-- ========================================== -->
+    <section id="view-story" style="display: none;">
+      <div class="story-feed-wrap">
+        <!-- Compose Post Card -->
+        <div class="story-compose-card">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+            <div class="post-avatar">👨‍🏫</div>
+            <strong>分享班級故事或公告給家長與學生...</strong>
+          </div>
+          <textarea id="story-post-input" class="compose-textarea" placeholder="今天孩子們在課堂上有什麼亮眼表現？"></textarea>
+          <div class="compose-bar">
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-secondary btn-sm" id="btn-add-sample-img">📷 加入活動照片</button>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-publish-story">發布貼文</button>
+          </div>
+          <div id="story-image-preview" style="display: none; margin-top: 10px; border-radius: 8px; overflow: hidden; max-height: 200px;"></div>
+        </div>
+
+        <!-- Posts List -->
+        <div id="story-posts-list" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Injected dynamically by teacher.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- View 3: Messages Chat                      -->
+    <!-- ========================================== -->
+    <section id="view-messages" style="display: none;">
+      <div class="chat-container">
+        <!-- Left Sidebar: Parents List -->
+        <div class="chat-sidebar">
+          <div class="chat-sidebar-header">
+            <span>💬 家長聯絡名冊</span>
+          </div>
+          <div class="chat-user-list" id="chat-parents-list">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Right Main: Chat Area -->
+        <div class="chat-main">
+          <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="post-avatar" id="active-chat-avatar">👩</div>
+              <div>
+                <strong id="active-chat-parent-name" style="font-size: 1.05rem;">王小明 家長</strong>
+                <div style="font-size: 0.8rem; color: var(--text-muted);" id="active-chat-student-sub">學生：王小明 (Leo)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-messages-area" id="chat-messages-box">
+            <!-- Injected dynamically -->
+          </div>
+
+          <div class="chat-input-bar">
+            <input type="text" id="chat-input-text" placeholder="輸入要傳送給家長的即時訊息...">
+            <button class="btn btn-primary btn-sm" id="btn-send-message">發送</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- View 4: Student Portfolios Review          -->
+    <!-- ========================================== -->
+    <section id="view-portfolios" style="display: none;">
+      <div style="max-width: 960px; margin: 24px auto 100px; padding: 0 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div>
+            <h2 style="font-size: 1.6rem; font-weight: 800;">📁 學生學習歷程與作業審核</h2>
+            <p style="color: var(--text-muted);">查看並核准學生手繪創作與課堂作品</p>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-create-activity">+ 發布新作業活動</button>
+        </div>
+
+        <div id="portfolios-list" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================== -->
+  <!-- ClassDojo Floating Toolkit Dock                                           -->
+  <!-- ========================================================================== -->
+  <footer class="dojo-floating-dock">
+    <button class="dock-btn" id="dock-btn-toolkit"><span class="dock-btn-icon">🧰</span>工具包</button>
+    <button class="dock-btn" id="dock-btn-attendance"><span class="dock-btn-icon">📋</span>出勤</button>
+    <button class="dock-btn" id="dock-btn-multiple"><span class="dock-btn-icon">☑️</span>多選學生</button>
+    <button class="dock-btn" id="dock-btn-random"><span class="dock-btn-icon">🔀</span>隨機抽籤</button>
+    <button class="dock-btn" id="dock-btn-timer"><span class="dock-btn-icon">⏱️</span>計時器</button>
+    <button class="dock-btn" id="dock-btn-groups-maker"><span class="dock-btn-icon">👥</span>分組機</button>
+    <button class="dock-btn" id="dock-btn-noise"><span class="dock-btn-icon">🎙️</span>噪音計</button>
+  </footer>
+
+  <!-- Mobile Bottom Navigation Bar (393x852) -->
+  <nav class="mobile-bottom-bar">
+    <button class="mobile-nav-item active" id="mob-nav-classroom">
+      <span class="mobile-nav-icon">🏫</span>
+      <span>課堂</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-toolkit">
+      <span class="mobile-nav-icon">🧰</span>
+      <span>工具包</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-story">
+      <span class="mobile-nav-icon">📸</span>
+      <span>故事</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-messages">
+      <span class="mobile-nav-icon">💬</span>
+      <span>訊息</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================================== -->
+  <!-- Modals Section                                                             -->
+  <!-- ========================================================================== -->
+
+  <!-- Modal 1: Skills / Feedback Award Modal -->
+  <div class="modal-backdrop" id="skills-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div id="modal-student-avatar" style="width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;"></div>
+          <div>
+            <h3 class="modal-title" id="modal-award-title">給予 王小明 反饋</h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted);" id="modal-award-sub">目前累積：12 點</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-skills">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="skills-tabs">
+          <button class="skill-tab-btn active positive" id="btn-tab-pos">🟢 正向行為技能</button>
+          <button class="skill-tab-btn needs-work" id="btn-tab-neg">🔴 需待改進</button>
+        </div>
+
+        <!-- Positive Skills Grid -->
+        <div class="skills-grid" id="pos-skills-grid">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Needs Work Skills Grid (Hidden by default) -->
+        <div class="skills-grid" id="neg-skills-grid" style="display: none;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" id="btn-add-custom-skill">+ 新增自訂技能</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Toolkit Drawer / Selector Modal -->
+  <div class="modal-backdrop" id="toolkit-modal">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">🧰</span>
+          <h3 class="modal-title">課堂工具箱 (Classroom Toolkit)</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-toolkit">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="skills-grid" style="grid-template-columns: repeat(2, 1fr); gap: 16px;">
+          <div class="skill-btn" id="tk-card-timer">
+            <span style="font-size: 2.5rem;">⏱️</span>
+            <strong class="skill-label">倒數計時器</strong>
+            <small style="color: var(--text-muted);">課堂活動與測驗精確計時</small>
+          </div>
+          <div class="skill-btn" id="tk-card-random">
+            <span style="font-size: 2.5rem;">🔀</span>
+            <strong class="skill-label">隨機抽籤</strong>
+            <small style="color: var(--text-muted);">聚光燈學生輪播與抽問</small>
+          </div>
+          <div class="skill-btn" id="tk-card-groups">
+            <span style="font-size: 2.5rem;">👥</span>
+            <strong class="skill-label">智慧分組機</strong>
+            <small style="color: var(--text-muted);">自動分配小組與洗牌</small>
+          </div>
+          <div class="skill-btn" id="tk-card-noise">
+            <span style="font-size: 2.5rem;">🎙️</span>
+            <strong class="skill-label">分貝噪音計</strong>
+            <small style="color: var(--text-muted);">課堂聲音監控與安靜提醒</small>
+          </div>
+          <div class="skill-btn" id="tk-card-thinkpair">
+            <span style="font-size: 2.5rem;">💡</span>
+            <strong class="skill-label">思考配對分享</strong>
+            <small style="color: var(--text-muted);">引導課堂主題討論題庫</small>
+          </div>
+          <div class="skill-btn" id="tk-card-music">
+            <span style="font-size: 2.5rem;">🎵</span>
+            <strong class="skill-label">課堂專注輕音樂</strong>
+            <small style="color: var(--text-muted);">沉浸式白噪音與學習節奏</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Visual Countdown Timer -->
+  <div class="modal-backdrop" id="timer-modal">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">⏱️</span>
+          <h3 class="modal-title">課堂計時器</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-timer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="timer-container">
+          <div class="timer-circle-wrap">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+              <circle class="timer-circle-bg" cx="50" cy="50" r="44"></circle>
+              <circle class="timer-circle-progress" id="timer-progress-ring" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="timer-display" id="timer-text">01:00</div>
+          </div>
+
+          <div class="timer-controls">
+            <button class="btn btn-primary btn-lg" id="btn-timer-toggle">開始計時</button>
+            <button class="btn btn-secondary btn-lg" id="btn-timer-reset">重置</button>
+          </div>
+
+          <div class="timer-presets">
+            <button class="preset-chip" data-seconds="30">30 秒</button>
+            <button class="preset-chip" data-seconds="60">1 分鐘</button>
+            <button class="preset-chip" data-seconds="120">2 分鐘</button>
+            <button class="preset-chip" data-seconds="300">5 分鐘</button>
+            <button class="preset-chip" data-seconds="600">10 分鐘</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Random Picker Spotlight -->
+  <div class="modal-backdrop" id="random-modal">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">🔀</span>
+          <h3 class="modal-title">隨機學生抽籤</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-random">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="random-picker-box">
+          <div class="spotlight-card" id="spotlight-card">
+            <div id="spotlight-monster-wrap" style="width: 130px; height: 110px; display: flex; align-items: center; justify-content: center;"></div>
+          </div>
+          <h2 class="spotlight-name" id="spotlight-student-name">點擊開始抽籤</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;" id="spotlight-sub">誰會是下一位幸運發言者？</p>
+
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button class="btn btn-primary btn-lg" id="btn-spin-random">🎲 開始抽籤</button>
+            <button class="btn btn-outline-primary btn-lg" id="btn-award-picked" style="display: none;">⭐ 給他加分！</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Group Maker -->
+  <div class="modal-backdrop" id="groups-modal">
+    <div class="modal-card" style="max-width: 720px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">👥</span>
+          <h3 class="modal-title">智慧隨機分組機</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-groups">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="group-maker-config">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <label style="font-weight: 700; font-size: 0.95rem;">每組人數：</label>
+            <select id="group-size-select" style="padding: 6px 12px; border-radius: 6px; border: 1.5px solid var(--border-light); font-weight: 700;">
+              <option value="2">2 人一組</option>
+              <option value="3">3 人一組</option>
+              <option value="4" selected>4 人一組</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-shuffle-teams">🔀 重新打散分組</button>
+        </div>
+
+        <div class="group-results-grid" id="group-results-container">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Noise Meter -->
+  <div class="modal-backdrop" id="noise-modal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">🎙️</span>
+          <h3 class="modal-title">課堂分貝噪音計</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-noise">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="noise-meter-box">
+          <span style="font-size: 3.5rem;" id="noise-emoji">🤫</span>
+          <div class="noise-status-badge quiet" id="noise-status-tag" style="margin-top: 10px;">課堂環境非常安靜</div>
+
+          <div class="noise-bar-container">
+            <div class="noise-bar-fill" id="noise-bar-fill"></div>
+            <div class="noise-threshold-marker" id="noise-threshold-line"></div>
+          </div>
+
+          <div style="width: 100%; max-width: 360px; margin-top: 16px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px;">
+              <span>靈敏度閥值調節</span>
+              <span id="noise-threshold-val">75%</span>
+            </div>
+            <input type="range" id="noise-sensitivity" min="30" max="95" value="75" style="width: 100%;">
+          </div>
+
+          <button class="btn btn-secondary btn-sm" id="btn-toggle-mic" style="margin-top: 24px;">🎙️ 啟用麥克風即時收音</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Add Student Modal -->
+  <div class="modal-backdrop" id="add-student-modal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem;">➕</span>
+          <h3 class="modal-title">添加新學生</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-add-student">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px;">學生姓名</label>
+            <input type="text" id="new-student-name" placeholder="例如：林小宇 (Sam)" style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: inherit;">
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            加入後將獲得專屬未孵化怪獸蛋，學生可透過班級代碼登入自行孵化換裝！
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-add-student">取消</button>
+        <button class="btn btn-primary" id="btn-submit-add-student">確認添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/confetti.js"></script>
+  <script src="js/monster-engine.js"></script>
+  <script type="module" src="js/teacher.js"></script>
+</body>
+</html>
