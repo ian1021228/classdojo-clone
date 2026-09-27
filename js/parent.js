@@ -283,6 +283,37 @@ class ParentController {
           </div>
         </div>
         <div class="post-content" style="color: #334155; line-height: 1.6;">${post.content}</div>
+        ${post.poll ? `
+          <div class="hive-poll-box" style="margin: 14px 0; padding: 14px 16px; background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 12px;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #78350f; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span>📊</span>
+              <span>${post.poll.question}</span>
+            </div>
+            <div class="poll-options-list" style="display: flex; flex-direction: column; gap: 8px;">
+              ${post.poll.options.map(opt => {
+                const total = post.poll.options.reduce((sum, o) => sum + (o.votes || 0), 0);
+                const pct = total > 0 ? Math.round(((opt.votes || 0) / total) * 100) : 0;
+                const isSelected = post.poll.userVoted === opt.id;
+                return `
+                  <button class="poll-option-btn ${isSelected ? 'selected' : ''}" data-parent-poll-post="${post.id}" data-parent-poll-opt="${opt.id}" style="position: relative; width: 100%; text-align: left; padding: 10px 14px; border: 1.5px solid ${isSelected ? '#f59e0b' : '#fde68a'}; border-radius: 8px; background: #ffffff; cursor: pointer; overflow: hidden; font-family: inherit;">
+                    <div class="poll-bar-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: ${pct}%; background: ${isSelected ? '#fde68a' : '#fef3c7'}; z-index: 1; transition: width 0.4s ease; opacity: 0.6;"></div>
+                    <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 0.9rem; font-weight: ${isSelected ? '800' : '600'}; color: #1e293b;">
+                        ${isSelected ? '✅ ' : '⚪ '}${opt.text}
+                      </span>
+                      <span style="font-size: 0.85rem; font-weight: 700; color: #b45309;">
+                        ${pct}% (${opt.votes || 0} 票)
+                      </span>
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 8px; text-align: right;">
+              總計 ${post.poll.options.reduce((sum, o) => sum + (o.votes || 0), 0)} 票 • 家長與教師即時同步
+            </div>
+          </div>
+        ` : ''}
         <div class="post-footer">
           <button class="like-btn ${post.liked ? 'liked' : ''}" data-parent-like="${post.id}">
             <span>${post.liked ? '❤️' : '🤍'}</span>
@@ -303,6 +334,17 @@ class ParentController {
         </div>
       </div>
     `).join('');
+
+    // Attach poll voting events
+    list.querySelectorAll('[data-parent-poll-opt]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pid = btn.dataset.parentPollPost;
+        const oid = btn.dataset.parentPollOpt;
+        store.voteStoryPoll(pid, oid);
+        if (window.dojoAudio) window.dojoAudio.playHoneyDrop();
+        this.renderStory();
+      });
+    });
 
     list.querySelectorAll('[data-parent-like]').forEach(btn => {
       btn.addEventListener('click', () => {

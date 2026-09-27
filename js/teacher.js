@@ -369,18 +369,62 @@ class TeacherController {
       if (window.dojoConfetti) window.dojoConfetti.burst();
     });
 
-    // Class Story Posting
+    // Class Story Posting & Poll Creator
+    document.getElementById('btn-toggle-poll-box')?.addEventListener('click', () => {
+      const wrap = document.getElementById('story-poll-input-wrap');
+      if (wrap) {
+        wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+        if (window.dojoAudio) window.dojoAudio.playTick();
+      }
+    });
+
     document.getElementById('btn-publish-story')?.addEventListener('click', () => {
       const textarea = document.getElementById('story-post-input');
       const content = textarea.value.trim();
       if (!content) return;
       const preview = document.getElementById('story-image-preview');
       const img = preview.dataset.img || '';
-      store.addStoryPost(store.state.activeClassId, '林老師 (Teacher Lin)', content, img);
+
+      // Check for attached poll
+      let poll = null;
+      const pollWrap = document.getElementById('story-poll-input-wrap');
+      if (pollWrap && pollWrap.style.display !== 'none') {
+        const qInput = document.getElementById('poll-input-question');
+        const opt1Input = document.getElementById('poll-input-opt1');
+        const opt2Input = document.getElementById('poll-input-opt2');
+        const opt3Input = document.getElementById('poll-input-opt3');
+
+        const q = qInput ? qInput.value.trim() : '';
+        const o1 = opt1Input ? opt1Input.value.trim() : '';
+        const o2 = opt2Input ? opt2Input.value.trim() : '';
+        const o3 = opt3Input ? opt3Input.value.trim() : '';
+
+        if (q && o1 && o2) {
+          poll = {
+            id: `poll_${Date.now()}`,
+            question: q,
+            options: [
+              { id: 'opt_1', text: o1, votes: 0 },
+              { id: 'opt_2', text: o2, votes: 0 },
+              ...(o3 ? [{ id: 'opt_3', text: o3, votes: 0 }] : [])
+            ],
+            userVoted: null
+          };
+        }
+      }
+
+      store.addStoryPost(store.state.activeClassId, '林老師 (Teacher Lin)', content, img, poll);
       textarea.value = '';
       preview.innerHTML = '';
       preview.style.display = 'none';
       delete preview.dataset.img;
+      if (pollWrap) {
+        pollWrap.style.display = 'none';
+        ['poll-input-question', 'poll-input-opt1', 'poll-input-opt2', 'poll-input-opt3'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+      }
       if (window.dojoAudio) window.dojoAudio.playPositive();
       this.renderStories();
     });
@@ -1011,6 +1055,37 @@ class TeacherController {
           </div>
         </div>
         <div class="post-content">${post.content}</div>
+        ${post.poll ? `
+          <div class="hive-poll-box" style="margin: 14px 0; padding: 14px 16px; background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 12px;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #78350f; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span>📊</span>
+              <span>${post.poll.question}</span>
+            </div>
+            <div class="poll-options-list" style="display: flex; flex-direction: column; gap: 8px;">
+              ${post.poll.options.map(opt => {
+                const total = post.poll.options.reduce((sum, o) => sum + (o.votes || 0), 0);
+                const pct = total > 0 ? Math.round(((opt.votes || 0) / total) * 100) : 0;
+                const isSelected = post.poll.userVoted === opt.id;
+                return `
+                  <button class="poll-option-btn ${isSelected ? 'selected' : ''}" data-poll-post="${post.id}" data-poll-opt="${opt.id}" style="position: relative; width: 100%; text-align: left; padding: 10px 14px; border: 1.5px solid ${isSelected ? '#f59e0b' : '#fde68a'}; border-radius: 8px; background: #ffffff; cursor: pointer; overflow: hidden; font-family: inherit;">
+                    <div class="poll-bar-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: ${pct}%; background: ${isSelected ? '#fde68a' : '#fef3c7'}; z-index: 1; transition: width 0.4s ease; opacity: 0.6;"></div>
+                    <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 0.9rem; font-weight: ${isSelected ? '800' : '600'}; color: #1e293b;">
+                        ${isSelected ? '✅ ' : '⚪ '}${opt.text}
+                      </span>
+                      <span style="font-size: 0.85rem; font-weight: 700; color: #b45309;">
+                        ${pct}% (${opt.votes || 0} 票)
+                      </span>
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 8px; text-align: right;">
+              總計 ${post.poll.options.reduce((sum, o) => sum + (o.votes || 0), 0)} 票 • 親師生即時同步
+            </div>
+          </div>
+        ` : ''}
         ${post.image ? `<div style="margin-bottom: 14px; border-radius: 8px; overflow: hidden; background: #e6f9f0; padding: 12px; text-align: center;">📷 已上傳班級活動紀錄照片</div>` : ''}
         <div class="post-footer">
           <button class="like-btn ${post.liked ? 'liked' : ''}" data-like-btn="${post.id}">
@@ -1032,6 +1107,17 @@ class TeacherController {
         </div>
       </div>
     `).join('');
+
+    // Attach poll voting events
+    list.querySelectorAll('[data-poll-opt]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pid = btn.dataset.pollPost;
+        const oid = btn.dataset.pollOpt;
+        store.voteStoryPoll(pid, oid);
+        if (window.dojoAudio) window.dojoAudio.playHoneyDrop();
+        this.renderStories();
+      });
+    });
 
     // Attach like & comment events
     list.querySelectorAll('[data-like-btn]').forEach(btn => {

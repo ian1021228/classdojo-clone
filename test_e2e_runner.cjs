@@ -177,6 +177,19 @@ async function runTests() {
             console.log(`    ✓ Noise meter & mic toggle verified`);
           }
         }
+
+        // Test Class Story & Hive Poll
+        const storyTab = await page.$('#tab-btn-story');
+        if (storyTab) {
+          await page.evaluate(el => el.click(), storyTab);
+          await new Promise(r => setTimeout(r, 400));
+          const pollOpt = await page.$('.poll-option-btn');
+          if (pollOpt) {
+            await page.evaluate(el => el.click(), pollOpt);
+            console.log(`    ✓ Voted on hive poll in teacher ${mode}`);
+          }
+          await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `02_story_poll_${mode}.png`) });
+        }
       });
 
       // Test 3: Student Page
@@ -282,6 +295,19 @@ async function runTests() {
           document.getElementById('btn-close-cert')?.click();
         });
         await new Promise(r => setTimeout(r, 300));
+
+        // Switch to Story tab and test poll
+        await page.evaluate((m) => {
+          const target = m === 'desktop' ? 'tab-parent-story' : 'mob-par-story';
+          document.getElementById(target)?.click();
+        }, mode);
+        await new Promise(r => setTimeout(r, 400));
+        const parPollOpt = await page.$('[data-parent-poll-opt]');
+        if (parPollOpt) {
+          await page.evaluate(el => el.click(), parPollOpt);
+          console.log(`    ✓ Parent voted on poll in ${mode}`);
+        }
+        await page.screenshot({ path: path.join(SCREENSHOTS_DIR, `04_parent_story_poll_${mode}.png`) });
       });
 
       console.log(`\n========================================`);

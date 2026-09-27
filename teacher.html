@@ -136,10 +136,19 @@
           </div>
           <textarea id="story-post-input" class="compose-textarea" placeholder="今天孩子們在課堂上有什麼亮眼表現？"></textarea>
           <div class="compose-bar">
-            <div style="display: flex; gap: 10px;">
-              <button class="btn btn-secondary btn-sm" id="btn-add-sample-img">📷 加入活動照片</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button class="btn btn-secondary btn-sm" id="btn-add-sample-img"><i class="fa-solid fa-camera"></i> 活動照片</button>
+              <button class="btn btn-secondary btn-sm" id="btn-toggle-poll-box"><i class="fa-solid fa-square-poll-vertical"></i> 附帶蜂巢投票</button>
             </div>
             <button class="btn btn-primary btn-sm" id="btn-publish-story">發布貼文</button>
+          </div>
+          <!-- Poll Input Section (Hidden by default) -->
+          <div id="story-poll-input-wrap" style="display: none; margin-top: 14px; padding: 14px; background: #fffdf5; border: 1.5px dashed #fde68a; border-radius: 12px;">
+            <div style="font-weight: 700; font-size: 0.9rem; color: #b45309; margin-bottom: 8px;">📊 設定投票題目與選項</div>
+            <input type="text" id="poll-input-question" placeholder="輸入投票問題（例如：本週五最想先去哪個花圃探險？）" style="width: 100%; padding: 8px 12px; border: 1px solid #fde68a; border-radius: 8px; margin-bottom: 8px; font-family: inherit; font-size: 0.85rem;">
+            <input type="text" id="poll-input-opt1" placeholder="選項 1（例如：向日葵花田）" style="width: 100%; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; font-family: inherit; font-size: 0.85rem;">
+            <input type="text" id="poll-input-opt2" placeholder="選項 2（例如：薰衣草草甸）" style="width: 100%; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; font-family: inherit; font-size: 0.85rem;">
+            <input type="text" id="poll-input-opt3" placeholder="選項 3（例如：蜜糖金噴泉，選填）" style="width: 100%; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: inherit; font-size: 0.85rem;">
           </div>
           <div id="story-image-preview" style="display: none; margin-top: 10px; border-radius: 8px; overflow: hidden; max-height: 200px;"></div>
         </div>

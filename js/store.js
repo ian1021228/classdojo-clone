@@ -314,6 +314,16 @@ const INITIAL_DATA = {
       image: '',
       likes: 15,
       liked: false,
+      poll: {
+        id: 'poll_demo_1',
+        question: '🌻 本週五百花生態探險，大家最期待的觀察主題是什麼呢？',
+        options: [
+          { id: 'opt_1', text: '向日葵花田與授粉特徵觀察', votes: 12 },
+          { id: 'opt_2', text: '小蜜蜂飛行路徑與六角蜂巢結構', votes: 16 },
+          { id: 'opt_3', text: '植物拓印與野花蜜露標本採集', votes: 9 }
+        ],
+        userVoted: null
+      },
       comments: [
         { id: 'c1', author: 'Beyoncé 家長', text: 'Beyoncé 回家後興奮地跟我們分享水火箭原理，太有熱情了！謝謝老師用心引導 ❤️', time: '1 小時前' },
         { id: 'c2', author: 'Denzel 家長', text: '看到孩子們自信開心的笑容真棒，謝謝老師！', time: '30 分鐘前' }
@@ -558,7 +568,7 @@ class DojoStore {
   }
 
   // Add story post
-  addStoryPost(classId, author, content, image = '') {
+  addStoryPost(classId, author, content, image = '', poll = null) {
     const post = {
       id: `post_${Date.now()}`,
       author,
@@ -568,9 +578,31 @@ class DojoStore {
       image,
       likes: 0,
       liked: false,
+      poll: poll || null,
       comments: []
     };
     this.state.stories.unshift(post);
+    this.save();
+    return post;
+  }
+
+  // Vote on story poll
+  voteStoryPoll(postId, optionId) {
+    const post = this.state.stories.find(p => p.id === postId);
+    if (!post || !post.poll) return;
+
+    if (post.poll.userVoted === optionId) return;
+
+    if (post.poll.userVoted) {
+      const prevOpt = post.poll.options.find(o => o.id === post.poll.userVoted);
+      if (prevOpt && prevOpt.votes > 0) prevOpt.votes--;
+    }
+
+    const newOpt = post.poll.options.find(o => o.id === optionId);
+    if (newOpt) {
+      newOpt.votes = (newOpt.votes || 0) + 1;
+      post.poll.userVoted = optionId;
+    }
     this.save();
     return post;
   }
