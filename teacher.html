@@ -789,6 +789,50 @@
     </div>
   </div>
 
+  <!-- Modal 15: Classroom Focus Music & Ambient Player -->
+  <div class="modal-backdrop" id="music-modal">
+    <div class="modal-card" style="max-width: 500px; text-align: center;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem; color: #ec4899;"><i class="fa-solid fa-music"></i></span>
+          <h3 class="modal-title">課堂專注輕音樂 (Classroom Focus Sounds)</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-music">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <div style="background: radial-gradient(circle, #fdf2f8 0%, #fff1f2 100%); border-radius: 16px; padding: 28px 20px; border: 1.5px solid #fbcfe8; margin-bottom: 20px;">
+          <div id="music-vinyl-disc" style="width: 100px; height: 100px; margin: 0 auto 16px; border-radius: 50%; background: #1e293b; border: 4px solid #f472b6; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(244, 114, 182, 0.25); transition: transform 0.5s ease;">
+            <div style="width: 34px; height: 34px; border-radius: 50%; background: #fef08a; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+              <i class="fa-solid fa-compact-disc" style="color: #d97706;"></i>
+            </div>
+          </div>
+          <h4 id="music-current-track-name" style="font-size: 1.2rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">🌻 向日葵草甸微風 (Calm Meadow)</h4>
+          <p id="music-track-status" style="font-size: 0.85rem; color: #9d174d; margin: 0; font-weight: 600;">純淨純合成白噪音，零延遲，有助於全班學生深度閱讀與自主作業</p>
+        </div>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 24px;">
+          <button class="btn btn-primary btn-lg" id="btn-music-toggle" style="padding: 12px 28px; border-radius: var(--radius-full); font-size: 1.05rem; box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35); background: linear-gradient(135deg, #ec4899, #db2777); border: none;">
+            <i class="fa-solid fa-play" id="music-toggle-icon"></i> <span id="music-toggle-label">開始播放</span>
+          </button>
+        </div>
+
+        <div style="text-align: left;">
+          <label style="font-size: 0.85rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 10px;">
+            <i class="fa-solid fa-sliders"></i> 氛圍音樂切換
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button class="btn btn-secondary btn-sm music-track-chip active" data-track="meadow" style="border: 1.5px solid #ec4899; background: #fdf2f8; font-weight: 700; color: #9d174d;">
+              🌻 草甸微風旋律
+            </button>
+            <button class="btn btn-secondary btn-sm music-track-chip" data-track="beehive" style="border: 1.5px solid #e2e8f0; font-weight: 700;">
+              🐝 蜂巢專注白噪音
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal 13: Student Portfolio Review & Flower Award Modal -->
   <div class="modal-backdrop" id="portfolio-review-modal">
     <div class="modal-card" style="max-width: 680px;">

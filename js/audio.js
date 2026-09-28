@@ -231,6 +231,64 @@ class DojoAudio {
       osc.stop(startTime + 0.35);
     });
   }
+
+  // Soothing Classroom Ambient Generator (Lo-Fi Garden Melody)
+  startAmbientFocus() {
+    if (!this.enabled) return;
+    this.stopAmbientFocus();
+    this.init();
+    if (!this.ctx) return;
+
+    this.ambientPlaying = true;
+    const chords = [
+      [261.63, 329.63, 392.00, 523.25], // C major
+      [220.00, 261.63, 329.63, 440.00], // A minor
+      [174.61, 220.00, 261.63, 349.23], // F major
+      [196.00, 246.94, 293.66, 392.00]  // G major
+    ];
+    let chordIdx = 0;
+
+    const playChordStep = () => {
+      if (!this.ambientPlaying || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const curChord = chords[chordIdx % chords.length];
+      chordIdx++;
+
+      curChord.forEach((freq, i) => {
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.15);
+
+          gain.gain.setValueAtTime(0.0001, now + i * 0.15);
+          gain.gain.linearRampToValueAtTime(0.045, now + i * 0.15 + 0.3);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.15 + 2.8);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.15);
+          osc.stop(now + i * 0.15 + 2.9);
+        } catch (e) {}
+      });
+
+      this.ambientTimer = setTimeout(playChordStep, 3200);
+    };
+
+    playChordStep();
+  }
+
+  stopAmbientFocus() {
+    this.ambientPlaying = false;
+    if (this.ambientTimer) {
+      clearTimeout(this.ambientTimer);
+      this.ambientTimer = null;
+    }
+  }
+
+  isAmbientPlaying() {
+    return !!this.ambientPlaying;
+  }
 }
 
 window.dojoAudio = new DojoAudio();

@@ -84,6 +84,10 @@ class TeacherController {
     this.bindEvents();
     this.renderAll();
 
+    if (window.setupSoundToggle) {
+      window.setupSoundToggle();
+    }
+
     // Subscribe to store updates
     store.subscribe(() => {
       this.renderAll();
@@ -136,6 +140,12 @@ class TeacherController {
     this.exportReportModal = document.getElementById('export-report-modal');
     this.thinkPairModal = document.getElementById('thinkpair-modal');
     this.directionsModal = document.getElementById('directions-modal');
+    this.portfolioReviewModal = document.getElementById('portfolio-review-modal');
+    this.addActivityModal = document.getElementById('add-activity-modal');
+    this.musicModal = document.getElementById('music-modal');
+    this.isMusicPlaying = false;
+    this.currentReviewTarget = null;
+    this.selectedFlowerSticker = '🌸 構思精巧花';
   }
 
   bindEvents() {
@@ -152,6 +162,43 @@ class TeacherController {
     document.getElementById('btn-close-add-event')?.addEventListener('click', () => this.closeModal(this.addEventModal));
     document.getElementById('btn-cancel-add-event')?.addEventListener('click', () => this.closeModal(this.addEventModal));
     document.getElementById('btn-submit-add-event')?.addEventListener('click', () => this.submitAddEvent());
+
+    // Portfolio Activity & Review Modal Controls
+    document.getElementById('btn-create-activity')?.addEventListener('click', () => this.openModal(this.addActivityModal));
+    document.getElementById('btn-close-add-activity')?.addEventListener('click', () => this.closeModal(this.addActivityModal));
+    document.getElementById('btn-cancel-add-activity')?.addEventListener('click', () => this.closeModal(this.addActivityModal));
+    document.getElementById('btn-submit-add-activity')?.addEventListener('click', () => this.submitAddActivity());
+
+    document.getElementById('btn-close-portfolio-review')?.addEventListener('click', () => this.closeModal(this.portfolioReviewModal));
+    document.getElementById('btn-cancel-review')?.addEventListener('click', () => this.closeModal(this.portfolioReviewModal));
+    document.getElementById('btn-confirm-approve')?.addEventListener('click', () => this.confirmApproveReview());
+    document.getElementById('btn-review-return')?.addEventListener('click', () => this.returnReview());
+
+    // Flower sticker selector
+    document.getElementById('flower-sticker-picker')?.querySelectorAll('.preset-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('#flower-sticker-picker .preset-chip').forEach(c => {
+          c.classList.remove('active-flower');
+          c.style.background = '#ffffff';
+          c.style.borderColor = '#e2e8f0';
+        });
+        chip.classList.add('active-flower');
+        chip.style.background = '#fef3c7';
+        chip.style.borderColor = '#f59e0b';
+        this.selectedFlowerSticker = chip.dataset.sticker;
+      });
+    });
+
+    // Preset comment chips
+    document.querySelectorAll('.preset-comment-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const commentBox = document.getElementById('review-teacher-comment');
+        if (commentBox) {
+          commentBox.value = btn.dataset.comment;
+          commentBox.focus();
+        }
+      });
+    });
 
     // Big Ideas Modal Controls
     document.getElementById('dock-btn-bigideas')?.addEventListener('click', () => this.openBigIdeasModal());
@@ -382,10 +429,69 @@ class TeacherController {
       this.openDirectionsModal();
     });
     document.getElementById('tk-card-music')?.addEventListener('click', () => {
-      if (window.dojoAudio) {
-        window.dojoAudio.playFanfare();
-        if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 40);
+      this.closeModal(this.toolkitModal);
+      this.openModal(this.musicModal);
+    });
+
+    // Classroom Focus Music Player Controls
+    document.getElementById('btn-close-music')?.addEventListener('click', () => {
+      this.closeModal(this.musicModal);
+    });
+
+    const musicBtn = document.getElementById('btn-music-toggle');
+    const musicIcon = document.getElementById('music-toggle-icon');
+    const musicLabel = document.getElementById('music-toggle-label');
+    const vinylDisc = document.getElementById('music-vinyl-disc');
+
+    musicBtn?.addEventListener('click', () => {
+      this.isMusicPlaying = !this.isMusicPlaying;
+      if (this.isMusicPlaying) {
+        if (window.dojoAudio) window.dojoAudio.startAmbientFocus();
+        if (musicIcon) musicIcon.className = 'fa-solid fa-pause';
+        if (musicLabel) musicLabel.textContent = '暫停音樂';
+        if (vinylDisc) vinylDisc.style.transform = 'rotate(360deg)';
+      } else {
+        if (window.dojoAudio) window.dojoAudio.stopAmbientFocus();
+        if (musicIcon) musicIcon.className = 'fa-solid fa-play';
+        if (musicLabel) musicLabel.textContent = '開始播放';
+        if (vinylDisc) vinylDisc.style.transform = 'rotate(0deg)';
       }
+    });
+
+    document.querySelectorAll('.music-track-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.music-track-chip').forEach(c => {
+          c.classList.remove('active');
+          c.style.borderColor = '#e2e8f0';
+          c.style.background = '#ffffff';
+          c.style.color = '#1e293b';
+        });
+        chip.classList.add('active');
+        chip.style.borderColor = '#ec4899';
+        chip.style.background = '#fdf2f8';
+        chip.style.color = '#9d174d';
+        const nameEl = document.getElementById('music-current-track-name');
+        if (nameEl) nameEl.textContent = chip.dataset.track === 'meadow' ? '🌻 向日葵草甸微風 (Calm Meadow)' : '🐝 蜂巢專注白噪音 (Beehive Focus)';
+        if (this.isMusicPlaying && window.dojoAudio) {
+          window.dojoAudio.startAmbientFocus();
+        }
+      });
+    });
+
+    // Interactive Class Mascot Badge Selector
+    document.getElementById('class-badge-icon')?.addEventListener('click', () => {
+      const icons = ['🚀', '🌻', '🐝', '🌈', '👑', '⭐', '🎨', '🌿', '💎'];
+      const badge = document.getElementById('class-badge-icon');
+      const current = badge ? badge.textContent.trim() : '🚀';
+      const nextIdx = (icons.indexOf(current) + 1) % icons.length;
+      if (badge) badge.textContent = icons[nextIdx];
+      const cls = store.getActiveClass();
+      if (cls) {
+        cls.icon = icons[nextIdx];
+        store.save();
+      }
+      if (window.dojoAudio) window.dojoAudio.playPositive();
+      if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 25);
     });
 
     // Think-Pair-Share Controls
@@ -428,10 +534,12 @@ class TeacherController {
     });
     document.getElementById('btn-timer-toggle')?.addEventListener('click', () => this.toggleTimer());
     document.getElementById('btn-timer-reset')?.addEventListener('click', () => this.resetTimer());
-    document.querySelectorAll('.preset-chip').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const secs = parseInt(e.target.dataset.seconds, 10);
-        this.setTimerPreset(secs);
+    document.querySelectorAll('#timer-modal .preset-chip[data-seconds]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const secs = parseInt(btn.dataset.seconds, 10);
+        if (!isNaN(secs)) {
+          this.setTimerPreset(secs);
+        }
       });
     });
 
@@ -1374,44 +1482,144 @@ class TeacherController {
   // Portfolios View
   renderPortfolios() {
     const container = document.getElementById('portfolios-list');
+    if (!container) return;
     const acts = store.state.portfolios.filter(a => a.classId === store.state.activeClassId);
 
+    if (acts.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 48px 24px; background: #fffdf5; border: 2px dashed #fde68a; border-radius: 16px;">
+          <div style="font-size: 2.4rem; color: #f59e0b; margin-bottom: 8px;"><i class="fa-solid fa-folder-open"></i></div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">目前尚無作業活動</h3>
+          <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 16px;">點擊上方「發布新作業活動」按鈕，立即為班級小蜜蜂出題！</p>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('btn-create-activity')?.click()"><i class="fa-solid fa-plus"></i> 立即發布作業</button>
+        </div>
+      `;
+      return;
+    }
+
     container.innerHTML = acts.map(act => `
-      <div class="post-card">
-        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">📌 ${act.title}</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">${act.description}</p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-          ${act.submissions.map(sub => `
-            <div style="border: 1px solid var(--border-light); border-radius: 12px; padding: 12px; background: #fafbfc;">
+      <div class="post-card" style="border: 1.5px solid #fde68a; border-radius: 16px; padding: 24px; background: #ffffff;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; color: #1e293b;">
+              <i class="fa-solid fa-seedling" style="color: #10b981;"></i> ${escapeHTML(act.title)}
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">${escapeHTML(act.description)}</p>
+          </div>
+          <span style="font-size: 0.8rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 4px 12px; border-radius: 9999px; border: 1px solid #fde68a;">
+            ${act.submissions ? act.submissions.length : 0} 份作品繳交
+          </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+          ${(act.submissions || []).map(sub => `
+            <div style="border: 1.5px solid var(--border-light); border-radius: 12px; padding: 14px; background: #fffdf5; display: flex; flex-direction: column;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <strong>${sub.studentName}</strong>
-                <span style="font-size: 0.8rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); ${sub.status === 'approved' ? 'background: #dcfce7; color: #166534;' : 'background: #fef3c7; color: #92400e;'}">
-                  ${sub.status === 'approved' ? '✅ 已通過' : '⏳ 待審核'}
+                <strong style="color: #1e293b; font-size: 0.95rem;">${escapeHTML(sub.studentName)}</strong>
+                <span style="font-size: 0.75rem; font-weight: 800; padding: 3px 10px; border-radius: var(--radius-full); ${sub.status === 'approved' ? 'background: #dcfce7; color: #166534;' : 'background: #fef3c7; color: #92400e;'}">
+                  ${sub.status === 'approved' ? '✓ 已通過審核' : '⏳ 待導師批閱'}
                 </span>
               </div>
-              <div style="background: #ffffff; border-radius: 8px; overflow: hidden; margin-bottom: 8px; text-align: center;">
-                <img src="${sub.drawingData}" alt="學生作品" style="max-width: 100%; height: 140px; object-fit: contain;">
+              <div style="background: #ffffff; border-radius: 8px; overflow: hidden; margin-bottom: 8px; text-align: center; border: 1px solid #fde68a; min-height: 120px; display: flex; align-items: center; justify-content: center;">
+                <img src="${sub.drawingData}" alt="學生作品" style="max-width: 100%; max-height: 140px; object-fit: contain;">
               </div>
-              <p style="font-size: 0.85rem; color: var(--text-main); margin-bottom: 10px;">${sub.caption}</p>
+              <p style="font-size: 0.85rem; color: #334155; margin-bottom: 12px; flex: 1;">${escapeHTML(sub.caption || '無文字心得')}</p>
               ${sub.status !== 'approved' ? `
-                <button class="btn btn-primary btn-sm btn-approve-sub" data-act-id="${act.id}" data-sub-id="${sub.id}" style="width: 100%;">
-                  👍 審核通過並給予點數
+                <button class="btn btn-primary btn-sm btn-review-sub-card" data-act-id="${act.id}" data-sub-id="${sub.id}" style="width: 100%;">
+                  <i class="fa-solid fa-award"></i> 進入批閱與頒發點數
                 </button>
-              ` : ''}
+              ` : `
+                <button class="btn btn-secondary btn-sm btn-review-sub-card" data-act-id="${act.id}" data-sub-id="${sub.id}" style="width: 100%; border: 1px solid #bbf7d0; color: #166534;">
+                  <i class="fa-solid fa-circle-check"></i> 查看審核與小紅花
+                </button>
+              `}
             </div>
           `).join('')}
         </div>
       </div>
     `).join('');
 
-    container.querySelectorAll('.btn-approve-sub').forEach(btn => {
+    container.querySelectorAll('.btn-review-sub-card').forEach(btn => {
       btn.addEventListener('click', () => {
-        store.approvePortfolioSubmission(btn.dataset.actId, btn.dataset.subId);
-        if (window.dojoAudio) window.dojoAudio.playPositive();
-        if (window.dojoConfetti) window.dojoConfetti.burst();
-        this.renderPortfolios();
+        this.openPortfolioReview(btn.dataset.actId, btn.dataset.subId);
       });
     });
+  }
+
+  openPortfolioReview(actId, subId) {
+    const act = store.state.portfolios.find(a => a.id === actId);
+    if (!act) return;
+    const sub = act.submissions.find(s => s.id === subId);
+    if (!sub) return;
+
+    this.currentReviewTarget = { actId, subId, sub };
+    const nameEl = document.getElementById('review-student-name');
+    const timeEl = document.getElementById('review-submission-time');
+    const imgEl = document.getElementById('review-drawing-img');
+    const capEl = document.getElementById('review-student-caption');
+    const statusEl = document.getElementById('review-status-badge');
+    const commentEl = document.getElementById('review-teacher-comment');
+
+    if (nameEl) nameEl.textContent = sub.studentName;
+    if (timeEl) timeEl.textContent = '提交於 ' + new Date(sub.timestamp || Date.now()).toLocaleDateString('zh-TW');
+    if (imgEl) imgEl.src = sub.drawingData || '';
+    if (capEl) capEl.textContent = sub.caption || '無心得備註';
+    if (commentEl) commentEl.value = sub.teacherFeedback || '';
+    if (statusEl) {
+      statusEl.textContent = sub.status === 'approved' ? '✅ 已通過' : '⏳ 待審核';
+      statusEl.style.background = sub.status === 'approved' ? '#dcfce7' : '#fef3c7';
+      statusEl.style.color = sub.status === 'approved' ? '#166534' : '#92400e';
+    }
+
+    this.openModal(this.portfolioReviewModal);
+  }
+
+  confirmApproveReview() {
+    if (!this.currentReviewTarget) return;
+    const { actId, subId } = this.currentReviewTarget;
+    const feedback = document.getElementById('review-teacher-comment')?.value.trim() || '';
+    const publishToStory = document.getElementById('review-publish-to-story')?.checked ?? true;
+
+    store.approvePortfolioSubmission(actId, subId, feedback, this.selectedFlowerSticker, publishToStory);
+    if (window.dojoAudio) window.dojoAudio.playPositive();
+    if (window.dojoConfetti) window.dojoConfetti.burst();
+    this.closeModal(this.portfolioReviewModal);
+    this.renderPortfolios();
+    alert('🎉 已核准學生作品！頒發了 +2 蜂蜜點數與小紅花獎章！');
+  }
+
+  returnReview() {
+    if (!this.currentReviewTarget) return;
+    const { actId, subId } = this.currentReviewTarget;
+    const note = prompt('請輸入給予學生的修改建議：', '作品很有想像力！建議可以再豐富背景的花朵細節喔～');
+    if (note !== null) {
+      store.returnPortfolioSubmission(actId, subId, note);
+      if (window.dojoAudio) window.dojoAudio.playTick();
+      this.closeModal(this.portfolioReviewModal);
+      this.renderPortfolios();
+      alert('已退回作品並給予小蜜蜂溫暖建議！');
+    }
+  }
+
+  submitAddActivity() {
+    const title = document.getElementById('input-act-title')?.value.trim();
+    const desc = document.getElementById('input-act-desc')?.value.trim() || '';
+    const type = document.getElementById('select-act-type')?.value || 'drawing';
+
+    if (!title) {
+      alert('請輸入活動作業標題！');
+      document.getElementById('input-act-title')?.focus();
+      return;
+    }
+
+    store.addPortfolioActivity(store.state.activeClassId, title, desc, type);
+    if (window.dojoAudio) window.dojoAudio.playPositive();
+    if (window.dojoConfetti) window.dojoConfetti.burst();
+    if (document.getElementById('input-act-title')) document.getElementById('input-act-title').value = '';
+    if (document.getElementById('input-act-desc')) document.getElementById('input-act-desc').value = '';
+    this.closeModal(this.addActivityModal);
+    this.renderPortfolios();
+    alert('✨ 成功發布新課堂作業活動！');
   }
 
   // Calendar View & Event RSVPs
@@ -1735,14 +1943,25 @@ class TeacherController {
             ${escapeHTML(step.text)}
           </span>
         </div>
-        <span style="font-size: 0.8rem; font-weight: 700; color: ${step.done ? '#059669' : '#94a3b8'};">
-          ${step.done ? '已完成' : '待完成'}
-        </span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: ${step.done ? '#059669' : '#94a3b8'};">
+            ${step.done ? '✓ 已完成' : '待完成'}
+          </span>
+          <button class="btn-delete-step" data-del-idx="${idx}" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; font-size: 0.9rem;" title="刪除此步驟">&times;</button>
+        </div>
       </div>
     `).join('');
 
     list.querySelectorAll('[data-step-idx]').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-delete-step')) {
+          e.stopPropagation();
+          const delIdx = parseInt(e.target.closest('.btn-delete-step').dataset.delIdx, 10);
+          this.currentDirections.steps.splice(delIdx, 1);
+          if (window.dojoAudio) window.dojoAudio.playTick();
+          this.renderDirectionsSteps();
+          return;
+        }
         const idx = parseInt(item.dataset.stepIdx, 10);
         this.currentDirections.steps[idx].done = !this.currentDirections.steps[idx].done;
         if (window.dojoAudio) {

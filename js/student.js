@@ -35,12 +35,32 @@ class StudentController {
   }
 
   init() {
+    // Parse URL params (?id=stu_X&tab=portfolio)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const paramId = params.get('id');
+      if (paramId && this.activeClass.students.some(s => s.id === paramId)) {
+        this.currentStudentId = paramId;
+      }
+      const paramTab = params.get('tab');
+      if (paramTab && ['monster', 'points', 'rewards', 'islands', 'portfolio', 'story'].includes(paramTab)) {
+        this.currentTab = paramTab;
+      }
+    } catch (e) {}
+
     this.bindDOMElements();
     this.initDrawingCanvas();
     this.bindEvents();
+    if (this.currentTab !== 'monster') {
+      this.switchTab(this.currentTab);
+    }
     this.loadCurrentStudent();
     this.renderCustomizerOptions();
     this.renderAll();
+
+    if (window.setupSoundToggle) {
+      window.setupSoundToggle();
+    }
 
     // Store subscription
     store.subscribe(() => {

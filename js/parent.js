@@ -15,9 +15,32 @@ class ParentController {
   }
 
   init() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const paramChild = params.get('child');
+      const paramCode = params.get('code');
+      if (paramChild && this.activeClass.students.some(s => s.id === paramChild)) {
+        this.currentChildId = paramChild;
+      } else if (paramCode) {
+        const found = this.activeClass.students.find(s => s.parentCode === paramCode.trim().toUpperCase());
+        if (found) this.currentChildId = found.id;
+      }
+      const paramTab = params.get('tab');
+      if (paramTab && ['report', 'chat', 'story'].includes(paramTab)) {
+        this.currentTab = paramTab;
+      }
+    } catch (e) {}
+
     this.bindDOMElements();
     this.bindEvents();
+    if (this.currentTab !== 'report') {
+      this.switchTab(this.currentTab);
+    }
     this.renderAll();
+
+    if (window.setupSoundToggle) {
+      window.setupSoundToggle();
+    }
 
     // Store subscription
     store.subscribe(() => {
@@ -273,6 +296,88 @@ class ParentController {
         </div>
       </div>
     `).join('');
+
+    // Also render child's portfolio artwork and teacher reviews
+    this.renderChildPortfolio(child.id);
+  }
+
+  renderChildPortfolio(childId) {
+    const container = document.getElementById('parent-portfolio-list');
+    if (!container) return;
+
+    const child = this.getChild();
+    if (!child) return;
+
+    // Gather all submissions from this child
+    const list = [];
+    (store.state.portfolios || []).forEach(act => {
+      (act.submissions || []).forEach(sub => {
+        if (sub.studentId === child.id) {
+          list.push({ act, sub });
+        }
+      });
+    });
+
+    if (list.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 36px 16px; background: #fffdf5; border-radius: 12px; border: 1.5px dashed #fde68a;">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">🎨</div>
+          <strong style="color: #b45309; display: block; font-size: 1rem; margin-bottom: 4px;">尚無已提交的課堂作業作品</strong>
+          <p style="color: #64748b; font-size: 0.85rem; margin: 0;">孩子在學生端完成手繪作業並經導師審核發布後，將會在此即時展示！</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = list.map(({ act, sub }) => `
+      <div class="portfolio-item-card" style="background: #ffffff; border: 1.5px solid #fde68a; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 14px rgba(180, 83, 9, 0.06); transition: transform 0.2s;" onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform='none'">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 0.8rem; font-weight: 800; background: #fef3c7; color: #b45309; padding: 4px 10px; border-radius: var(--radius-full); border: 1px solid #fde68a;">
+              <i class="fa-solid fa-book-open"></i> ${escapeHTML(act.title)}
+            </span>
+            <span style="font-size: 0.8rem; font-weight: 800; padding: 4px 10px; border-radius: var(--radius-full); ${sub.status === 'approved' ? 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;' : 'background: #fef3c7; color: #92400e; border: 1px solid #fde68a;'}">
+              ${sub.status === 'approved' ? '<i class="fa-solid fa-circle-check"></i> 導師已核准' : '<i class="fa-solid fa-clock"></i> 待審核中'}
+            </span>
+          </div>
+
+          <div style="width: 100%; height: 160px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 12px;">
+            ${sub.drawingData ? `<img src="${sub.drawingData}" alt="孩子的手繪作品" style="width: 100%; height: 100%; object-fit: contain;">` : '<span style="color: #94a3b8; font-size: 0.85rem;">(文字心得成果)</span>'}
+          </div>
+
+          <div style="font-size: 0.9rem; color: #1e293b; margin-bottom: 8px; line-height: 1.5;">
+            <strong>💬 孩子的心得：</strong> ${escapeHTML(sub.caption || '無文字心得')}
+          </div>
+
+          ${sub.teacherFeedback ? `
+            <div style="background: #fffdf5; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; font-size: 0.85rem; color: #854d0e;">
+              <div style="font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <span>🧑‍🏫 導師評語：</span>
+                ${sub.flowerSticker ? `<span style="background: #fef3c7; padding: 2px 8px; border-radius: 999px; border: 1px solid #fde68a; font-size: 0.8rem;">${escapeHTML(sub.flowerSticker)}</span>` : ''}
+              </div>
+              <p style="margin: 0; line-height: 1.4;">${escapeHTML(sub.teacherFeedback)}</p>
+            </div>
+          ` : ''}
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid #fef3c7; padding-top: 10px;">
+          <small style="color: #94a3b8; font-size: 0.75rem;">${new Date(sub.timestamp || Date.now()).toLocaleDateString('zh-TW')}</small>
+          <button class="btn btn-secondary btn-sm btn-parent-cheer" data-sub-id="${sub.id}" style="border: 1px solid #fde68a; color: #b45309; font-weight: 700; padding: 4px 12px; border-radius: 999px;">
+            ❤️ 為孩子點讚鼓勵
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.btn-parent-cheer').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (window.dojoAudio) window.dojoAudio.playPositive();
+        if (window.dojoConfetti) window.dojoConfetti.burst();
+        btn.innerHTML = '💖 已為孩子送上滿滿鼓勵！';
+        btn.style.background = '#fef3c7';
+        btn.disabled = true;
+      });
+    });
   }
 
   renderChat() {

@@ -69,8 +69,9 @@ class FirebaseDataEngine {
       StorageQuotaManager.pruneHistoryIfCrowded(state, 40);
 
       localStorage.setItem(this.storageKey, JSON.stringify(state));
-      // Notify local listeners
-      window.dispatchEvent(new CustomEvent('dojo:state-changed', { detail: state }));
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new CustomEvent('dojo:state-changed', { detail: state }));
+      }
 
       // Debounced and throttled sync to Firestore to prevent read/write spikes and quota exhaustion
       if (this.isOnline && this.db) {

@@ -8,10 +8,114 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dojo-ui.css">
   <link rel="icon" href="assets/svg/bee-twemoji.svg">
+  <style>
+    .login-nav-tabs {
+      display: flex;
+      background: #f8fafc;
+      border-bottom: 1.5px solid #fde68a;
+      padding: 6px 12px 0;
+      gap: 6px;
+      overflow-x: auto;
+    }
+    .login-nav-tab {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #64748b;
+      background: transparent;
+      border: none;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .login-nav-tab:hover {
+      color: #b45309;
+      background: #fefce8;
+    }
+    .login-nav-tab.active {
+      color: #b45309;
+      background: #ffffff;
+      border: 1.5px solid #fde68a;
+      border-bottom-color: #ffffff;
+      margin-bottom: -1.5px;
+    }
+    .login-pane {
+      display: none;
+      padding: 24px;
+    }
+    .login-pane.active {
+      display: block;
+    }
+    .student-pick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .student-pick-card {
+      border: 1.5px solid #fde68a;
+      border-radius: 14px;
+      padding: 12px 8px;
+      background: #ffffff;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .student-pick-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.2);
+      border-color: #f59e0b;
+      background: #fffdf5;
+    }
+    .pulse-stat-card {
+      background: #ffffff;
+      border: 1.5px solid #fde68a;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(180, 83, 9, 0.05);
+      transition: transform 0.2s;
+    }
+    .pulse-stat-card:hover {
+      transform: translateY(-2px);
+    }
+    .feature-tour-card {
+      background: #ffffff;
+      border: 1.5px solid #fde68a;
+      border-radius: 20px;
+      padding: 32px 28px;
+      box-shadow: 0 6px 20px rgba(180, 83, 9, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s;
+    }
+    .feature-tour-card:hover {
+      transform: translateY(-4px);
+      border-color: #f59e0b;
+    }
+    .mobile-only-btn {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .mobile-only-btn {
+        display: inline-flex !important;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Navigation Bar -->
+  <!-- Top Sticky Navbar -->
   <header class="dojo-navbar">
     <a href="index.html" class="dojo-brand">
       <div style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: #fef3c7; border-radius: 12px; border: 1.5px solid #fde68a;">
@@ -19,52 +123,73 @@
       </div>
       <div style="display: flex; align-items: baseline; gap: 6px;">
         <span style="font-weight: 900; font-size: 1.4rem; letter-spacing: -0.5px; color: #1e293b;">Crew</span>
-        <span style="font-size: 0.75rem; font-weight: 800; color: #b45309; background: #fef3c7; padding: 2px 8px; border-radius: 9999px; border: 1px solid #fde68a;">蜜蜂蜂巢版</span>
+        <span style="font-size: 0.75rem; font-weight: 800; color: #b45309; background: #fef3c7; padding: 2px 8px; border-radius: 9999px; border: 1px solid #fde68a;">蜜蜂蜂巢旗艦版</span>
       </div>
     </a>
-    <nav class="dojo-nav-links">
-      <a href="teacher.html" class="nav-link-btn"><i class="fa-solid fa-chalkboard-user"></i> 教師端</a>
-      <a href="student.html" class="nav-link-btn"><i class="fa-solid fa-child"></i> 學生端</a>
-      <a href="parent.html" class="nav-link-btn"><i class="fa-solid fa-house-chimney-user"></i> 家長端</a>
-      <button id="btn-open-settings" class="btn btn-secondary btn-sm" title="系統與資料庫設定"><i class="fa-solid fa-gear"></i> 設定</button>
-      <button id="btn-quick-login" class="btn btn-primary btn-sm"><i class="fa-solid fa-right-to-bracket"></i> 快速登入</button>
-    </nav>
+
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <!-- Sound Mute/Unmute Toggle Button -->
+      <button id="nav-sound-toggle" class="btn btn-secondary btn-sm" title="開關全域音效" style="padding: 6px 12px;">
+        <i class="fa-solid fa-volume-high" id="sound-toggle-icon"></i>
+      </button>
+
+      <!-- Mobile Quick Login Button -->
+      <button id="btn-mobile-quick-login" class="btn btn-primary btn-sm mobile-only-btn" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 800; border-radius: var(--radius-full);">
+        <i class="fa-solid fa-right-to-bracket"></i> 登入
+      </button>
+
+      <nav class="dojo-nav-links">
+        <a href="#features" class="nav-link-btn"><i class="fa-solid fa-sparkles"></i> 亮點導覽</a>
+        <a href="#pulse" class="nav-link-btn"><i class="fa-solid fa-chart-line"></i> 課堂脈動</a>
+        <a href="teacher.html" class="nav-link-btn"><i class="fa-solid fa-chalkboard-user"></i> 教師端</a>
+        <a href="student.html" class="nav-link-btn"><i class="fa-solid fa-child"></i> 學生端</a>
+        <a href="parent.html" class="nav-link-btn"><i class="fa-solid fa-house-chimney-user"></i> 家長端</a>
+        <button id="btn-open-settings" class="btn btn-secondary btn-sm" title="系統與資料庫設定"><i class="fa-solid fa-gear"></i> 設定</button>
+        <button id="btn-quick-login" class="btn btn-primary btn-sm"><i class="fa-solid fa-right-to-bracket"></i> 多身分登入中心</button>
+      </nav>
+    </div>
   </header>
 
-  <!-- Main Hero Section -->
+  <!-- Main Content Area -->
   <main>
+    <!-- Section 1: Hero Section -->
     <section class="landing-hero" style="background: radial-gradient(circle at 50% 20%, #fffbeb 0%, #faf8f2 100%); padding-top: 48px; padding-bottom: 64px;">
       
       <!-- Little Bees Floating Banner -->
       <div id="hero-monster-banner" style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 24px;"></div>
       
-      <h1 class="hero-title" style="font-size: 2.5rem; font-weight: 900; color: #1e293b; margin-bottom: 16px;">
-        讓課堂像蜂巢一樣 <span style="color: #f59e0b; background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">充滿甜蜜與協作</span>
+      <div style="display: inline-flex; align-items: center; gap: 8px; background: #fffdf5; border: 1.5px solid #fde68a; border-radius: var(--radius-full); padding: 6px 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(180, 83, 9, 0.08);">
+        <i class="fa-solid fa-sparkles" style="color: #f59e0b;"></i>
+        <span style="font-size: 0.85rem; font-weight: 800; color: #b45309;">2026 全新 ClassDojo 蜂巢教育旗艦版 • 陪伴孩子快樂成長</span>
+      </div>
+
+      <h1 class="hero-title" style="font-size: 2.7rem; font-weight: 900; color: #1e293b; margin-bottom: 16px; line-height: 1.25;">
+        讓課堂像蜂巢一樣 <span style="color: #f59e0b; background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">充滿甜蜜、秩序與協作</span>
       </h1>
-      <p class="hero-subtitle" style="max-width: 660px; margin: 0 auto 32px; color: #64748b; font-size: 1.05rem; line-height: 1.7;">
-        專為現代教師、好奇學生與用心家長打造的溫馨蜂巢學習社群。透過正版向量小蜜蜂角色、蜜糖點數採集、百花探險樂園與親師即時日誌，陪伴孩子快樂成長！
+      <p class="hero-subtitle" style="max-width: 720px; margin: 0 auto 36px; color: #64748b; font-size: 1.08rem; line-height: 1.75;">
+        告別傳統冰冷扣分，透過六角蜂巢座號、正版向量小蜜蜂角色、蜜糖點數採集、手繪數位作品集、百花探險樂園與親師即時日誌，凝聚班級榮譽感！
       </p>
 
-      <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 48px; flex-wrap: wrap;">
-        <a href="teacher.html" class="btn btn-primary btn-lg" style="box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
-          <i class="fa-solid fa-chalkboard-user"></i> 進入教師管理端
-        </a>
-        <button id="btn-hero-demo" class="btn btn-secondary btn-lg" style="border: 1.5px solid #fde68a;">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> 測試規範帳號一鍵體驗 (antigravity)
+      <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 56px; flex-wrap: wrap;">
+        <button id="btn-hero-demo" class="btn btn-primary btn-lg" style="box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35); font-weight: 800;">
+          <i class="fa-solid fa-chalkboard-user"></i> 教師管理端 (測試帳號一鍵進)
+        </button>
+        <button id="btn-hero-hub" class="btn btn-secondary btn-lg" style="border: 1.5px solid #fde68a; font-weight: 800; background: #ffffff;">
+          <i class="fa-solid fa-users-viewfinder"></i> 開啟多身分登入中心
         </button>
       </div>
 
-      <!-- Role Entrance Cards Grid -->
-      <div class="role-cards-grid" style="max-width: 1040px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; padding: 0 16px;">
+      <!-- Section: 4 Major Personas Cards Grid (ClassDojo Standard) -->
+      <div class="role-cards-grid" style="max-width: 1140px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 0 16px;">
         
         <!-- Teacher Card -->
-        <a href="teacher.html" class="role-entry-card" id="card-teacher" style="border-radius: 20px; border: 1.5px solid #fde68a; background: #ffffff; padding: 28px 24px; display: flex; flex-direction: column; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(180, 83, 9, 0.06);">
-          <div style="width: 56px; height: 56px; border-radius: 16px; background: #fef3c7; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; border: 1px solid #fde68a;">
-            <i class="fa-solid fa-chalkboard-user" style="font-size: 1.6rem; color: #d97706;"></i>
+        <a href="teacher.html" class="role-entry-card" id="card-teacher" style="border-radius: 20px; border: 1.5px solid #fde68a; background: #ffffff; padding: 26px 22px; display: flex; flex-direction: column; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(180, 83, 9, 0.06);">
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: #fef3c7; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid #fde68a;">
+            <i class="fa-solid fa-chalkboard-user" style="font-size: 1.5rem; color: #d97706;"></i>
           </div>
-          <h3 style="font-size: 1.35rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">教師管理控制台</h3>
-          <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
-            班級學生名單、六角蜂巢卡片、採蜜技能加分、全班音效慶祝、蜂巢計時器、分組機與隨機抽籤工具箱。
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">我是教師 (Teacher Hive)</h3>
+          <p style="color: #64748b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 18px;">
+            班級學生名單、六角蜂巢卡片、採蜜技能加分、全班音效慶祝、工具箱 (計時器/分組/噪音/思考配對/任務指示/專注音樂) 與作品審核。
           </p>
           <span class="btn btn-outline-primary btn-sm" style="margin-top: auto; align-self: flex-start;">
             進入教師端 <i class="fa-solid fa-arrow-right"></i>
@@ -72,13 +197,13 @@
         </a>
 
         <!-- Student Card -->
-        <a href="student.html" class="role-entry-card" id="card-student" style="border-radius: 20px; border: 1.5px solid #fde68a; background: #ffffff; padding: 28px 24px; display: flex; flex-direction: column; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(180, 83, 9, 0.06);">
-          <div style="width: 56px; height: 56px; border-radius: 16px; background: #fef9c3; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; border: 1px solid #fef08a;">
-            <img src="assets/svg/bee-twemoji.svg" alt="小蜜蜂" style="width: 36px; height: 36px;">
+        <a href="student.html" class="role-entry-card" id="card-student" style="border-radius: 20px; border: 1.5px solid #fde68a; background: #ffffff; padding: 26px 22px; display: flex; flex-direction: column; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(180, 83, 9, 0.06);">
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: #fef9c3; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid #fef08a;">
+            <img src="assets/svg/bee-twemoji.svg" alt="小蜜蜂" style="width: 32px; height: 32px;">
           </div>
-          <h3 style="font-size: 1.35rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">學生個人專區</h3>
-          <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
-            輸入班級代碼 (CREW88)、自訂專屬小蜜蜂角色與皇冠換裝、查看個人採蜜點數歷程、手繪塗鴉創作與百花花園探險。
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">我是學生 (Bee Hub)</h3>
+          <p style="color: #64748b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 18px;">
+            輸入班級代碼 (CREW88)、破繭自訂小蜜蜂造型、稱號晉升 (採蜜見習生➔傳奇守護者)、手繪課堂歷程作業與百花花園探險。
           </p>
           <span class="btn btn-outline-primary btn-sm" style="margin-top: auto; align-self: flex-start;">
             進入學生端 <i class="fa-solid fa-arrow-right"></i>
@@ -86,64 +211,362 @@
         </a>
 
         <!-- Parent Card -->
-        <a href="parent.html" class="role-entry-card" id="card-parent" style="border-radius: 20px; border: 1.5px solid #fde68a; background: #ffffff; padding: 28px 24px; display: flex; flex-direction: column; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(180, 83, 9, 0.06);">
-          <div style="width: 56px; height: 56px; border-radius: 16px; background: #fce7f3; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; border: 1px solid #fbcfe8;">
-            <i class="fa-solid fa-house-chimney-user" style="font-size: 1.6rem; color: #db2777;"></i>
+        <a href="parent.html" class="role-entry-card" id="card-parent" style="border-radius: 20px; border: 1.5px solid #fde68a; background: #ffffff; padding: 26px 22px; display: flex; flex-direction: column; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(180, 83, 9, 0.06);">
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: #fce7f3; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid #fbcfe8;">
+            <i class="fa-solid fa-house-chimney-user" style="font-size: 1.5rem; color: #db2777;"></i>
           </div>
-          <h3 style="font-size: 1.35rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">家長溫馨聯絡簿</h3>
-          <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
-            即時掌握孩子的採蜜點數與在校日常表現、瀏覽蜂巢動態照片日誌、與導師專屬親師私訊及活動 RSVP 報名。
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">我是家長 (Parent Connect)</h3>
+          <p style="color: #64748b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 18px;">
+            掌握孩子的採蜜點數與到校狀態、列印榮譽學習證書、查閱孩子的手繪作業與小紅花評語、導師專屬私訊與活動報名。
           </p>
           <span class="btn btn-outline-primary btn-sm" style="margin-top: auto; align-self: flex-start;">
             進入家長端 <i class="fa-solid fa-arrow-right"></i>
           </span>
         </a>
+
+        <!-- School / Demo Sandbox Card -->
+        <div class="role-entry-card" id="card-sandbox" style="border-radius: 20px; border: 1.5px solid #bbf7d0; background: #ffffff; padding: 26px 22px; display: flex; flex-direction: column; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(22, 101, 52, 0.06); cursor: pointer;">
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: #dcfce7; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid #bbf7d0;">
+            <i class="fa-solid fa-school" style="font-size: 1.5rem; color: #166534;"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">學校演示與沙盒</h3>
+          <p style="color: #64748b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 18px;">
+            體驗四年一班完整向日葵示範資料，自由切換不同角色，無縫感受三端聯動的教育魅力。適合行政與評審演示。
+          </p>
+          <span class="btn btn-secondary btn-sm" id="btn-open-sandbox-modal" style="margin-top: auto; align-self: flex-start; border-color: #bbf7d0; color: #166534; font-weight: 800;">
+            開啟示範沙盒 <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </span>
+        </div>
       </div>
     </section>
 
-    <!-- Homepage Changelog (User Global Rule 1) -->
-    <section class="changelog-section" id="changelog-container" style="background: #ffffff; padding: 56px 20px; border-top: 1px solid #fde68a;">
+    <!-- Section 2: Live Classroom Pulse Bar -->
+    <section id="pulse" style="background: #ffffff; padding: 48px 20px; border-top: 1.5px solid #fde68a; border-bottom: 1.5px solid #fde68a;">
+      <div style="max-width: 1040px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h2 style="font-size: 1.6rem; font-weight: 900; color: #1e293b; margin-bottom: 6px;">
+            <i class="fa-solid fa-chart-line" style="color: #f59e0b;"></i> 全站即時課堂脈動 (Live Pulse)
+          </h2>
+          <p style="color: #64748b; font-size: 0.95rem;">向日葵班級小蜜蜂們今日在蜂巢社區中創造的甜蜜成果</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px;">
+          <div class="pulse-stat-card">
+            <div style="font-size: 2rem; color: #f59e0b; margin-bottom: 8px;"><i class="fa-solid fa-jar"></i></div>
+            <div style="font-size: 2.2rem; font-weight: 900; color: #b45309;" id="pulse-stat-honey">1,280+</div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: #64748b;">今日已採集蜜糖點數</div>
+          </div>
+          <div class="pulse-stat-card">
+            <div style="font-size: 2rem; color: #10b981; margin-bottom: 8px;"><i class="fa-solid fa-palette"></i></div>
+            <div style="font-size: 2.2rem; font-weight: 900; color: #047857;" id="pulse-stat-portfolios">42 份</div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: #64748b;">已提交數位手繪作業</div>
+          </div>
+          <div class="pulse-stat-card">
+            <div style="font-size: 2rem; color: #0ea5e9; margin-bottom: 8px;"><i class="fa-solid fa-comments"></i></div>
+            <div style="font-size: 2.2rem; font-weight: 900; color: #0369a1;">98.6%</div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: #64748b;">親師即時互動率</div>
+          </div>
+          <div class="pulse-stat-card">
+            <div style="font-size: 2rem; color: #ec4899; margin-bottom: 8px;"><i class="fa-solid fa-heart"></i></div>
+            <div style="font-size: 2.2rem; font-weight: 900; color: #be185d;">100%</div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: #64748b;">正向激勵引導比例</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Interactive Features Showcase -->
+    <section id="features" style="background: #faf8f2; padding: 64px 20px;">
+      <div style="max-width: 1080px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 48px;">
+          <span style="font-size: 0.85rem; font-weight: 800; color: #b45309; background: #fef3c7; padding: 4px 14px; border-radius: 999px; border: 1px solid #fde68a;">商業級 SaaS 教育體驗</span>
+          <h2 style="font-size: 2.2rem; font-weight: 900; color: #1e293b; margin-top: 12px; margin-bottom: 8px;">
+            精心打造的 5 大蜂巢學習核心功能
+          </h2>
+          <p style="color: #64748b; font-size: 1rem; max-width: 600px; margin: 0 auto;">融合 ClassDojo 標竿設計與趣味蜜蜂世界觀，為教師減負、激發學生潛能、讓家長放心！</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+          
+          <!-- Feature 1: Digital Portfolios -->
+          <div class="feature-tour-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <span style="font-size: 1.8rem; color: #f59e0b;"><i class="fa-solid fa-folder-open"></i></span>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: #1e293b;">學生個人數位作品集</h3>
+              </div>
+              <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7; margin-bottom: 16px;">
+                支援學生在線手繪畫板與成果文字上傳；教師端具備專屬批閱中心，可頒發「構思精巧花」等小紅花獎章與溫暖評語；家長端聯絡簿即時同步並可點讚鼓勵！
+              </p>
+              <div style="background: #fffdf5; border: 1px solid #fde68a; border-radius: 12px; padding: 12px; font-size: 0.85rem; color: #854d0e;">
+                <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> 學生創作 ➔ 教師批閱頒花 ➔ 家長即時點讚三端循環
+              </div>
+            </div>
+            <div style="margin-top: 24px; display: flex; gap: 10px;">
+              <a href="teacher.html" class="btn btn-secondary btn-sm" style="font-weight: 700;">教師批閱端</a>
+              <a href="student.html?tab=portfolio" class="btn btn-outline-primary btn-sm" style="font-weight: 700;">學生繪圖端</a>
+            </div>
+          </div>
+
+          <!-- Feature 2: Hive Groups & Collaboration -->
+          <div class="feature-tour-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <span style="font-size: 1.8rem; color: #10b981;"><i class="fa-solid fa-users-viewfinder"></i></span>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: #1e293b;">小組合作蜂巢競賽</h3>
+              </div>
+              <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7; margin-bottom: 16px;">
+                支援自訂「花粉偵察組」與「蜜露釀造組」等學習小組，提供小組一鍵協作加分、團隊動態排行進度條與大螢幕同儕激勵，培養互助精神。
+              </p>
+              <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px; font-size: 0.85rem; color: #166534;">
+                <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> 小組一鍵加分即時反映於組別總分與排行榜
+              </div>
+            </div>
+            <div style="margin-top: 24px;">
+              <a href="teacher.html" class="btn btn-secondary btn-sm" style="font-weight: 700;">檢視小組看板</a>
+            </div>
+          </div>
+
+          <!-- Feature 3: Toolkit -->
+          <div class="feature-tour-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <span style="font-size: 1.8rem; color: #0ea5e9;"><i class="fa-solid fa-toolbox"></i></span>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: #1e293b;">課堂全能工具箱</h3>
+              </div>
+              <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7; margin-bottom: 16px;">
+                內建倒數計時器、聚光燈隨機抽籤、自動分組機、分貝噪音監控儀、Buzz-Pair-Share 思考配對分享題庫、任務指示板與課堂專注輕音樂。
+              </p>
+              <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 12px; font-size: 0.85rem; color: #0369a1;">
+                <i class="fa-solid fa-stopwatch" style="color: #0ea5e9;"></i> 7 合 1 課堂多媒體輔助工具，隨點即用
+              </div>
+            </div>
+            <div style="margin-top: 24px;">
+              <a href="teacher.html" class="btn btn-secondary btn-sm" style="font-weight: 700;">進入課堂工具箱</a>
+            </div>
+          </div>
+
+          <!-- Feature 4: The Meadow Adventure -->
+          <div class="feature-tour-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <span style="font-size: 1.8rem; color: #ec4899;"><i class="fa-solid fa-sun"></i></span>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: #1e293b;">百花草甸小蜂探險 (The Meadow)</h3>
+              </div>
+              <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7; margin-bottom: 16px;">
+                學生自訂角色後可漫步於向日葵與百花草地、採集花粉、探索蜂巢金蜜泉，並在畫布上與全班同學的小蜜蜂即時同樂互動。
+              </p>
+              <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 12px; padding: 12px; font-size: 0.85rem; color: #9d174d;">
+                <i class="fa-solid fa-gamepad" style="color: #ec4899;"></i> 支援鍵盤 WASD / 方向鍵與觸控點擊平滑移動
+              </div>
+            </div>
+            <div style="margin-top: 24px;">
+              <a href="student.html?tab=islands" class="btn btn-secondary btn-sm" style="font-weight: 700;">體驗百花草甸</a>
+            </div>
+          </div>
+
+          <!-- Feature 5: Story & Messages -->
+          <div class="feature-tour-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <span style="font-size: 1.8rem; color: #8b5cf6;"><i class="fa-solid fa-comments"></i></span>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: #1e293b;">親師即時日誌與私訊</h3>
+              </div>
+              <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7; margin-bottom: 16px;">
+                照片與投票動態牆讓家長第一時間掌握孩子校園動態；一對一安全親師訊息支援 Enter 鍵快捷發送與即時通知，促進親師信任。
+              </p>
+              <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 12px; font-size: 0.85rem; color: #5b21b6;">
+                <i class="fa-solid fa-shield-halved" style="color: #8b5cf6;"></i> 加密私密通訊，不外洩家長個人電話與聯絡方式
+              </div>
+            </div>
+            <div style="margin-top: 24px;">
+              <a href="parent.html?tab=chat" class="btn btn-secondary btn-sm" style="font-weight: 700;">家長私訊體驗</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Homepage Changelog (User Global Rule 1) -->
+    <section class="changelog-section" id="changelog-container" style="background: #ffffff; padding: 56px 20px; border-top: 1.5px solid #fde68a;">
       <!-- Rendered dynamically by changelog.js -->
     </section>
   </main>
 
-  <!-- Quick Login Modal (User Rule 2: antigravity / 123456) -->
+  <!-- Commercial Multi-Role Login Center Modal (Comprehensive Hub) -->
   <div class="modal-backdrop" id="login-modal">
-    <div class="modal-card" style="max-width: 440px; border-radius: 20px; border: 1.5px solid #fde68a;">
-      <div class="modal-header" style="border-bottom: 1px solid #fef3c7; background: #fffdf5;">
+    <div class="modal-card" style="max-width: 560px; border-radius: 20px; border: 1.5px solid #fde68a; overflow: hidden; padding: 0;">
+      
+      <!-- Modal Header -->
+      <div class="modal-header" style="border-bottom: 1.5px solid #fef3c7; background: #fffdf5; padding: 16px 24px;">
         <div class="modal-title-group">
-          <span style="font-size: 1.5rem;">🐝</span>
-          <h3 class="modal-title">Crew 快速登入驗證</h3>
+          <span style="font-size: 1.4rem; color: #f59e0b;"><i class="fa-solid fa-users-gear"></i></span>
+          <h3 class="modal-title">Crew 全身分多功能登入中心</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-login">&times;</button>
       </div>
-      <div class="modal-body">
-        <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 0.85rem; color: #854d0e;">
-          <strong>💡 測試規範預設帳號：</strong><br>
+
+      <!-- Login Role Tabs Bar -->
+      <div class="login-nav-tabs">
+        <button class="login-nav-tab active" data-tab="tab-teacher">
+          <i class="fa-solid fa-chalkboard-user"></i> 教師登入
+        </button>
+        <button class="login-nav-tab" data-tab="tab-student">
+          <i class="fa-solid fa-child"></i> 學生代碼/頭像
+        </button>
+        <button class="login-nav-tab" data-tab="tab-parent">
+          <i class="fa-solid fa-house-chimney-user"></i> 家長專屬通道
+        </button>
+        <button class="login-nav-tab" data-tab="tab-demo">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> 1-Click 沙盒
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Teacher Login (User Rule 2: antigravity / 123456) -->
+      <div class="login-pane active" id="pane-tab-teacher">
+        <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; font-size: 0.85rem; color: #854d0e;">
+          <strong><i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i> 測試規範預設教師帳號：</strong><br>
           帳號：<code>antigravity</code> | 密碼：<code>123456</code>
+          <button id="btn-autofill-teacher" class="btn btn-secondary btn-sm" style="margin-top: 6px; padding: 2px 10px; font-size: 0.8rem; border-color: #fde68a;">
+            <i class="fa-solid fa-magic"></i> 一鍵填入測試帳號
+          </button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 14px;">
+
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
           <div>
-            <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">使用者帳號</label>
-            <input type="text" id="login-username" value="antigravity" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit;">
+            <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">教師帳號</label>
+            <input type="text" id="login-username" value="antigravity" placeholder="請輸入帳號" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit;">
           </div>
           <div>
-            <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">密碼</label>
-            <input type="password" id="login-password" value="123456" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit;">
+            <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">教師密碼</label>
+            <input type="password" id="login-password" value="123456" placeholder="請輸入密碼" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit;">
           </div>
-          <div>
-            <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">前往角色端點</label>
-            <select id="login-target-role" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit;">
-              <option value="teacher.html">👨‍🏫 教師端 (Teacher Hive)</option>
-              <option value="student.html">🐝 學生端 (Student Bee Hub)</option>
-              <option value="parent.html">🏡 家長端 (Parent Connect)</option>
-            </select>
+        </div>
+
+        <button class="btn btn-primary btn-lg" id="btn-submit-login" style="width: 100%; font-weight: 800; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
+          <i class="fa-solid fa-right-to-bracket"></i> 驗證登入教師端 (Teacher Hive)
+        </button>
+      </div>
+
+      <!-- Tab Content 2: Student Login (Class code or 1-Click Student Avatar) -->
+      <div class="login-pane" id="pane-tab-student">
+        <div style="margin-bottom: 18px;">
+          <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">
+            方式 1：輸入班級 6 碼代碼 (例如 CREW88)
+          </label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="input-hub-student-code" placeholder="請輸入 6 碼班級代碼" value="CREW88" style="flex: 1; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-weight: 700; text-transform: uppercase;">
+            <button class="btn btn-primary" id="btn-submit-hub-student-code">進入班級</button>
+          </div>
+        </div>
+
+        <div style="border-top: 1.5px dashed #fde68a; padding-top: 16px;">
+          <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+            方式 2：免密碼・一鍵挑選向日葵班小蜜蜂隊員
+          </label>
+          <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">點擊任一位學生頭像，立即以該學生身分進入專屬儀表板：</p>
+          
+          <div class="student-pick-grid">
+            <div class="student-pick-card" data-student-id="stu_1">
+              <span style="font-size: 1.8rem;">🐝</span>
+              <strong style="font-size: 0.85rem; color: #1e293b;">Beyoncé</strong>
+              <small style="color: #b45309; font-weight: 700;">座號 1</small>
+            </div>
+            <div class="student-pick-card" data-student-id="stu_2">
+              <span style="font-size: 1.8rem;">🍯</span>
+              <strong style="font-size: 0.85rem; color: #1e293b;">Denzel</strong>
+              <small style="color: #b45309; font-weight: 700;">座號 2</small>
+            </div>
+            <div class="student-pick-card" data-student-id="stu_3">
+              <span style="font-size: 1.8rem;">🌻</span>
+              <strong style="font-size: 0.85rem; color: #1e293b;">Jennifer</strong>
+              <small style="color: #b45309; font-weight: 700;">座號 3</small>
+            </div>
+            <div class="student-pick-card" data-student-id="stu_4">
+              <span style="font-size: 1.8rem;">👑</span>
+              <strong style="font-size: 0.85rem; color: #1e293b;">Justin</strong>
+              <small style="color: #b45309; font-weight: 700;">座號 4</small>
+            </div>
+            <div class="student-pick-card" data-student-id="stu_5">
+              <span style="font-size: 1.8rem;">🌟</span>
+              <strong style="font-size: 0.85rem; color: #1e293b;">Leonardo</strong>
+              <small style="color: #b45309; font-weight: 700;">座號 5</small>
+            </div>
           </div>
         </div>
       </div>
-      <div class="modal-footer" style="background: #fffdf5; border-top: 1px solid #fef3c7;">
-        <button class="btn btn-secondary" id="btn-cancel-login">取消</button>
-        <button class="btn btn-primary" id="btn-submit-login">立即登入</button>
+
+      <!-- Tab Content 3: Parent Login (Invite Code or 1-Click Child Connect) -->
+      <div class="login-pane" id="pane-tab-parent">
+        <div style="margin-bottom: 18px;">
+          <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">
+            方式 1：輸入孩子專屬邀請碼 (例如 P-BEY01)
+          </label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="input-hub-parent-code" placeholder="請輸入邀請代碼 (如 P-BEY01)" value="P-BEY01" style="flex: 1; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-weight: 700; text-transform: uppercase;">
+            <button class="btn btn-primary" id="btn-submit-hub-parent-code">進入聯絡簿</button>
+          </div>
+        </div>
+
+        <div style="border-top: 1.5px dashed #fde68a; padding-top: 16px;">
+          <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+            方式 2：快速以向日葵小隊家長身分進入
+          </label>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+            <a href="parent.html?child=stu_1" class="btn btn-secondary" style="justify-content: flex-start; text-align: left; padding: 10px 16px; border-color: #fde68a;">
+              <span style="font-size: 1.3rem; margin-right: 10px;">👩</span>
+              <div>
+                <strong style="color: #1e293b; display: block;">Beyoncé 的家長</strong>
+                <small style="color: #64748b;">代碼：P-BEY01 • 學生座號 1</small>
+              </div>
+            </a>
+            <a href="parent.html?child=stu_2" class="btn btn-secondary" style="justify-content: flex-start; text-align: left; padding: 10px 16px; border-color: #fde68a;">
+              <span style="font-size: 1.3rem; margin-right: 10px;">👨</span>
+              <div>
+                <strong style="color: #1e293b; display: block;">Denzel 的家長</strong>
+                <small style="color: #64748b;">代碼：P-DEN02 • 學生座號 2</small>
+              </div>
+            </a>
+            <a href="parent.html?child=stu_5" class="btn btn-secondary" style="justify-content: flex-start; text-align: left; padding: 10px 16px; border-color: #fde68a;">
+              <span style="font-size: 1.3rem; margin-right: 10px;">👩</span>
+              <div>
+                <strong style="color: #1e293b; display: block;">王小明的家長 (王媽媽)</strong>
+                <small style="color: #64748b;">代碼：P-LEO05 • 學生座號 5</small>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content 4: 1-Click Instant Playground Sandbox -->
+      <div class="login-pane" id="pane-tab-demo">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px; margin-bottom: 18px;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: #166534; margin-bottom: 4px;">
+            <i class="fa-solid fa-sparkles"></i> 評審與訪客免登入即刻演示
+          </h4>
+          <p style="font-size: 0.85rem; color: #14532d; margin: 0; line-height: 1.5;">
+            向日葵四年一班完整環境已就緒。點擊任一入口，立即無縫進入對應端點體驗：
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <a href="teacher.html" class="btn btn-primary btn-lg" style="justify-content: center; font-weight: 800; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
+            <i class="fa-solid fa-chalkboard-user"></i> 直接進入教師端 (Teacher Hive)
+          </a>
+          <a href="student.html" class="btn btn-secondary btn-lg" style="justify-content: center; font-weight: 800; border: 1.5px solid #fde68a;">
+            <i class="fa-solid fa-child"></i> 直接進入學生端 (Student Bee Hub)
+          </a>
+          <a href="parent.html" class="btn btn-secondary btn-lg" style="justify-content: center; font-weight: 800; border: 1.5px solid #fbcfe8; color: #db2777;">
+            <i class="fa-solid fa-house-chimney-user"></i> 直接進入家長端 (Parent Connect)
+          </a>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer" style="background: #fffdf5; border-top: 1.5px solid #fef3c7; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.8rem; color: #94a3b8;">按 Esc 鍵或點擊外框即可關閉</span>
+        <button class="btn btn-secondary btn-sm" id="btn-cancel-login">關閉</button>
       </div>
     </div>
   </div>
@@ -153,14 +576,14 @@
     <div class="modal-card" style="max-width: 520px; border-radius: 20px; border: 1.5px solid #fde68a;">
       <div class="modal-header" style="border-bottom: 1px solid #fef3c7; background: #fffdf5;">
         <div class="modal-title-group">
-          <span style="font-size: 1.5rem;">⚙️</span>
+          <span style="font-size: 1.4rem; color: #f59e0b;"><i class="fa-solid fa-gear"></i></span>
           <h3 class="modal-title">系統與資料庫設定</h3>
         </div>
         <button class="modal-close-btn" id="btn-close-settings">&times;</button>
       </div>
       <div class="modal-body">
         <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 12px; padding: 14px; margin-bottom: 18px;">
-          <h4 style="font-size: 0.95rem; font-weight: 800; color: #b45309; margin-bottom: 6px;">🛡️ 零資料更動保證 (Zero Data Disruption)</h4>
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: #b45309; margin-bottom: 6px;"><i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i> 零資料更動保證 (Zero Data Disruption)</h4>
           <p style="font-size: 0.85rem; color: #78350f; line-height: 1.5;">
             本系統使用專屬隔離命名空間 <code>classdojo_system_v1</code>。絕對不影響、不覆蓋、不損害任何既有線上專案與作業清點系統正式資料。
           </p>
@@ -170,7 +593,7 @@
           <div>
             <label style="font-size: 0.9rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">當前儲存引擎狀態</label>
             <div style="padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 0.9rem; color: #15803d; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-              <span>✅ 本地雙軌持久化運作中 (LocalStorage + Cloud Failover)</span>
+              <span><i class="fa-solid fa-circle-check"></i> 本地雙軌持久化運作中 (LocalStorage + Cloud Failover)</span>
             </div>
           </div>
           <div>
@@ -227,7 +650,12 @@
     // 1. Render Changelog (User Rule 1)
     renderChangelog('changelog-container');
 
-    // 2. Render Hero Bee Banner
+    // 2. Sound Toggle
+    if (window.setupSoundToggle) {
+      window.setupSoundToggle();
+    }
+
+    // 3. Render Hero Bee Banner
     const banner = document.getElementById('hero-monster-banner');
     if (banner && window.beeEngine) {
       banner.innerHTML = [
@@ -243,35 +671,62 @@
       `).join('');
     }
 
-    // 3. Quick Login Controls (User Rule 2: antigravity / 123456)
+    // 4. Modal Open/Close Controls
     const loginModal = document.getElementById('login-modal');
-    document.getElementById('btn-quick-login')?.addEventListener('click', () => {
-      loginModal.classList.add('open');
+    const settingsModal = document.getElementById('settings-modal');
+
+    const openLogin = (activeTabKey = 'tab-teacher') => {
+      loginModal?.classList.add('open');
+      // Switch to requested tab
+      document.querySelectorAll('.login-nav-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === activeTabKey);
+      });
+      document.querySelectorAll('.login-pane').forEach(p => {
+        p.classList.toggle('active', p.id === `pane-${activeTabKey}`);
+      });
+      if (window.dojoAudio) window.dojoAudio.playTick();
+    };
+
+    document.getElementById('btn-quick-login')?.addEventListener('click', () => openLogin('tab-teacher'));
+    document.getElementById('btn-mobile-quick-login')?.addEventListener('click', () => openLogin('tab-teacher'));
+    document.getElementById('btn-hero-demo')?.addEventListener('click', () => openLogin('tab-teacher'));
+    document.getElementById('btn-hero-hub')?.addEventListener('click', () => openLogin('tab-student'));
+    document.getElementById('btn-open-sandbox-modal')?.addEventListener('click', () => openLogin('tab-demo'));
+    document.getElementById('card-sandbox')?.addEventListener('click', () => openLogin('tab-demo'));
+
+    document.getElementById('btn-close-login')?.addEventListener('click', () => loginModal?.classList.remove('open'));
+    document.getElementById('btn-cancel-login')?.addEventListener('click', () => loginModal?.classList.remove('open'));
+
+    // 5. Multi-Role Login Tabs Switching
+    document.querySelectorAll('.login-nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabKey = tab.dataset.tab;
+        document.querySelectorAll('.login-nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.login-pane').forEach(p => p.classList.remove('active'));
+
+        tab.classList.add('active');
+        document.getElementById(`pane-${tabKey}`)?.classList.add('active');
+        if (window.dojoAudio) window.dojoAudio.playTick();
+      });
     });
 
-    document.getElementById('btn-hero-demo')?.addEventListener('click', () => {
-      loginModal.classList.add('open');
-    });
-
-    document.getElementById('btn-close-login')?.addEventListener('click', () => {
-      loginModal.classList.remove('open');
-    });
-
-    document.getElementById('btn-cancel-login')?.addEventListener('click', () => {
-      loginModal.classList.remove('open');
+    // 6. Teacher Login Logic
+    document.getElementById('btn-autofill-teacher')?.addEventListener('click', () => {
+      document.getElementById('login-username').value = 'antigravity';
+      document.getElementById('login-password').value = '123456';
+      if (window.dojoAudio) window.dojoAudio.playTick();
     });
 
     document.getElementById('btn-submit-login')?.addEventListener('click', async () => {
       const u = document.getElementById('login-username').value.trim();
       const p = document.getElementById('login-password').value.trim();
-      const targetRole = document.getElementById('login-target-role').value;
 
       const isValid = await verifyPassword(p, AUTH_HASH);
       if (u === 'antigravity' && isValid) {
         if (window.dojoAudio) window.dojoAudio.playPositive();
         if (window.dojoConfetti) window.dojoConfetti.burst();
         setTimeout(() => {
-          window.location.href = targetRole;
+          window.location.href = 'teacher.html';
         }, 300);
       } else {
         alert('請輸入有效測試帳號密碼：\n帳號：antigravity\n密碼：123456');
@@ -286,19 +741,57 @@
       });
     });
 
-    // 4. Settings Controls
-    const settingsModal = document.getElementById('settings-modal');
+    // 7. Student Tab Login Logic
+    document.getElementById('btn-submit-hub-student-code')?.addEventListener('click', () => {
+      const code = document.getElementById('input-hub-student-code')?.value.trim().toUpperCase();
+      if (!code) return;
+      const matched = store.state.classes.find(c => c.code === code);
+      if (matched) {
+        store.setActiveClass(matched.id);
+        if (window.dojoAudio) window.dojoAudio.playPositive();
+        window.location.href = 'student.html';
+      } else {
+        alert('⚠️ 查無此班級代碼！預設代碼為 CREW88。');
+      }
+    });
+
+    document.querySelectorAll('.student-pick-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const studentId = card.dataset.studentId;
+        if (window.dojoAudio) window.dojoAudio.playPositive();
+        if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 30);
+        setTimeout(() => {
+          window.location.href = `student.html?id=${studentId}`;
+        }, 200);
+      });
+    });
+
+    // 8. Parent Tab Login Logic
+    document.getElementById('btn-submit-hub-parent-code')?.addEventListener('click', () => {
+      const pcode = document.getElementById('input-hub-parent-code')?.value.trim().toUpperCase();
+      if (!pcode) return;
+      const cls = store.getActiveClass();
+      const matchedChild = cls.students.find(s => s.parentCode === pcode);
+      if (matchedChild) {
+        if (window.dojoAudio) window.dojoAudio.playPositive();
+        window.location.href = `parent.html?child=${matchedChild.id}&code=${pcode}`;
+      } else {
+        alert('⚠️ 查無此家長邀請碼！示範代碼如 P-BEY01, P-DEN02, P-LEO05。');
+      }
+    });
+
+    // 9. Settings Controls
     document.getElementById('btn-open-settings')?.addEventListener('click', () => {
-      settingsModal.classList.add('open');
+      settingsModal?.classList.add('open');
     });
 
     document.getElementById('btn-close-settings')?.addEventListener('click', () => {
-      settingsModal.classList.remove('open');
+      settingsModal?.classList.remove('open');
     });
 
     document.getElementById('btn-save-settings')?.addEventListener('click', () => {
       alert('設定已儲存！');
-      settingsModal.classList.remove('open');
+      settingsModal?.classList.remove('open');
     });
 
     document.getElementById('btn-reset-demo')?.addEventListener('click', () => {
@@ -308,7 +801,7 @@
       }
     });
 
-    // 5. Global Esc key & Backdrop click UX optimization
+    // 10. Global Esc key & Backdrop click UX optimization
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
         loginModal?.classList.remove('open');
