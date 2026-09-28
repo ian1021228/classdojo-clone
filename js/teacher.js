@@ -345,6 +345,8 @@ class TeacherController {
         this.renderStudents();
         searchInput?.focus();
       });
+    }
+
     // Breakthrough 1: Presentation Mode Toggle
     const btnPres = document.getElementById('btn-toggle-presentation');
     btnPres?.addEventListener('click', () => {

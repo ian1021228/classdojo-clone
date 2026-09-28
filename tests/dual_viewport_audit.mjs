@@ -31,6 +31,7 @@ globalThis.CustomEvent = class CustomEvent {
 global.CustomEvent = globalThis.CustomEvent;
 
 import fs from 'fs';
+import vm from 'vm';
 const { store } = await import('../js/store.js');
 const { verifyPassword } = await import('../js/security.js');
 
@@ -51,12 +52,28 @@ function assert(condition, message) {
   }
 }
 
+// 0. Rigorous AST & ESM Grammar Audit for All Client JavaScript Files
+console.log('[SUITE 0: ALL JS ES MODULE SYNTAX & GRAMMAR AUDIT]');
+const jsFiles = fs.readdirSync('js').filter(f => f.endsWith('.js'));
+jsFiles.forEach(f => {
+  const code = fs.readFileSync('js/' + f, 'utf8');
+  let valid = false;
+  let errMsg = '';
+  try {
+    new vm.SourceTextModule(code);
+    valid = true;
+  } catch (e) {
+    errMsg = e.message;
+  }
+  assert(valid, `js/${f} has 100% valid JavaScript ESM syntax (${errMsg ? 'ERR: ' + errMsg : 'zero syntax errors'})`);
+});
+
 // 1. Check User Rule 2 Credentials & Hash
-console.log('[SUITE 1: USER RULE 2 AUTHENTICATION VERIFICATION]');
+console.log('\n[SUITE 1: USER RULE 2 AUTHENTICATION VERIFICATION]');
 const AUTH_HASH = 'a4b2c7a2217be305973615237f9b904a62b9b032b9c8bd9c069f3258dbf0ad0c';
 const isTeacherPasswordValid = await verifyPassword('123456', AUTH_HASH);
-assert(isTeacherPasswordValid === true, 'Test password "123456" verified against salted SHA-256 hash');
 const isInvalidPasswordRejected = await verifyPassword('wrongpassword', AUTH_HASH);
+assert(isTeacherPasswordValid === true, 'Test password "123456" verified against salted SHA-256 hash');
 assert(isInvalidPasswordRejected === false, 'Invalid password is properly rejected');
 
 // 2. Check HTML files structure & viewport tags for Mobile 393x852
@@ -129,8 +146,8 @@ assert(indexHtml.includes('btn-mobile-quick-login'), 'index.html has mobile-visi
 // 6. User Global Rule 1: Changelog Maintenance
 console.log('\n[SUITE 6: CHANGELOG MAINTENANCE (USER GLOBAL RULE 1)]');
 const changelogJs = fs.readFileSync('js/changelog.js', 'utf8');
-assert(changelogJs.includes('v2.11.0'), 'changelog.js includes latest v2.11.0 release');
-assert(changelogJs.includes('isLatest: true'), 'changelog.js marks v2.11.0 as latest');
+assert(changelogJs.includes('v2.11.1'), 'changelog.js includes latest v2.11.1 release');
+assert(changelogJs.includes('isLatest: true'), 'changelog.js marks v2.11.1 as latest');
 assert(indexHtml.includes('id="changelog-container"'), 'index.html features changelog container section');
 
 // 7. User Global Rule 4: Data Security & Zero Disruption
