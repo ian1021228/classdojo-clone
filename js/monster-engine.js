@@ -78,46 +78,46 @@ class BeeEngine {
   getAccessoryOverlay(accessory) {
     if (!accessory || accessory === 'none') return '';
 
-    if (accessory === 'horns') {
+    if (accessory === 'horns' || accessory === 'crown') {
       // Queen Crown
       return `
         <div style="position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 34px; height: 34px; pointer-events: none; z-index: 4; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
           <img src="assets/svg/crown.svg" alt="皇冠" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
       `;
-    } else if (accessory === 'antenna') {
+    } else if (accessory === 'antenna' || accessory === 'honey_pot') {
       // Honey Pot
       return `
         <div style="position: absolute; bottom: 0px; right: -2px; width: 32px; height: 32px; pointer-events: none; z-index: 4; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
           <img src="assets/svg/honey-pot.svg" alt="蜜糖罐" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
       `;
-    } else if (accessory === 'party_hat') {
+    } else if (accessory === 'party_hat' || accessory === 'blossom') {
       // Cherry Blossom Flower
       return `
         <div style="position: absolute; top: -4px; right: 8px; width: 30px; height: 30px; pointer-events: none; z-index: 4; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
           <img src="assets/svg/blossom.svg" alt="甜美櫻花" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
       `;
-    } else if (accessory === 'bow') {
+    } else if (accessory === 'bow' || accessory === 'sunflower') {
       // Sunflower
       return `
         <div style="position: absolute; top: 0px; left: 4px; width: 30px; height: 30px; pointer-events: none; z-index: 4; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
           <img src="assets/svg/sunflower.svg" alt="向日葵" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
       `;
-    } else if (accessory === 'ears') {
+    } else if (accessory === 'ears' || accessory === 'sparkles') {
       // Golden Sparkles
       return `
         <div style="position: absolute; top: -2px; right: -2px; width: 28px; height: 28px; pointer-events: none; z-index: 4;">
           <img src="assets/svg/sparkles.svg" alt="光芒" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
       `;
-    } else if (accessory === 'glasses') {
-      // Aviator flight goggles
+    } else if (accessory === 'glasses' || accessory === 'goggles') {
+      // Aviator flight glasses (FontAwesome vector)
       return `
-        <div style="position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; pointer-events: none; z-index: 4; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));">
-          🥽
+        <div style="position: absolute; top: 32%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; pointer-events: none; z-index: 4; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); color: #1e293b;">
+          <i class="fa-solid fa-glasses"></i>
         </div>
       `;
     }

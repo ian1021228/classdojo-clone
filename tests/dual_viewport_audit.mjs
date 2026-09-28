@@ -129,8 +129,8 @@ assert(indexHtml.includes('btn-mobile-quick-login'), 'index.html has mobile-visi
 // 6. User Global Rule 1: Changelog Maintenance
 console.log('\n[SUITE 6: CHANGELOG MAINTENANCE (USER GLOBAL RULE 1)]');
 const changelogJs = fs.readFileSync('js/changelog.js', 'utf8');
-assert(changelogJs.includes('v2.10.0'), 'changelog.js includes latest v2.10.0 release');
-assert(changelogJs.includes('isLatest: true'), 'changelog.js marks v2.10.0 as latest');
+assert(changelogJs.includes('v2.11.0'), 'changelog.js includes latest v2.11.0 release');
+assert(changelogJs.includes('isLatest: true'), 'changelog.js marks v2.11.0 as latest');
 assert(indexHtml.includes('id="changelog-container"'), 'index.html features changelog container section');
 
 // 7. User Global Rule 4: Data Security & Zero Disruption
@@ -180,6 +180,35 @@ const cheerRes = store.sendParentCheer(activeClass.students[0].id, '加油小寶
 assert(cheerRes !== null, 'sendParentCheer creates cheer item successfully');
 assert(activeClass.students[0].points === initialPoints + 1, 'sendParentCheer awards +1 point to student');
 assert(cheerRes.fromParent === true, 'cheer item has fromParent flag');
+
+// 10. SFX Soundboard, Hive Group Podium & Security Vault (v2.11.0)
+console.log('\n[SUITE 10: SFX SOUNDBOARD, HIVE PODIUM & SECURITY VAULT]');
+const audioJs = fs.readFileSync('js/audio.js', 'utf8');
+const monsterEngineJs = fs.readFileSync('js/monster-engine.js', 'utf8');
+
+assert(teacherHtml.includes('id="floating-sfx-bar"'), 'teacher.html features Classroom Quick SFX Soundboard Dock');
+assert(teacherHtml.includes('id="sfx-btn-bell"'), 'teacher.html features Bell sound button');
+assert(teacherHtml.includes('id="sfx-btn-applause"'), 'teacher.html features Applause sound button');
+assert(teacherHtml.includes('id="sfx-btn-fanfare"'), 'teacher.html features Fanfare sound button');
+assert(teacherHtml.includes('id="sfx-btn-quiet"'), 'teacher.html features Quiet sound button');
+assert(teacherHtml.includes('id="sfx-btn-countdown"'), 'teacher.html features Countdown sound button');
+assert(audioJs.includes('playBell()'), 'audio.js implements playBell synthesizer method');
+assert(audioJs.includes('playApplause()'), 'audio.js implements playApplause synthesizer method');
+assert(audioJs.includes('playQuietChime()'), 'audio.js implements playQuietChime synthesizer method');
+assert(audioJs.includes('playCountdownBeeps()'), 'audio.js implements playCountdownBeeps synthesizer method');
+
+assert(teacherHtml.includes('id="groups-podium-wrap"'), 'teacher.html features Hive Group Collaborative Podium container');
+assert(teacherJs.includes('groups-podium-container'), 'teacher.js implements Top 3 podium rendering in renderGroups');
+
+assert(teacherHtml.includes('id="btn-open-vault"'), 'teacher.html features Security Vault toggle button');
+assert(teacherHtml.includes('id="security-vault-modal"'), 'teacher.html features Security Vault Modal');
+assert(teacherJs.includes('openSecurityVaultModal'), 'teacher.js implements openSecurityVaultModal method');
+assert(teacherJs.includes('exportVaultData'), 'teacher.js implements exportVaultData backup method');
+assert(teacherJs.includes('handleVaultImport'), 'teacher.js implements handleVaultImport restore method');
+assert(teacherJs.includes('optimizeVaultData'), 'teacher.js implements optimizeVaultData cache cleaner method');
+
+assert(!monsterEngineJs.includes('🥽'), 'monster-engine.js does not contain raw emoji goggles');
+assert(!studentJs.includes('🥽'), 'student.js does not contain raw emoji goggles');
 
 console.log('\n================================================================================');
 console.log(`TOTAL CHECKS: ${passCount + failCount} | PASSED: ${passCount} | FAILED: ${failCount}`);

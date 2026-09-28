@@ -177,6 +177,168 @@ class DojoAudio {
     }
   }
 
+  // Crisp two-tone school bell / attention chime (C6 1046.5Hz -> G5 783.99Hz)
+  playBell() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    // Tone 1: C6 (High chime)
+    const osc1 = this.ctx.createOscillator();
+    const gain1 = this.ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(1046.50, now);
+    gain1.gain.setValueAtTime(0.001, now);
+    gain1.gain.linearRampToValueAtTime(0.28, now + 0.015);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+    osc1.connect(gain1);
+    gain1.connect(this.ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.9);
+
+    // Tone 2: G5 (Warm resonant follow-up chime)
+    const osc2 = this.ctx.createOscillator();
+    const gain2 = this.ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(783.99, now + 0.16);
+    gain2.gain.setValueAtTime(0.001, now + 0.16);
+    gain2.gain.linearRampToValueAtTime(0.26, now + 0.18);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
+    osc2.connect(gain2);
+    gain2.connect(this.ctx.destination);
+    osc2.start(now + 0.16);
+    osc2.stop(now + 1.3);
+  }
+
+  // Realistic classroom clapping & cheer sound
+  playApplause() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const duration = 1.6;
+    // Layer 1: Clapping pulse bursts using noise buffer
+    const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    // Filter to sound like fleshy hand claps
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1200, now);
+    filter.Q.setValueAtTime(1.5, now);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.22, now + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.18, now + 0.9);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    noise.start(now);
+    noise.stop(now + duration);
+
+    // Layer 2: Celebratory melodic sparkle chords
+    const chordNotes = [523.25, 659.25, 783.99, 1046.5];
+    chordNotes.forEach((f, idx) => {
+      const osc = this.ctx.createOscillator();
+      const chordGain = this.ctx.createGain();
+      const st = now + idx * 0.08;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, st);
+      chordGain.gain.setValueAtTime(0.001, st);
+      chordGain.gain.linearRampToValueAtTime(0.08, st + 0.03);
+      chordGain.gain.exponentialRampToValueAtTime(0.0001, st + 0.8);
+      osc.connect(chordGain);
+      chordGain.connect(this.ctx.destination);
+      osc.start(st);
+      osc.stop(st + 0.8);
+    });
+  }
+
+  // Gentle calming hush / quiet down zen chime (528Hz Solfeggio healing frequency)
+  playQuietChime() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const oscHarmonic = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const harmonicGain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(528, now); // 528 Hz peaceful tone
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.25, now + 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+
+    oscHarmonic.type = 'sine';
+    oscHarmonic.frequency.setValueAtTime(1056, now); // 1st harmonic sparkle
+    harmonicGain.gain.setValueAtTime(0.001, now);
+    harmonicGain.gain.linearRampToValueAtTime(0.08, now + 0.06);
+    harmonicGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    oscHarmonic.connect(harmonicGain);
+    harmonicGain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 2.2);
+    oscHarmonic.start(now);
+    oscHarmonic.stop(now + 1.8);
+  }
+
+  // 3-2-1 Countdown Beeps with victory pip
+  playCountdownBeeps() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    // 3 short prep beeps at 600Hz
+    for (let i = 0; i < 3; i++) {
+      const st = now + i * 0.35;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, st);
+      gain.gain.setValueAtTime(0.001, st);
+      gain.gain.linearRampToValueAtTime(0.18, st + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, st + 0.12);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(st);
+      osc.stop(st + 0.12);
+    }
+    // Final high triumph beep at 1200Hz
+    const finalSt = now + 3 * 0.35;
+    const oscFinal = this.ctx.createOscillator();
+    const gainFinal = this.ctx.createGain();
+    oscFinal.type = 'sine';
+    oscFinal.frequency.setValueAtTime(1200, finalSt);
+    gainFinal.gain.setValueAtTime(0.001, finalSt);
+    gainFinal.gain.linearRampToValueAtTime(0.24, finalSt + 0.02);
+    gainFinal.gain.exponentialRampToValueAtTime(0.0001, finalSt + 0.45);
+    oscFinal.connect(gainFinal);
+    gainFinal.connect(this.ctx.destination);
+    oscFinal.start(finalSt);
+    oscFinal.stop(finalSt + 0.45);
+  }
+
   // Liquid Honey Drop Sound (soft sweet droplet resonance)
   playHoneyDrop() {
     if (!this.enabled) return;

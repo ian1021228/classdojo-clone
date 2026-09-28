@@ -405,23 +405,29 @@ class StudentController {
 
     // 2. Body Shapes / Archetypes
     const bodyLabels = {
-      round: '🐝 圓滾萌蜂',
-      pear: '🐝 水滴勤蜂',
-      tall: '🐝 靈動長蜂',
-      blob: '🐝 胖嘟工蜂',
-      fluffy: '🐝 蓬鬆絨蜂'
+      round: '<i class="fa-solid fa-circle" style="color: #f59e0b; margin-right: 4px;"></i> 圓滾萌蜂',
+      pear: '<i class="fa-solid fa-droplet" style="color: #eab308; margin-right: 4px;"></i> 水滴勤蜂',
+      tall: '<i class="fa-solid fa-arrow-up-long" style="color: #10b981; margin-right: 4px;"></i> 靈動長蜂',
+      blob: '<i class="fa-solid fa-shapes" style="color: #0ea5e9; margin-right: 4px;"></i> 胖嘟工蜂',
+      fluffy: '<i class="fa-solid fa-cloud" style="color: #ec4899; margin-right: 4px;"></i> 蓬鬆絨蜂'
     };
     this.setupTraitPills('body-shapes-container', me.bodyShapes, bodyLabels, 'bodyShape');
 
     // 3. Accessories
     const accLabels = {
-      none: '悠閒自然',
-      crown: '👑 蜂王皇冠',
-      honey_pot: '🍯 金蜜罐',
-      sunflower: '🌻 陽光向日葵',
-      blossom: '🌸 櫻花初綻',
-      goggles: '🥽 飛行風鏡',
-      sparkles: '✨ 璀璨蜂芒'
+      none: '<i class="fa-solid fa-ban" style="color: #94a3b8; margin-right: 4px;"></i> 悠閒自然',
+      horns: '<i class="fa-solid fa-crown" style="color: #f59e0b; margin-right: 4px;"></i> 蜂王皇冠',
+      crown: '<i class="fa-solid fa-crown" style="color: #f59e0b; margin-right: 4px;"></i> 蜂王皇冠',
+      antenna: '<i class="fa-solid fa-jar" style="color: #d97706; margin-right: 4px;"></i> 金蜜糖罐',
+      honey_pot: '<i class="fa-solid fa-jar" style="color: #d97706; margin-right: 4px;"></i> 金蜜糖罐',
+      party_hat: '<i class="fa-solid fa-seedling" style="color: #ec4899; margin-right: 4px;"></i> 櫻花花飾',
+      blossom: '<i class="fa-solid fa-seedling" style="color: #ec4899; margin-right: 4px;"></i> 櫻花花飾',
+      bow: '<i class="fa-solid fa-sun" style="color: #eab308; margin-right: 4px;"></i> 向日葵',
+      sunflower: '<i class="fa-solid fa-sun" style="color: #eab308; margin-right: 4px;"></i> 向日葵',
+      ears: '<i class="fa-solid fa-wand-magic-sparkles" style="color: #f59e0b; margin-right: 4px;"></i> 璀璨光芒',
+      sparkles: '<i class="fa-solid fa-wand-magic-sparkles" style="color: #f59e0b; margin-right: 4px;"></i> 璀璨光芒',
+      glasses: '<i class="fa-solid fa-glasses" style="color: #0ea5e9; margin-right: 4px;"></i> 探險風鏡',
+      goggles: '<i class="fa-solid fa-glasses" style="color: #0ea5e9; margin-right: 4px;"></i> 探險風鏡'
     };
     this.setupTraitPills('accessories-container', me.accessories, accLabels, 'accessory');
   }

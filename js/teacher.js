@@ -1,4 +1,5 @@
 import { store, escapeHTML, maskSensitiveCode } from './store.js';
+import { StorageQuotaManager } from './security.js';
 import { calendarManager } from './events-calendar.js';
 import { DojoIslands } from './dojo-islands.js';
 import { bigIdeasManager } from './big-ideas.js';
@@ -143,6 +144,7 @@ class TeacherController {
     this.portfolioReviewModal = document.getElementById('portfolio-review-modal');
     this.addActivityModal = document.getElementById('add-activity-modal');
     this.musicModal = document.getElementById('music-modal');
+    this.securityVaultModal = document.getElementById('security-vault-modal');
     this.isMusicPlaying = false;
     this.currentReviewTarget = null;
     this.selectedFlowerSticker = '🌸 構思精巧花';
@@ -232,6 +234,8 @@ class TeacherController {
       document.getElementById('btn-switch-groups').classList.remove('active');
       this.studentsGrid.style.display = 'grid';
       this.groupsGrid.style.display = 'none';
+      const podiumWrap = document.getElementById('groups-podium-wrap');
+      if (podiumWrap) podiumWrap.style.display = 'none';
     });
 
     document.getElementById('btn-switch-groups').addEventListener('click', () => {
@@ -361,6 +365,74 @@ class TeacherController {
         }
       }
     });
+
+    // Breakthrough 8: Classroom Quick SFX Soundboard Dock Controls
+    document.getElementById('sfx-btn-bell')?.addEventListener('click', () => {
+      if (window.dojoAudio) window.dojoAudio.playBell();
+    });
+    document.getElementById('sfx-btn-applause')?.addEventListener('click', () => {
+      if (window.dojoAudio) window.dojoAudio.playApplause();
+      if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 40);
+    });
+    document.getElementById('sfx-btn-fanfare')?.addEventListener('click', () => {
+      if (window.dojoAudio) window.dojoAudio.playFanfare();
+      if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 60);
+    });
+    document.getElementById('sfx-btn-quiet')?.addEventListener('click', () => {
+      if (window.dojoAudio) window.dojoAudio.playQuietChime();
+    });
+    document.getElementById('sfx-btn-countdown')?.addEventListener('click', () => {
+      if (window.dojoAudio) window.dojoAudio.playCountdownBeeps();
+    });
+    const sfxMusicBtn = document.getElementById('sfx-btn-focus-music');
+    sfxMusicBtn?.addEventListener('click', () => {
+      if (!window.dojoAudio) return;
+      const isPlaying = window.dojoAudio.isAmbientPlaying();
+      if (isPlaying) {
+        window.dojoAudio.stopAmbientFocus();
+        sfxMusicBtn.classList.remove('active');
+        const lbl = document.getElementById('sfx-music-label');
+        if (lbl) lbl.textContent = '專注音樂';
+      } else {
+        window.dojoAudio.startAmbientFocus();
+        sfxMusicBtn.classList.add('active');
+        const lbl = document.getElementById('sfx-music-label');
+        if (lbl) lbl.textContent = '播放中...';
+      }
+    });
+
+    // Keyboard Shortcuts for SFX Soundboard
+    window.addEventListener('keydown', (e) => {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+        return;
+      }
+      const k = e.key.toLowerCase();
+      if (k === 'b') {
+        document.getElementById('sfx-btn-bell')?.click();
+      } else if (k === 'c') {
+        document.getElementById('sfx-btn-applause')?.click();
+      } else if (k === 'f') {
+        document.getElementById('sfx-btn-fanfare')?.click();
+      } else if (k === 'q') {
+        document.getElementById('sfx-btn-quiet')?.click();
+      } else if (k === 't') {
+        document.getElementById('sfx-btn-countdown')?.click();
+      } else if (k === 'm') {
+        document.getElementById('sfx-btn-focus-music')?.click();
+      }
+    });
+
+    // Security Vault Modal Controls
+    document.getElementById('btn-open-vault')?.addEventListener('click', () => this.openSecurityVaultModal());
+    document.getElementById('btn-close-vault')?.addEventListener('click', () => this.closeModal(this.securityVaultModal));
+    document.getElementById('btn-close-vault-footer')?.addEventListener('click', () => this.closeModal(this.securityVaultModal));
+    document.getElementById('btn-vault-export')?.addEventListener('click', () => this.exportVaultData());
+    document.getElementById('btn-vault-import-btn')?.addEventListener('click', () => {
+      document.getElementById('vault-file-input')?.click();
+    });
+    document.getElementById('vault-file-input')?.addEventListener('change', (e) => this.handleVaultImport(e));
+    document.getElementById('btn-vault-optimize')?.addEventListener('click', () => this.optimizeVaultData());
 
     // Floating Dock Buttons
     document.getElementById('dock-btn-toolkit')?.addEventListener('click', () => this.openModal(this.toolkitModal));
@@ -932,10 +1004,103 @@ class TeacherController {
     });
   }
 
-  // Render Groups Grid
+  // Render Groups Grid & Podium
   renderGroups() {
     const cls = store.getActiveClass();
     if (!cls || !cls.groups) return;
+
+    // Render Hive Group Collaborative Competition Leaderboard Podium
+    const podiumWrap = document.getElementById('groups-podium-wrap');
+    if (podiumWrap) {
+      if (cls.groups.length > 0) {
+        podiumWrap.style.display = 'block';
+        const sortedGroups = [...cls.groups].sort((a, b) => (b.points || 0) - (a.points || 0));
+        const top3 = sortedGroups.slice(0, 3);
+
+        // Display order: 2nd place (left), 1st place (center), 3rd place (right)
+        let displayOrder = [];
+        if (top3.length === 1) {
+          displayOrder = [{ grp: top3[0], rank: 1 }];
+        } else if (top3.length === 2) {
+          displayOrder = [{ grp: top3[1], rank: 2 }, { grp: top3[0], rank: 1 }];
+        } else {
+          displayOrder = [{ grp: top3[1], rank: 2 }, { grp: top3[0], rank: 1 }, { grp: top3[2], rank: 3 }];
+        }
+
+        const rankIcons = {
+          1: '<i class="fa-solid fa-trophy"></i>',
+          2: '<i class="fa-solid fa-medal"></i>',
+          3: '<i class="fa-solid fa-award"></i>'
+        };
+
+        const rankBadges = {
+          1: '👑 蜂王首獎',
+          2: '🥈 銀蜜領航',
+          3: '🥉 勤蜂季軍'
+        };
+
+        podiumWrap.innerHTML = `
+          <div class="groups-podium-container">
+            <div class="podium-header">
+              <div class="podium-header-title">
+                <i class="fa-solid fa-crown" style="color: #f59e0b;"></i>
+                <span>蜂巢小組榮譽競賽榜 (Hive Groups Leaderboard)</span>
+              </div>
+              <div class="podium-header-sub">
+                小隊合作互助採蜜 • 率先達到 50 滴蜜糖榮獲全班蜂王桂冠！點擊頒獎台可直接為該組全體加分
+              </div>
+            </div>
+            <div class="podium-grid">
+              ${displayOrder.map(item => {
+                const grp = item.grp;
+                const rank = item.rank;
+                const members = grp.studentIds.map(id => cls.students.find(s => s.id === id)).filter(Boolean);
+                const progressPct = Math.min(100, Math.round(((grp.points || 0) / 50) * 100));
+                return `
+                  <div class="podium-card rank-${rank}" data-podium-group-id="${grp.id}" title="點擊給 ${escapeHTML(grp.name)} 頒發協作蜜糖！">
+                    <div class="podium-avatar-cluster">
+                      ${members.slice(0, 3).map(m => `
+                        <div style="width: 36px; height: 36px; margin-left: -10px; border-radius: 50%; background: #ffffff; border: 2px solid #fde68a; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                          ${m.isHatched ? (window.monsterEngine ? window.monsterEngine.render(m.monster, 36) : '') : (window.monsterEngine ? window.monsterEngine.renderEgg(m.name, 36) : '')}
+                        </div>
+                      `).join('')}
+                    </div>
+                    <div class="podium-name">${escapeHTML(grp.name)}</div>
+                    <div class="podium-points-tag">
+                      <i class="fa-solid fa-jar" style="color: #f59e0b;"></i>
+                      <span>${grp.points || 0} 滴花蜜</span>
+                    </div>
+                    <div style="width: 80%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 9999px; margin-bottom: 12px; overflow: hidden;" title="達標進度 ${progressPct}%">
+                      <div style="width: ${progressPct}%; height: 100%; background: linear-gradient(90deg, #f59e0b, #10b981); border-radius: 9999px;"></div>
+                    </div>
+                    <div class="podium-pedestal">
+                      <div class="podium-rank-badge">
+                        ${rankIcons[rank]}
+                      </div>
+                      <span style="font-size: 0.75rem; font-weight: 800; color: #1e293b; background: rgba(255,255,255,0.7); padding: 2px 8px; border-radius: 9999px; margin-top: 2px;">
+                        ${rankBadges[rank]}
+                      </span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+
+        podiumWrap.querySelectorAll('.podium-card[data-podium-group-id]').forEach(card => {
+          card.addEventListener('click', () => {
+            const gid = card.dataset.podiumGroupId;
+            const grp = cls.groups.find(g => g.id === gid);
+            if (grp) {
+              this.openSkillsModal({ type: 'multiple', studentIds: grp.studentIds, name: grp.name });
+            }
+          });
+        });
+      } else {
+        podiumWrap.style.display = 'none';
+      }
+    }
 
     this.groupsGrid.innerHTML = cls.groups.map(grp => {
       const members = grp.studentIds.map(id => cls.students.find(s => s.id === id)).filter(Boolean);
@@ -2211,6 +2376,89 @@ class TeacherController {
     if (window.dojoAudio) window.dojoAudio.playPositive();
     if (window.dojoConfetti) window.dojoConfetti.burst();
     this.renderMilestoneGoal();
+  }
+
+  // Security Vault & Database Management
+  openSecurityVaultModal() {
+    const quota = StorageQuotaManager.getUsage();
+    const quotaText = document.getElementById('vault-quota-text');
+    const quotaBar = document.getElementById('vault-quota-bar');
+    if (quotaText) {
+      quotaText.textContent = `${quota.usedKB} KB / ${quota.maxKB} KB (${quota.percentage}%)`;
+    }
+    if (quotaBar) {
+      quotaBar.style.width = `${Math.max(1, quota.percentage)}%`;
+      if (quota.isCritical) {
+        quotaBar.style.background = 'linear-gradient(90deg, #ef4444, #b91c1c)';
+      } else if (quota.isWarning) {
+        quotaBar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+      } else {
+        quotaBar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+      }
+    }
+    this.openModal(this.securityVaultModal);
+  }
+
+  exportVaultData() {
+    const activeClass = store.getActiveClass();
+    const classCode = activeClass ? activeClass.code : 'CREW';
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `crew-backup-${classCode}-${timestamp}.json`;
+    const payload = JSON.stringify(store.state, null, 2);
+    const blob = new Blob([payload], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    if (window.dojoAudio) window.dojoAudio.playPositive();
+  }
+
+  handleVaultImport(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const parsed = JSON.parse(evt.target.result);
+        if (!parsed || !Array.isArray(parsed.classes) || parsed.classes.length === 0) {
+          alert('⚠️ 備份檔案格式無效：必須包含有效的 classes 班級陣列！');
+          return;
+        }
+        // Validate zero-corruption principle: at least one class has students
+        const validClass = parsed.classes.find(c => Array.isArray(c.students) && c.students.length > 0);
+        if (!validClass) {
+          alert('⚠️ 備份檔案無效：未包含任何有效學生名單！');
+          return;
+        }
+        store.state = parsed;
+        store.save();
+        alert('🎉 資料庫安全還原成功！系統已完整同步最新資料。');
+        if (window.dojoAudio) window.dojoAudio.playFanfare();
+        if (window.dojoConfetti) window.dojoConfetti.burst();
+        this.closeModal(this.securityVaultModal);
+        this.renderAll();
+      } catch (err) {
+        alert('⚠️ 讀取備份檔案失敗：' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  optimizeVaultData() {
+    StorageQuotaManager.pruneHistoryIfCrowded(store.state, 20);
+    store.save();
+    const quota = StorageQuotaManager.getUsage();
+    const quotaText = document.getElementById('vault-quota-text');
+    const quotaBar = document.getElementById('vault-quota-bar');
+    if (quotaText) quotaText.textContent = `${quota.usedKB} KB / ${quota.maxKB} KB (${quota.percentage}%)`;
+    if (quotaBar) quotaBar.style.width = `${Math.max(1, quota.percentage)}%`;
+    if (window.dojoAudio) window.dojoAudio.playPositive();
+    alert('🧹 資料庫快取最佳化完成！已安全維護最佳儲存空間與寫入效能。');
   }
 
   // Modal helpers

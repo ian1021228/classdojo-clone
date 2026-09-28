@@ -52,6 +52,7 @@
     <div style="display: flex; align-items: center; gap: 8px;">
       <button id="btn-toggle-presentation" class="btn btn-secondary btn-sm" title="切換劇院級全螢幕投影展示模式"><i class="fa-solid fa-expand"></i> 投影展示模式</button>
       <button id="btn-export-report" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chart-pie"></i> 匯出班級報表</button>
+      <button id="btn-open-vault" class="btn btn-secondary btn-sm" title="資安防護與資料庫空間管理"><i class="fa-solid fa-shield-halved" style="color: #10b981;"></i> 資安保險庫</button>
     </div>
   </div>
 
@@ -145,6 +146,11 @@
 
       <!-- Student Cards Grid -->
       <div class="roster-grid" id="students-grid">
+        <!-- Injected dynamically by teacher.js -->
+      </div>
+
+      <!-- Breakthrough 7: Hive Group Collaborative Competition Leaderboard Podium -->
+      <div id="groups-podium-wrap" style="display: none; margin: 20px auto 28px; max-width: 960px; padding: 0 16px;">
         <!-- Injected dynamically by teacher.js -->
       </div>
 
@@ -307,6 +313,43 @@
     <button class="dock-btn" id="dock-btn-noise"><i class="fa-solid fa-volume-high"></i> 噪音計</button>
     <button class="dock-btn" id="dock-btn-bigideas"><i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> 心智成長短片</button>
   </footer>
+
+  <!-- Breakthrough 8: Classroom Quick SFX Soundboard Dock -->
+  <div id="floating-sfx-bar" class="floating-sfx-bar" title="課堂即時音效台（支援鍵盤快速鍵：B注意鈴、C鼓掌、F號角、Q靜音、T倒數、M音樂）">
+    <div class="sfx-dock-pill">
+      <span class="sfx-dock-label"><i class="fa-solid fa-volume-high" style="color: #f59e0b;"></i> <span class="sfx-hide-mobile">音效台</span></span>
+      <button class="sfx-dock-btn" id="sfx-btn-bell" title="叮咚注意鈴 (快速鍵 B)">
+        <i class="fa-solid fa-bell" style="color: #f59e0b;"></i>
+        <span>注意鈴</span>
+        <kbd class="sfx-kbd">B</kbd>
+      </button>
+      <button class="sfx-dock-btn" id="sfx-btn-applause" title="全班歡呼掌聲 (快速鍵 C)">
+        <i class="fa-solid fa-hands-clapping" style="color: #10b981;"></i>
+        <span>歡呼掌聲</span>
+        <kbd class="sfx-kbd">C</kbd>
+      </button>
+      <button class="sfx-dock-btn" id="sfx-btn-fanfare" title="勝利大號角 (快速鍵 F)">
+        <i class="fa-solid fa-bullhorn" style="color: #6366f1;"></i>
+        <span>勝利號角</span>
+        <kbd class="sfx-kbd">F</kbd>
+      </button>
+      <button class="sfx-dock-btn" id="sfx-btn-quiet" title="保持安靜禪音 (快速鍵 Q)">
+        <i class="fa-solid fa-volume-xmark" style="color: #0ea5e9;"></i>
+        <span>安靜信號</span>
+        <kbd class="sfx-kbd">Q</kbd>
+      </button>
+      <button class="sfx-dock-btn" id="sfx-btn-countdown" title="倒數計時嗶聲 (快速鍵 T)">
+        <i class="fa-solid fa-stopwatch" style="color: #ec4899;"></i>
+        <span>倒數嗶聲</span>
+        <kbd class="sfx-kbd">T</kbd>
+      </button>
+      <button class="sfx-dock-btn" id="sfx-btn-focus-music" title="專注背景旋律開關 (快速鍵 M)">
+        <i class="fa-solid fa-music" id="sfx-music-icon" style="color: #8b5cf6;"></i>
+        <span id="sfx-music-label">專注音樂</span>
+        <kbd class="sfx-kbd">M</kbd>
+      </button>
+    </div>
+  </div>
 
   <!-- Mobile Bottom Navigation Bar (393x852) -->
   <nav class="mobile-bottom-bar">
@@ -1005,6 +1048,74 @@
           <button class="btn btn-secondary" id="btn-cancel-milestone-modal">取消</button>
           <button class="btn btn-primary" id="btn-save-milestone-modal">確認儲存目標</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 16: Security Vault & DB Quota Management (User Global Rule 4 & Security Guardian) -->
+  <div class="modal-backdrop" id="security-vault-modal">
+    <div class="modal-card" style="max-width: 580px; border-radius: 20px; border: 1.5px solid #10b981;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-bottom: 1.5px solid #bbf7d0;">
+        <div class="modal-title-group">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff; border: 1.5px solid #86efac; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #16a34a; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.15);">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h3 class="modal-title" style="color: #14532d;">資安防護與資料庫管理中心</h3>
+            <span style="font-size: 0.82rem; color: #166534; font-weight: 700;">Security & Database Quota Guardian</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-vault">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 24px;">
+        <!-- Security Invariant Card -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 0.9rem; color: #1e293b;"><i class="fa-solid fa-lock" style="color: #10b981;"></i> 密碼保護機制</strong>
+            <span style="background: #dcfce7; color: #15803d; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">SHA-256 加鹽雜湊中</span>
+          </div>
+          <div style="font-size: 0.8rem; color: #64748b; line-height: 1.5;">
+            已對教師密碼實施 Web Crypto 加鹽安全雜湊防護，前端不儲存任何明文密碼，抵禦注入與撞庫。
+          </div>
+        </div>
+
+        <!-- Storage Quota Gauge -->
+        <div style="background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 14px; padding: 16px; margin-bottom: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+            <strong style="font-size: 0.95rem; color: #78350f;"><i class="fa-solid fa-database" style="color: #f59e0b;"></i> LocalStorage 儲存空間配額</strong>
+            <span id="vault-quota-text" style="font-size: 0.85rem; font-weight: 800; color: #b45309;">14.2 KB / 5120 KB (0.3%)</span>
+          </div>
+          <div style="width: 100%; height: 10px; background: #fef3c7; border-radius: 9999px; overflow: hidden; border: 1px solid #fde68a; margin-bottom: 8px;">
+            <div id="vault-quota-bar" style="width: 1%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 9999px; transition: width 0.4s ease;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #64748b;">
+            <span><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> 空間極度充裕 (健康)</span>
+            <span>防突發寫入盾：已啟用 (250ms 防抖)</span>
+          </div>
+        </div>
+
+        <!-- Backup & Restore Actions -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-primary" id="btn-vault-export" style="flex: 1; justify-content: center; font-weight: 800;">
+              <i class="fa-solid fa-file-export"></i> 導出完整備份檔 (.json)
+            </button>
+            <button class="btn btn-secondary" id="btn-vault-import-btn" style="flex: 1; justify-content: center; font-weight: 800; border-color: #fde68a;">
+              <i class="fa-solid fa-file-import"></i> 安全還原備份
+            </button>
+          </div>
+          <input type="file" id="vault-file-input" accept=".json" style="display: none;">
+          
+          <button class="btn btn-secondary btn-sm" id="btn-vault-optimize" style="justify-content: center; color: #64748b; margin-top: 4px;">
+            <i class="fa-solid fa-broom"></i> 最佳化資料庫快取（保留所有正式學生與班級主檔）
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.78rem; color: #94a3b8;"><i class="fa-solid fa-shield-check"></i> 嚴格遵循「零資料更動」安全原則</span>
+        <button class="btn btn-secondary btn-sm" id="btn-close-vault-footer">關閉</button>
       </div>
     </div>
   </div>
