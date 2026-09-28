@@ -1122,3 +1122,23 @@ body.presentation-mode .student-points-badge {
   filter: grayscale(1);
 }
 
+/* Presentation Mode Milestone Goal styling */
+body.presentation-mode #class-milestone-goal-card {
+  background: #1e293b !important;
+  border-bottom: 2px solid #f59e0b !important;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2) !important;
+}
+body.presentation-mode #milestone-goal-title {
+  color: #fef08a !important;
+  font-size: 1.15rem !important;
+}
+body.presentation-mode #milestone-progress-text {
+  color: #fbbf24 !important;
+  font-size: 1.05rem !important;
+}
+body.presentation-mode #class-milestone-goal-card .btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+

@@ -613,6 +613,13 @@ class TeacherController {
       }
     });
 
+    // Milestone Goal Modal Controls
+    const milestoneModal = document.getElementById('milestone-goal-modal');
+    document.getElementById('btn-edit-milestone-goal')?.addEventListener('click', () => this.openMilestoneModal());
+    document.getElementById('btn-close-milestone-modal')?.addEventListener('click', () => this.closeModal(milestoneModal));
+    document.getElementById('btn-cancel-milestone-modal')?.addEventListener('click', () => this.closeModal(milestoneModal));
+    document.getElementById('btn-save-milestone-modal')?.addEventListener('click', () => this.saveMilestoneModal());
+
     // Class Story Posting & Poll Creator
     document.getElementById('story-post-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -800,6 +807,7 @@ class TeacherController {
     this.classStudentCount.textContent = cls.students.length;
     this.classCodeTag.textContent = cls.code;
     this.classBadgeIcon.textContent = cls.icon || '🎒';
+    this.renderMilestoneGoal();
   }
 
   // Render Students Grid
@@ -1044,6 +1052,7 @@ class TeacherController {
         this.showCelebrationSplash(this.awardTarget, skill);
       }
 
+      this.renderMilestoneGoal();
       this.closeModal(this.skillsModal);
     };
 
@@ -2143,6 +2152,65 @@ class TeacherController {
       splash.classList.remove('active');
       if (this.splashTimeout) clearTimeout(this.splashTimeout);
     };
+  }
+
+  // Breakthrough 6: Class Honey Milestone Goal Thermometer
+  renderMilestoneGoal() {
+    const cls = store.getActiveClass();
+    if (!cls) return;
+
+    const goal = cls.milestoneGoal || {
+      title: '🌻 向日葵花園野餐派對',
+      target: 100,
+      reward: '全班共享甜蜜點心野餐日！'
+    };
+
+    const currentTotal = cls.students.reduce((sum, s) => sum + Math.max(0, s.points || 0), 0);
+    const target = goal.target || 100;
+    const pct = Math.min(100, Math.round((currentTotal / target) * 100));
+
+    const titleEl = document.getElementById('milestone-goal-title');
+    const progTextEl = document.getElementById('milestone-progress-text');
+    const barEl = document.getElementById('milestone-progress-bar');
+
+    if (titleEl) titleEl.textContent = `🌻 全班花蜜目標：${goal.title}`;
+    if (progTextEl) progTextEl.textContent = `${currentTotal} / ${target} 滴花蜜 (${pct}%)`;
+    if (barEl) barEl.style.width = `${pct}%`;
+  }
+
+  openMilestoneModal() {
+    const cls = store.getActiveClass();
+    if (!cls) return;
+    const goal = cls.milestoneGoal || {
+      title: '🌻 向日葵花園野餐派對',
+      target: 100,
+      reward: '全班共享甜蜜點心野餐日！'
+    };
+    const titleInput = document.getElementById('input-milestone-title');
+    const targetInput = document.getElementById('input-milestone-target');
+    const rewardInput = document.getElementById('input-milestone-reward');
+
+    if (titleInput) titleInput.value = goal.title || '';
+    if (targetInput) targetInput.value = goal.target || 100;
+    if (rewardInput) rewardInput.value = goal.reward || '';
+
+    const modal = document.getElementById('milestone-goal-modal');
+    if (modal) this.openModal(modal);
+  }
+
+  saveMilestoneModal() {
+    const cls = store.getActiveClass();
+    if (!cls) return;
+    const title = document.getElementById('input-milestone-title')?.value.trim();
+    const target = parseInt(document.getElementById('input-milestone-target')?.value, 10);
+    const reward = document.getElementById('input-milestone-reward')?.value.trim();
+
+    store.updateClassMilestoneGoal(cls.id, { title, target, reward });
+    const modal = document.getElementById('milestone-goal-modal');
+    if (modal) this.closeModal(modal);
+    if (window.dojoAudio) window.dojoAudio.playPositive();
+    if (window.dojoConfetti) window.dojoConfetti.burst();
+    this.renderMilestoneGoal();
   }
 
   // Modal helpers

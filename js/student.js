@@ -487,20 +487,47 @@ class StudentController {
       return;
     }
 
-    timelineWrap.innerHTML = s.history.map(item => `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fffdf5; border-radius: 12px; border-left: 4px solid ${item.points >= 0 ? '#f59e0b' : '#ef4444'}; border: 1px solid #fde68a;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 1.5rem;">${item.icon || (item.points >= 0 ? '🍯' : '💨')}</span>
-          <div>
-            <strong style="font-size: 0.95rem; color: #1e293b; display: block;">${escapeHTML(item.skillName)}</strong>
-            <small style="color: #64748b;">${escapeHTML(item.note || '蜂巢課堂優良表現')}</small>
+    // Render Class Milestone Goal Banner
+    const cls = this.activeClass;
+    if (cls) {
+      const goal = cls.milestoneGoal || { title: '🌻 向日葵花園野餐派對', target: 100, reward: '全班共享甜蜜點心野餐日！' };
+      const classTotalPts = cls.students.reduce((sum, st) => sum + Math.max(0, st.points || 0), 0);
+      const target = goal.target || 100;
+      const pct = Math.min(100, Math.round((classTotalPts / target) * 100));
+
+      const titleEl = document.getElementById('stu-milestone-title');
+      const progTextEl = document.getElementById('stu-milestone-progress');
+      const barEl = document.getElementById('stu-milestone-bar');
+      const hintEl = document.getElementById('stu-milestone-hint');
+
+      if (titleEl) titleEl.textContent = `${cls.name} 全班花蜜大目標：${goal.title}`;
+      if (progTextEl) progTextEl.textContent = `${classTotalPts} / ${target} 滴花蜜 (${pct}%)`;
+      if (barEl) barEl.style.width = `${pct}%`;
+      if (hintEl) hintEl.textContent = `🎯 達成獎勵：${goal.reward}！${pct >= 100 ? '🎉 恭喜已達成！' : `還差 ${target - classTotalPts} 滴花蜜即可解鎖！`}`;
+    }
+
+    timelineWrap.innerHTML = s.history.map(item => {
+      const isParentCheer = !!item.fromParent;
+      const borderColor = isParentCheer ? '#f43f5e' : (item.points >= 0 ? '#f59e0b' : '#ef4444');
+      const bg = isParentCheer ? '#fff5f5' : '#fffdf5';
+      const borderBox = isParentCheer ? '#fecdd3' : '#fde68a';
+      return `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: ${bg}; border-radius: 12px; border-left: 4px solid ${borderColor}; border: 1px solid ${borderBox};">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 1.5rem;">${item.icon || (item.points >= 0 ? '🍯' : '💨')}</span>
+            <div>
+              <strong style="font-size: 0.95rem; color: #1e293b; display: block;">
+                ${escapeHTML(item.skillName)} ${isParentCheer ? '<span style="font-size: 0.75rem; background: #ffe4e6; color: #e11d48; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 700; margin-left: 6px;">來自爸爸媽媽</span>' : ''}
+              </strong>
+              <small style="color: #64748b;">${escapeHTML(item.note || '蜂巢課堂優良表現')}</small>
+            </div>
+          </div>
+          <div style="font-weight: 800; font-size: 1.1rem; color: ${isParentCheer ? '#e11d48' : (item.points >= 0 ? '#d97706' : '#ef4444')};">
+            ${item.points >= 0 ? '+' + item.points : item.points} 滴花蜜
           </div>
         </div>
-        <div style="font-weight: 800; font-size: 1.1rem; color: ${item.points >= 0 ? '#d97706' : '#ef4444'};">
-          ${item.points >= 0 ? '+' + item.points : item.points} 滴花蜜
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Breakthrough 5: Render 8 Badges Showroom & Streak Pill
     this.renderBadgesShowroom(s);

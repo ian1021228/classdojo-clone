@@ -846,6 +846,59 @@ class DojoStore {
     return msg;
   }
 
+  // Send parent family cheer directly to child
+  sendParentCheer(studentId, cheerText) {
+    if (!cheerText || !cheerText.trim()) return null;
+    let targetStudent = null;
+    let targetClass = null;
+
+    for (const cls of this.state.classes) {
+      const stu = cls.students.find(s => s.id === studentId);
+      if (stu) {
+        targetStudent = stu;
+        targetClass = cls;
+        break;
+      }
+    }
+
+    if (!targetStudent) return null;
+
+    const cheerItem = {
+      id: `cheer_${Date.now()}`,
+      skillName: '家長愛心應援',
+      points: 1,
+      icon: '💖',
+      note: cheerText.trim(),
+      timestamp: Date.now(),
+      type: 'pos',
+      fromParent: true
+    };
+
+    targetStudent.points = (targetStudent.points || 0) + 1;
+    targetStudent.history = targetStudent.history || [];
+    targetStudent.history.unshift(cheerItem);
+
+    if (targetClass) {
+      targetClass.totalPoints = (targetClass.totalPoints || 0) + 1;
+    }
+
+    this.save();
+    return cheerItem;
+  }
+
+  // Update whole-class honey milestone goal
+  updateClassMilestoneGoal(classId, { title, target, reward }) {
+    const cls = this.state.classes.find(c => c.id === classId);
+    if (!cls) return null;
+    cls.milestoneGoal = {
+      title: title || cls.milestoneGoal?.title || '🌻 向日葵花園野餐派對',
+      target: parseInt(target, 10) || 100,
+      reward: reward || cls.milestoneGoal?.reward || '全班共享甜蜜點心野餐日！'
+    };
+    this.save();
+    return cls.milestoneGoal;
+  }
+
   // Adapter to guarantee all new schema fields exist on legacy or newly created submissions
   adaptSubmission(sub, activity = {}) {
     if (!sub) return null;

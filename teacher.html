@@ -93,6 +93,30 @@
         </div>
       </div>
 
+      <!-- Breakthrough 6: Class Honey Milestone Goal Thermometer -->
+      <div id="class-milestone-goal-card" style="background: linear-gradient(135deg, #fffdf5 0%, #fef3c7 100%); border-bottom: 2px solid #fde68a; padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 2px 8px rgba(180, 83, 9, 0.05);">
+        <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 280px;">
+          <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #ffffff; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border: 2px solid #ffffff; flex-shrink: 0;">
+            <i class="fa-solid fa-bullseye"></i>
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;">
+              <strong style="font-size: 0.95rem; color: #78350f;" id="milestone-goal-title">🌻 全班花蜜目標：向日葵野餐派對</strong>
+              <span style="font-size: 0.85rem; font-weight: 800; color: #b45309;" id="milestone-progress-text">52 / 100 滴花蜜 (52%)</span>
+            </div>
+            <!-- Progress Bar with Milestone Checkpoints -->
+            <div style="position: relative; width: 100%; height: 12px; background: rgba(254, 243, 199, 0.8); border: 1.5px solid #fde68a; border-radius: 999px; overflow: hidden;">
+              <div id="milestone-progress-bar" style="width: 52%; height: 100%; background: linear-gradient(90deg, #f59e0b, #eab308, #10b981); border-radius: 999px; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-edit-milestone-goal" style="padding: 5px 12px; font-size: 0.85rem; border-radius: var(--radius-full);">
+            <i class="fa-solid fa-pen-to-square"></i> 設定目標
+          </button>
+        </div>
+      </div>
+
       <!-- Attendance Mode Notice Bar (Hidden by default) -->
       <div id="attendance-bar" style="display: none; background: #e6f9f0; border-bottom: 2px solid #86efac; padding: 10px 32px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -952,6 +976,39 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Modal 15: Edit Milestone Goal Modal -->
+  <div class="modal-backdrop" id="milestone-goal-modal">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span style="font-size: 1.5rem; color: #f59e0b;"><i class="fa-solid fa-bullseye"></i></span>
+          <h3 class="modal-title">設定全班花蜜共享大目標</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-milestone-modal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display: block; font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 0.9rem;">目標活動名稱：</label>
+          <input type="text" id="input-milestone-title" placeholder="例如：向日葵野餐派對、花園露天電影日" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box;">
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display: block; font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 0.9rem;">目標累積花蜜點數 (滴)：</label>
+          <input type="number" id="input-milestone-target" min="20" max="1000" step="10" placeholder="100" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box;">
+        </div>
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label style="display: block; font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 0.9rem;">達成獎勵說明：</label>
+          <input type="text" id="input-milestone-reward" placeholder="例如：全班共享甜蜜點心野餐日！" style="width: 100%; padding: 10px 14px; border: 1.5px solid #fde68a; border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box;">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-secondary" id="btn-cancel-milestone-modal">取消</button>
+          <button class="btn btn-primary" id="btn-save-milestone-modal">確認儲存目標</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Breakthrough 2: Giant Point Celebration Splash Overlay -->
   <div class="celebration-splash-overlay" id="celebration-splash">
     <div class="celebration-sunburst"></div>

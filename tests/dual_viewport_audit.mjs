@@ -129,8 +129,8 @@ assert(indexHtml.includes('btn-mobile-quick-login'), 'index.html has mobile-visi
 // 6. User Global Rule 1: Changelog Maintenance
 console.log('\n[SUITE 6: CHANGELOG MAINTENANCE (USER GLOBAL RULE 1)]');
 const changelogJs = fs.readFileSync('js/changelog.js', 'utf8');
-assert(changelogJs.includes('v2.9.0'), 'changelog.js includes latest v2.9.0 release');
-assert(changelogJs.includes('isLatest: true'), 'changelog.js marks v2.9.0 as latest');
+assert(changelogJs.includes('v2.10.0'), 'changelog.js includes latest v2.10.0 release');
+assert(changelogJs.includes('isLatest: true'), 'changelog.js marks v2.10.0 as latest');
 assert(indexHtml.includes('id="changelog-container"'), 'index.html features changelog container section');
 
 // 7. User Global Rule 4: Data Security & Zero Disruption
@@ -145,8 +145,10 @@ assert(activeClass.students.some(s => s.name === 'Leonardo'), 'Leonardo student 
 console.log('\n[SUITE 8: CLASSDOJO SOUL-LEVEL VISUAL & FEATURE BREAKTHROUGHS]');
 const teacherHtml = fs.readFileSync('teacher.html', 'utf8');
 const studentHtml = fs.readFileSync('student.html', 'utf8');
+const parentHtml = fs.readFileSync('parent.html', 'utf8');
 const teacherJs = fs.readFileSync('js/teacher.js', 'utf8');
 const studentJs = fs.readFileSync('js/student.js', 'utf8');
+const parentJs = fs.readFileSync('js/parent.js', 'utf8');
 const dojoUiCss = fs.readFileSync('css/dojo-ui.css', 'utf8');
 
 assert(teacherHtml.includes('id="btn-toggle-presentation"'), 'teacher.html features Presentation Mode toggle button');
@@ -160,6 +162,24 @@ assert(studentJs.includes('eggCrackStep'), 'student.js implements 3-Stage Egg Cr
 assert(studentHtml.includes('id="student-badges-showroom"'), 'student.html features 8-Badge Achievement Showroom');
 assert(studentJs.includes('renderBadgesShowroom'), 'student.js implements renderBadgesShowroom method');
 assert(studentHtml.includes('class="streak-fire-pill"'), 'student.html features Duolingo-style Streak Fire Pill');
+
+// 9. Class Milestone Goal & Parent Family Cheer Features (v2.10.0)
+console.log('\n[SUITE 9: CLASS MILESTONE GOAL & PARENT FAMILY CHEER]');
+assert(teacherHtml.includes('id="class-milestone-goal-card"'), 'teacher.html features Class Milestone Goal Thermometer');
+assert(teacherHtml.includes('id="milestone-goal-modal"'), 'teacher.html features Milestone Goal Settings Modal');
+assert(teacherJs.includes('renderMilestoneGoal'), 'teacher.js implements renderMilestoneGoal method');
+assert(studentHtml.includes('id="student-milestone-goal-card"'), 'student.html features student-facing Milestone Goal banner');
+assert(parentHtml.includes('id="btn-send-parent-cheer"'), 'parent.html features Family Cheer Send Button');
+assert(parentJs.includes('sendParentCheer'), 'parent.js wires up sendParentCheer integration');
+assert(typeof store.sendParentCheer === 'function', 'store.js exports sendParentCheer API');
+assert(typeof store.updateClassMilestoneGoal === 'function', 'store.js exports updateClassMilestoneGoal API');
+
+// Test sendParentCheer functionality
+const initialPoints = activeClass.students[0].points;
+const cheerRes = store.sendParentCheer(activeClass.students[0].id, '加油小寶貝！');
+assert(cheerRes !== null, 'sendParentCheer creates cheer item successfully');
+assert(activeClass.students[0].points === initialPoints + 1, 'sendParentCheer awards +1 point to student');
+assert(cheerRes.fromParent === true, 'cheer item has fromParent flag');
 
 console.log('\n================================================================================');
 console.log(`TOTAL CHECKS: ${passCount + failCount} | PASSED: ${passCount} | FAILED: ${failCount}`);

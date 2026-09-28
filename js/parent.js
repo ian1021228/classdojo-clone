@@ -126,6 +126,38 @@ class ParentController {
     certModal?.addEventListener('click', (e) => {
       if (e.target === certModal) certModal.classList.remove('open');
     });
+
+    // Breakthrough 7: Family Cheer Sending Handlers
+    const sendCheer = () => {
+      const input = document.getElementById('input-parent-cheer');
+      const text = input ? input.value.trim() : '';
+      if (!text) {
+        alert('請先輸入或選擇一句給孩子的貼心應援悄悄話！');
+        return;
+      }
+      store.sendParentCheer(this.currentChildId, text);
+      if (input) input.value = '';
+      if (window.dojoAudio) window.dojoAudio.playPositive();
+      if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 60);
+      this.renderReport();
+    };
+
+    document.getElementById('btn-send-parent-cheer')?.addEventListener('click', sendCheer);
+    document.getElementById('input-parent-cheer')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendCheer();
+      }
+    });
+
+    document.querySelectorAll('.cheer-preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cheerText = btn.dataset.cheer;
+        const input = document.getElementById('input-parent-cheer');
+        if (input) input.value = cheerText;
+        sendCheer();
+      });
+    });
   }
 
   openCertificateModal() {
@@ -279,23 +311,31 @@ class ParentController {
       return;
     }
 
-    timelineWrap.innerHTML = child.history.map(item => `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #fffdf5; border-radius: 12px; border-left: 4px solid ${item.points >= 0 ? '#f59e0b' : '#ef4444'}; border: 1px solid #fde68a;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <span style="font-size: 1.6rem;">${item.icon || (item.points >= 0 ? '🍯' : '💨')}</span>
-          <div>
-            <strong style="font-size: 1rem; color: #1e293b; display: block;">${escapeHTML(item.skillName)}</strong>
-            <small style="color: #64748b;">${escapeHTML(item.note || '課堂認真表現，獲得導師肯定')}</small>
+    timelineWrap.innerHTML = child.history.map(item => {
+      const isParentCheer = !!item.fromParent;
+      const borderColor = isParentCheer ? '#f43f5e' : (item.points >= 0 ? '#f59e0b' : '#ef4444');
+      const bg = isParentCheer ? '#fff5f5' : '#fffdf5';
+      const borderBox = isParentCheer ? '#fecdd3' : '#fde68a';
+      return `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: ${bg}; border-radius: 12px; border-left: 4px solid ${borderColor}; border: 1px solid ${borderBox};">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <span style="font-size: 1.6rem;">${item.icon || (item.points >= 0 ? '🍯' : '💨')}</span>
+            <div>
+              <strong style="font-size: 1rem; color: #1e293b; display: block;">
+                ${escapeHTML(item.skillName)} ${isParentCheer ? '<span style="font-size: 0.75rem; background: #ffe4e6; color: #e11d48; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 700; margin-left: 6px;">來自家庭</span>' : ''}
+              </strong>
+              <small style="color: #64748b;">${escapeHTML(item.note || '課堂認真表現，獲得導師肯定')}</small>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 1.15rem; color: ${isParentCheer ? '#e11d48' : (item.points >= 0 ? '#d97706' : '#ef4444')};">
+              ${item.points >= 0 ? '+' + item.points : item.points} 滴花蜜
+            </div>
+            <small style="color: #94a3b8; font-size: 0.75rem;">${new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
           </div>
         </div>
-        <div style="text-align: right;">
-          <div style="font-weight: 800; font-size: 1.15rem; color: ${item.points >= 0 ? '#d97706' : '#ef4444'};">
-            ${item.points >= 0 ? '+' + item.points : item.points} 滴花蜜
-          </div>
-          <small style="color: #94a3b8; font-size: 0.75rem;">${new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Also render child's portfolio artwork and teacher reviews
     this.renderChildPortfolio(child.id);
