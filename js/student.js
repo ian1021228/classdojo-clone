@@ -301,31 +301,81 @@ class StudentController {
     if (!s || !this.livePreviewWrap) return;
 
     if (!s.isHatched) {
-      // Unhatched Honeycomb cell mode
-      this.livePreviewWrap.innerHTML = window.monsterEngine ? window.monsterEngine.renderEgg(s.name, 160) : '';
+      // 3-Stage Egg Cracking Ceremony Mode
+      this.eggCrackStep = this.eggCrackStep || 0;
+      this.livePreviewWrap.innerHTML = `
+        <div class="egg-cracking-container" id="egg-cracking-box" style="cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative;">
+          <div class="egg-glow-aura"></div>
+          <div id="egg-svg-inner" style="transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            ${window.monsterEngine ? window.monsterEngine.renderEgg(s.name, 160) : ''}
+          </div>
+        </div>
+      `;
+
+      const stepHints = [
+        '🐝 破繭而出！點擊蛋殼開始孵化！',
+        '💥 蛋殼出現微小裂痕 (1/3)！再敲擊一次！',
+        '⚡ 金光從縫隙透出 (2/3)！最後一擊破繭！'
+      ];
+
       if (this.hatchActionWrap) {
         this.hatchActionWrap.innerHTML = `
           <button class="btn btn-primary btn-lg" id="btn-hatch-egg" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-            🐝 破繭而出！啟動我的專屬小蜜蜂！
+            ${stepHints[this.eggCrackStep] || stepHints[0]}
           </button>
         `;
+      }
 
-        document.getElementById('btn-hatch-egg')?.addEventListener('click', () => {
+      const triggerCrack = () => {
+        const inner = document.getElementById('egg-svg-inner');
+        if (this.eggCrackStep === 0) {
+          this.eggCrackStep = 1;
+          if (inner) {
+            inner.classList.add('egg-wobble');
+            setTimeout(() => inner.classList.remove('egg-wobble'), 500);
+          }
+          if (window.dojoAudio) window.dojoAudio.playTick();
+          this.renderPreview();
+        } else if (this.eggCrackStep === 1) {
+          this.eggCrackStep = 2;
+          if (inner) {
+            inner.classList.add('egg-wobble');
+            setTimeout(() => inner.classList.remove('egg-wobble'), 500);
+          }
+          if (window.dojoAudio) window.dojoAudio.playPositive();
+          this.renderPreview();
+        } else {
+          // Final Hatch!
+          this.eggCrackStep = 0;
           store.updateStudentMonster(this.activeClass.id, s.id, this.traits);
           if (window.dojoAudio) window.dojoAudio.playFanfare();
-          if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 80);
+          if (window.dojoConfetti) window.dojoConfetti.burst(null, null, 90);
           this.renderAll();
-        });
-      }
+        }
+      };
+
+      document.getElementById('btn-hatch-egg')?.addEventListener('click', triggerCrack);
+      document.getElementById('egg-cracking-box')?.addEventListener('click', triggerCrack);
     } else {
       // Hatched Bee mode
       this.livePreviewWrap.innerHTML = window.monsterEngine ? window.monsterEngine.render(this.traits, 160) : '';
       if (this.hatchActionWrap) {
         this.hatchActionWrap.innerHTML = `
-          <span style="background: #fef3c7; color: #b45309; font-weight: 700; padding: 6px 16px; border-radius: var(--radius-full); font-size: 0.9rem; border: 1px solid #fde68a;">
-            ✨ 已完成破繭採蜜中
-          </span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="background: #fef3c7; color: #b45309; font-weight: 700; padding: 6px 16px; border-radius: var(--radius-full); font-size: 0.9rem; border: 1px solid #fde68a;">
+              ✨ 已完成破繭採蜜中
+            </span>
+            <button class="btn btn-secondary btn-sm" id="btn-re-hatch" title="再次體驗破繭儀式" style="border-radius: var(--radius-full);">
+              <i class="fa-solid fa-rotate-right"></i> 重新體驗破繭
+            </button>
+          </div>
         `;
+
+        document.getElementById('btn-re-hatch')?.addEventListener('click', () => {
+          s.isHatched = false;
+          this.eggCrackStep = 0;
+          this.renderPreview();
+        });
       }
     }
   }
@@ -448,6 +498,111 @@ class StudentController {
         </div>
         <div style="font-weight: 800; font-size: 1.1rem; color: ${item.points >= 0 ? '#d97706' : '#ef4444'};">
           ${item.points >= 0 ? '+' + item.points : item.points} 滴花蜜
+        </div>
+      </div>
+    `).join('');
+
+    // Breakthrough 5: Render 8 Badges Showroom & Streak Pill
+    this.renderBadgesShowroom(s);
+  }
+
+  // Render 8-Badge Achievement Showroom
+  renderBadgesShowroom(s) {
+    const wrap = document.getElementById('student-badges-showroom');
+    const countTag = document.getElementById('unlocked-badge-count-tag');
+    if (!wrap) return;
+
+    const streakPill = document.getElementById('student-streak-pill');
+    const navStreakPill = document.getElementById('nav-streak-pill');
+    const streakDays = 5; // Duolingo style active streak
+    if (streakPill) {
+      streakPill.innerHTML = `<i class="fa-solid fa-fire"></i> <span>連續全勤 <strong>${streakDays}</strong> 天</span>`;
+    }
+    if (navStreakPill) {
+      navStreakPill.innerHTML = `<i class="fa-solid fa-fire"></i> <span>${streakDays} 天全勤</span>`;
+    }
+
+    const badges = [
+      {
+        id: 'hatch',
+        title: '初生萌蜂',
+        desc: '完成破繭孵化，踏入向日葵花園',
+        icon: '<i class="fa-solid fa-egg" style="color: #f59e0b;"></i>',
+        unlocked: !!s.isHatched,
+        progress: s.isHatched ? '已破繭' : '點擊造型工坊孵化'
+      },
+      {
+        id: 'honey_5',
+        title: '採蜜小先鋒',
+        desc: '累積獲得 5 滴以上花蜜點數',
+        icon: '<i class="fa-solid fa-jar" style="color: #d97706;"></i>',
+        unlocked: s.points >= 5,
+        progress: s.points >= 5 ? '已達成' : `${s.points} / 5 點`
+      },
+      {
+        id: 'picasso',
+        title: '小小畢卡索',
+        desc: '完成並提交至少 1 件課堂手繪作品',
+        icon: '<i class="fa-solid fa-palette" style="color: #ec4899;"></i>',
+        unlocked: !!(s.portfolio && s.portfolio.length > 0),
+        progress: (s.portfolio && s.portfolio.length > 0) ? '已提交創作' : '前往歷程手繪創作'
+      },
+      {
+        id: 'teamwork',
+        title: '蜂巢合作王',
+        desc: '在課堂展現積極小組團隊協作',
+        icon: '<i class="fa-solid fa-handshake-angle" style="color: #10b981;"></i>',
+        unlocked: !!(s.history && s.history.some(h => (h.skillName || '').includes('合作') || (h.skillName || '').includes('小組'))),
+        progress: '團隊合作獎勵'
+      },
+      {
+        id: 'streak',
+        title: '全勤火苗',
+        desc: '連續 5 天登入蜂巢課堂認真採蜜',
+        icon: '<i class="fa-solid fa-fire" style="color: #ef4444;"></i>',
+        unlocked: true,
+        progress: '連續 5 天全勤中'
+      },
+      {
+        id: 'enthusiastic',
+        title: '課堂發言之星',
+        desc: '主動積極舉手發言獲得導師認可',
+        icon: '<i class="fa-solid fa-bullhorn" style="color: #3b82f6;"></i>',
+        unlocked: !!(s.history && s.history.some(h => (h.skillName || '').includes('積極') || (h.skillName || '').includes('發言'))),
+        progress: '積極發言獎勵'
+      },
+      {
+        id: 'kindness',
+        title: '熱心助人天使',
+        desc: '展現友愛互助，主動協助班級隊友',
+        icon: '<i class="fa-solid fa-heart" style="color: #f43f5e;"></i>',
+        unlocked: !!(s.history && s.history.some(h => (h.skillName || '').includes('助人') || (h.skillName || '').includes('友愛') || (h.skillName || '').includes('熱心'))),
+        progress: '熱心助人獎勵'
+      },
+      {
+        id: 'legend',
+        title: '傳奇蜂巢衛士',
+        desc: '班級點數累積達 15 滴以上至高榮譽',
+        icon: '<i class="fa-solid fa-crown" style="color: #eab308;"></i>',
+        unlocked: s.points >= 15,
+        progress: s.points >= 15 ? '榮耀解鎖' : `${s.points} / 15 點`
+      }
+    ];
+
+    const unlockedCount = badges.filter(b => b.unlocked).length;
+    if (countTag) {
+      countTag.textContent = `已解鎖 ${unlockedCount} / ${badges.length} 個`;
+    }
+
+    wrap.innerHTML = badges.map(b => `
+      <div class="badge-trophy-card ${b.unlocked ? 'unlocked' : 'locked'}">
+        <div class="badge-icon-disc">
+          ${b.unlocked ? b.icon : '<i class="fa-solid fa-lock" style="color: #94a3b8;"></i>'}
+        </div>
+        <div class="badge-name">${escapeHTML(b.title)}</div>
+        <div class="badge-desc">${escapeHTML(b.desc)}</div>
+        <div class="badge-status-tag" style="margin-top: 10px; font-size: 0.75rem; font-weight: 700; color: ${b.unlocked ? '#059669' : '#94a3b8'};">
+          ${b.unlocked ? '✨ 已解鎖' : `🔒 ${escapeHTML(b.progress)}`}
         </div>
       </div>
     `).join('');

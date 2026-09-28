@@ -341,7 +341,26 @@ class TeacherController {
         this.renderStudents();
         searchInput?.focus();
       });
-    }
+    // Breakthrough 1: Presentation Mode Toggle
+    const btnPres = document.getElementById('btn-toggle-presentation');
+    btnPres?.addEventListener('click', () => {
+      const isPres = document.body.classList.toggle('presentation-mode');
+      btnPres.innerHTML = isPres ? '<i class="fa-solid fa-compress"></i> 退出投影展示' : '<i class="fa-solid fa-expand"></i> 投影展示模式';
+      btnPres.classList.toggle('btn-primary', isPres);
+      btnPres.classList.toggle('btn-secondary', !isPres);
+      if (window.dojoAudio) window.dojoAudio.playPositive();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('presentation-mode')) {
+        document.body.classList.remove('presentation-mode');
+        if (btnPres) {
+          btnPres.innerHTML = '<i class="fa-solid fa-expand"></i> 投影展示模式';
+          btnPres.classList.remove('btn-primary');
+          btnPres.classList.add('btn-secondary');
+        }
+      }
+    });
 
     // Floating Dock Buttons
     document.getElementById('dock-btn-toolkit')?.addEventListener('click', () => this.openModal(this.toolkitModal));
@@ -546,6 +565,7 @@ class TeacherController {
     // Random Modal Controls
     document.getElementById('btn-close-random')?.addEventListener('click', () => this.closeModal(this.randomModal));
     document.getElementById('btn-spin-random')?.addEventListener('click', () => this.spinRandomPicker());
+    document.getElementById('lucky-wheel-canvas')?.addEventListener('click', () => this.spinRandomPicker());
     document.getElementById('btn-award-picked')?.addEventListener('click', () => {
       if (this.lastPickedStudent) {
         this.closeModal(this.randomModal);
@@ -1010,7 +1030,7 @@ class TeacherController {
         store.awardMultipleStudents(activeCls.id, this.awardTarget.studentIds, skill);
       }
 
-      // Audio & Confetti
+      // Audio & Confetti & Giant Celebration Splash
       if (skill.points > 0) {
         if (this.awardTarget.type === 'whole_class') {
           if (window.dojoAudio) window.dojoAudio.playFanfare();
@@ -1018,8 +1038,10 @@ class TeacherController {
           if (window.dojoAudio) window.dojoAudio.playPositive();
         }
         if (window.dojoConfetti) window.dojoConfetti.burst();
+        this.showCelebrationSplash(this.awardTarget, skill);
       } else {
         if (window.dojoAudio) window.dojoAudio.playNeedsWork();
+        this.showCelebrationSplash(this.awardTarget, skill);
       }
 
       this.closeModal(this.skillsModal);
@@ -1101,52 +1123,146 @@ class TeacherController {
     }
   }
 
-  // Random Picker Spotlight
+  // Breakthrough 3: Interactive Lucky Wheel & Random Picker
+  drawLuckyWheel(angle = 0) {
+    const canvas = document.getElementById('lucky-wheel-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = width / 2 - 6;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const cls = store.getActiveClass();
+    const students = cls ? cls.students : [];
+    if (!students || students.length === 0) return;
+
+    const numSlices = students.length;
+    const sliceAngle = (2 * Math.PI) / numSlices;
+    const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6', '#f97316', '#06b6d4', '#84cc16'];
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+
+    for (let i = 0; i < numSlices; i++) {
+      const startA = i * sliceAngle;
+      const endA = startA + sliceAngle;
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, radius, startA, endA);
+      ctx.closePath();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      // Text label
+      ctx.save();
+      ctx.rotate(startA + sliceAngle / 2);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 3;
+      const name = students[i].name.length > 7 ? students[i].name.substring(0, 6) + '…' : students[i].name;
+      ctx.fillText(name, radius - 16, 4);
+      ctx.restore();
+    }
+
+    // Center Hub (Golden Bee Medallion)
+    ctx.beginPath();
+    ctx.arc(0, 0, 24, 0, 2 * Math.PI);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#f59e0b';
+    ctx.stroke();
+
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🐝', 0, 1);
+
+    ctx.restore();
+  }
+
   openRandomModal() {
     this.openModal(this.randomModal);
-    document.getElementById('spotlight-student-name').textContent = '點擊開始抽籤';
+    document.getElementById('spotlight-student-name').textContent = '點擊開始旋轉大轉盤';
     document.getElementById('spotlight-sub').textContent = '誰會是下一位幸運發言者？';
     document.getElementById('btn-award-picked').style.display = 'none';
-    document.getElementById('spotlight-monster-wrap').innerHTML = window.monsterEngine.renderWholeClassIcon(90);
+    const spotlightCard = document.getElementById('spotlight-card');
+    if (spotlightCard) spotlightCard.style.display = 'none';
+    this.drawLuckyWheel(this.wheelAngle || 0);
   }
 
   spinRandomPicker() {
+    if (this.isWheelSpinning) return;
     const cls = store.getActiveClass();
     if (!cls || cls.students.length === 0) return;
 
-    const card = document.getElementById('spotlight-card');
     const nameEl = document.getElementById('spotlight-student-name');
     const wrap = document.getElementById('spotlight-monster-wrap');
+    const spotlightCard = document.getElementById('spotlight-card');
     const awardBtn = document.getElementById('btn-award-picked');
 
-    card.classList.add('spinning');
-    awardBtn.style.display = 'none';
+    this.isWheelSpinning = true;
+    if (awardBtn) awardBtn.style.display = 'none';
+    if (spotlightCard) spotlightCard.style.display = 'none';
+    nameEl.textContent = '轉盤旋轉中...';
 
-    let count = 0;
-    const maxSpins = 20;
-    const timer = setInterval(() => {
-      count++;
-      const randomIdx = Math.floor(Math.random() * cls.students.length);
-      const tempStudent = cls.students[randomIdx];
+    let currentAngle = this.wheelAngle || 0;
+    let velocity = 0.45 + Math.random() * 0.25;
+    const numSlices = cls.students.length;
+    const sliceAngle = (2 * Math.PI) / numSlices;
+    let lastSliceIdx = -1;
 
-      nameEl.textContent = tempStudent.name;
-      wrap.innerHTML = tempStudent.isHatched ? window.monsterEngine.render(tempStudent.monster, 90) : window.monsterEngine.renderEgg(tempStudent.name, 90);
+    const animateWheel = () => {
+      currentAngle += velocity;
+      velocity *= 0.982; // deceleration friction
+      this.wheelAngle = currentAngle;
+      this.drawLuckyWheel(currentAngle);
 
-      if (window.dojoAudio) window.dojoAudio.playTick();
+      // Determine slice at 12 o'clock pointer (-PI/2)
+      const norm = ((-Math.PI / 2 - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      const currentSlice = Math.floor(norm / sliceAngle) % numSlices;
+      if (currentSlice !== lastSliceIdx) {
+        lastSliceIdx = currentSlice;
+        if (window.dojoAudio) window.dojoAudio.playTick();
+      }
 
-      if (count >= maxSpins) {
-        clearInterval(timer);
-        card.classList.remove('spinning');
-        this.lastPickedStudent = tempStudent;
+      if (velocity > 0.002) {
+        requestAnimationFrame(animateWheel);
+      } else {
+        this.isWheelSpinning = false;
+        const winner = cls.students[currentSlice];
+        this.lastPickedStudent = winner;
 
-        nameEl.textContent = `🎉 ${tempStudent.name}！`;
-        document.getElementById('spotlight-sub').textContent = `座號 ${tempStudent.seatNumber} • 目前累積 ${tempStudent.points} 點`;
-        awardBtn.style.display = 'inline-flex';
+        nameEl.textContent = `🎉 恭喜 ${winner.name}！`;
+        document.getElementById('spotlight-sub').textContent = `座號 ${winner.seatNumber} • 目前累積 ${winner.points} 滴花蜜`;
+        if (wrap) {
+          wrap.innerHTML = winner.isHatched
+            ? (window.monsterEngine ? window.monsterEngine.render(winner.monster, 90) : '🐝')
+            : (window.monsterEngine ? window.monsterEngine.renderEgg(winner.name, 90) : '🍯');
+        }
+        if (spotlightCard) {
+          spotlightCard.style.display = 'block';
+          spotlightCard.classList.remove('spinning');
+        }
+        if (awardBtn) awardBtn.style.display = 'inline-flex';
 
         if (window.dojoAudio) window.dojoAudio.playPositive();
         if (window.dojoConfetti) window.dojoConfetti.burst();
       }
-    }, 100);
+    };
+
+    requestAnimationFrame(animateWheel);
   }
 
   // Group Maker
@@ -1980,6 +2096,53 @@ class TeacherController {
     this.currentDirections.steps.push({ text, done: false });
     this.renderDirectionsSteps();
     if (window.dojoAudio) window.dojoAudio.playPositive();
+  }
+
+  // Breakthrough 2: Giant Point Celebration Splash Overlay
+  showCelebrationSplash(target, skill) {
+    const splash = document.getElementById('celebration-splash');
+    const avatarEl = document.getElementById('splash-avatar');
+    const nameEl = document.getElementById('splash-name');
+    const badgeEl = document.getElementById('splash-badge');
+    if (!splash || !avatarEl || !nameEl || !badgeEl) return;
+
+    let displayName = '';
+    let avatarHtml = '';
+    const activeCls = store.getActiveClass();
+
+    if (target.type === 'student') {
+      const stu = activeCls?.students.find(s => s.id === target.id);
+      displayName = stu ? stu.name : (target.name || '優秀小蜜蜂');
+      avatarHtml = (stu && stu.isHatched)
+        ? (window.monsterEngine ? window.monsterEngine.render(stu.monster, 110) : '🐝')
+        : (stu && window.monsterEngine ? window.monsterEngine.renderEgg(stu.name, 110) : '🍯');
+    } else if (target.type === 'whole_class') {
+      displayName = activeCls ? activeCls.name : '向日葵全班小隊';
+      avatarHtml = window.monsterEngine ? window.monsterEngine.renderWholeClassIcon(110) : '🏆';
+    } else if (target.type === 'multiple') {
+      displayName = `所選 ${target.studentIds?.length || 0} 位蜂巢隊員`;
+      avatarHtml = '<div style="font-size: 4rem;">🐝✨</div>';
+    }
+
+    nameEl.textContent = displayName;
+    avatarEl.innerHTML = avatarHtml;
+    const sign = skill.points > 0 ? `+${skill.points}` : `${skill.points}`;
+    badgeEl.textContent = `${sign} ${skill.name || '獲得讚賞'}`;
+    badgeEl.style.background = skill.points >= 0
+      ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+      : 'linear-gradient(135deg, #ef4444, #b91c1c)';
+
+    splash.classList.add('active');
+
+    if (this.splashTimeout) clearTimeout(this.splashTimeout);
+    this.splashTimeout = setTimeout(() => {
+      splash.classList.remove('active');
+    }, 2200);
+
+    splash.onclick = () => {
+      splash.classList.remove('active');
+      if (this.splashTimeout) clearTimeout(this.splashTimeout);
+    };
   }
 
   // Modal helpers

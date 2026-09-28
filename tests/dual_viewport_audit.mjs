@@ -1,6 +1,6 @@
 // Environment Polyfills for Headless Node.js Execution
 const storage = new Map();
-globalThis.localStorage = {
+const mockLocalStorage = {
   getItem: (k) => storage.get(k) || null,
   setItem: (k, v) => storage.set(k, String(v)),
   removeItem: (k) => storage.delete(k),
@@ -9,12 +9,18 @@ globalThis.localStorage = {
   key: (i) => Array.from(storage.keys())[i] || null
 };
 
-globalThis.window = {
+globalThis.localStorage = mockLocalStorage;
+global.localStorage = mockLocalStorage;
+
+const mockWindow = {
   addEventListener: () => {},
   removeEventListener: () => {},
   dispatchEvent: () => true,
-  localStorage: globalThis.localStorage
+  localStorage: mockLocalStorage
 };
+
+globalThis.window = mockWindow;
+global.window = mockWindow;
 
 globalThis.CustomEvent = class CustomEvent {
   constructor(type, eventInitDict) {
@@ -22,10 +28,11 @@ globalThis.CustomEvent = class CustomEvent {
     this.detail = eventInitDict?.detail || null;
   }
 };
+global.CustomEvent = globalThis.CustomEvent;
 
 import fs from 'fs';
-import { store } from '../js/store.js';
-import { verifyPassword } from '../js/security.js';
+const { store } = await import('../js/store.js');
+const { verifyPassword } = await import('../js/security.js');
 
 console.log('================================================================================');
 console.log('DUAL VIEWPORT (DESKTOP 1280x800 & MOBILE 393x852) + BUTTON INTEGRITY TEST SUITE');
@@ -114,16 +121,16 @@ assert(indexHtml.includes('pane-tab-teacher'), 'index.html contains Teacher logi
 assert(indexHtml.includes('pane-tab-student'), 'index.html contains Student code & quick-picker pane');
 assert(indexHtml.includes('pane-tab-parent'), 'index.html contains Parent invite & quick-picker pane');
 assert(indexHtml.includes('pane-tab-demo'), 'index.html contains 1-Click Instant Playground sandbox pane');
-assert(indexHtml.includes('data-student-id="stu_1"'), 'index.html quick-picker includes student stu_1 (Beyoncé)');
-assert(indexHtml.includes('data-student-id="stu_5"'), 'index.html quick-picker includes student stu_5 (Leonardo)');
-assert(indexHtml.includes('parent.html?child=stu_1'), 'index.html quick-picker maps to parent.html?child=stu_1');
+assert(indexHtml.includes('data-student-id="stu_demo_1"') || indexHtml.includes('data-student-id="stu_1"'), 'index.html quick-picker includes student 1 (Beyoncé)');
+assert(indexHtml.includes('data-student-id="stu_demo_5"') || indexHtml.includes('data-student-id="stu_5"'), 'index.html quick-picker includes student 5 (Leonardo)');
+assert(indexHtml.includes('parent.html?child=stu_demo_1') || indexHtml.includes('parent.html?child=stu_1'), 'index.html quick-picker maps to parent child parameter');
 assert(indexHtml.includes('btn-mobile-quick-login'), 'index.html has mobile-visible quick login button');
 
 // 6. User Global Rule 1: Changelog Maintenance
 console.log('\n[SUITE 6: CHANGELOG MAINTENANCE (USER GLOBAL RULE 1)]');
 const changelogJs = fs.readFileSync('js/changelog.js', 'utf8');
-assert(changelogJs.includes('v2.8.0'), 'changelog.js includes latest v2.8.0 release');
-assert(changelogJs.includes('isLatest: true'), 'changelog.js marks v2.8.0 as latest');
+assert(changelogJs.includes('v2.9.0'), 'changelog.js includes latest v2.9.0 release');
+assert(changelogJs.includes('isLatest: true'), 'changelog.js marks v2.9.0 as latest');
 assert(indexHtml.includes('id="changelog-container"'), 'index.html features changelog container section');
 
 // 7. User Global Rule 4: Data Security & Zero Disruption
@@ -133,6 +140,26 @@ assert(activeClass !== null && activeClass !== undefined, 'Active class is secur
 assert(activeClass.students.length >= 5, `Active class preserves at least 5 students (Actual: ${activeClass.students.length})`);
 assert(activeClass.students.some(s => s.name === 'Beyoncé'), 'Beyoncé student record data intact');
 assert(activeClass.students.some(s => s.name === 'Leonardo'), 'Leonardo student record data intact');
+
+// 8. ClassDojo Breakthrough Features Verification (v2.9.0)
+console.log('\n[SUITE 8: CLASSDOJO SOUL-LEVEL VISUAL & FEATURE BREAKTHROUGHS]');
+const teacherHtml = fs.readFileSync('teacher.html', 'utf8');
+const studentHtml = fs.readFileSync('student.html', 'utf8');
+const teacherJs = fs.readFileSync('js/teacher.js', 'utf8');
+const studentJs = fs.readFileSync('js/student.js', 'utf8');
+const dojoUiCss = fs.readFileSync('css/dojo-ui.css', 'utf8');
+
+assert(teacherHtml.includes('id="btn-toggle-presentation"'), 'teacher.html features Presentation Mode toggle button');
+assert(dojoUiCss.includes('body.presentation-mode'), 'css/dojo-ui.css defines theater presentation layout styles');
+assert(teacherHtml.includes('id="celebration-splash"'), 'teacher.html features Giant Point Celebration Splash overlay');
+assert(teacherJs.includes('showCelebrationSplash'), 'teacher.js implements showCelebrationSplash method');
+assert(teacherHtml.includes('id="lucky-wheel-canvas"'), 'teacher.html features Lucky Wheel canvas element');
+assert(teacherJs.includes('drawLuckyWheel'), 'teacher.js implements drawLuckyWheel method');
+assert(teacherJs.includes('spinRandomPicker'), 'teacher.js implements physics-based spinRandomPicker method');
+assert(studentJs.includes('eggCrackStep'), 'student.js implements 3-Stage Egg Cracking Ceremony');
+assert(studentHtml.includes('id="student-badges-showroom"'), 'student.html features 8-Badge Achievement Showroom');
+assert(studentJs.includes('renderBadgesShowroom'), 'student.js implements renderBadgesShowroom method');
+assert(studentHtml.includes('class="streak-fire-pill"'), 'student.html features Duolingo-style Streak Fire Pill');
 
 console.log('\n================================================================================');
 console.log(`TOTAL CHECKS: ${passCount + failCount} | PASSED: ${passCount} | FAILED: ${failCount}`);

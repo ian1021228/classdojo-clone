@@ -31,6 +31,9 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="streak-fire-pill" id="nav-streak-pill" style="padding: 4px 10px; font-size: 0.8rem; margin: 0;">
+        <i class="fa-solid fa-fire"></i> <span>5 天全勤</span>
+      </div>
       <button id="nav-sound-toggle" class="btn btn-secondary btn-sm" title="開關全域音效" style="padding: 6px 10px;">
         <i class="fa-solid fa-volume-high" id="sound-toggle-icon"></i>
       </button>
@@ -119,6 +122,11 @@
           <h3 id="student-points-title" style="font-size: 1.35rem; font-weight: 800; color: #1e293b;">Beyoncé</h3>
           <p style="color: #64748b; font-size: 0.9rem; margin-top: 6px;">勤勞認真，持續採集知識的花蜜！</p>
 
+          <div class="streak-fire-pill" id="student-streak-pill" style="margin: 10px auto 14px;">
+            <i class="fa-solid fa-fire"></i>
+            <span>連續全勤 <strong>5</strong> 天</span>
+          </div>
+
           <!-- Level & XP Progress Bar -->
           <div style="margin-top: 18px; padding: 14px; background: #fffdf5; border-radius: 12px; border: 1.5px solid #fde68a;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -140,6 +148,20 @@
           <div id="student-feedback-timeline" style="display: flex; flex-direction: column; gap: 14px;">
             <!-- Injected dynamically -->
           </div>
+        </div>
+      </div>
+
+      <!-- Breakthrough 5: 8 Badges Achievement Showroom -->
+      <div style="margin-top: 24px; background: #ffffff; border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm); border: 1.5px solid #fde68a;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0;"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> 榮譽蜂巢成就勳章展廳 (Achievements)</h3>
+            <p style="color: #64748b; font-size: 0.85rem; margin: 4px 0 0 0;">積極完成課堂發言、團隊合作、作品創作與連續全勤，解鎖全套 8 大成就！</p>
+          </div>
+          <span id="unlocked-badge-count-tag" style="background: #fef3c7; color: #b45309; font-weight: 800; padding: 4px 14px; border-radius: var(--radius-full); font-size: 0.85rem; border: 1px solid #fde68a;">已解鎖 0 / 8 個</span>
+        </div>
+        <div class="badges-showroom-grid" id="student-badges-showroom">
+          <!-- Dynamically populated by student.js -->
         </div>
       </div>
     </section>
